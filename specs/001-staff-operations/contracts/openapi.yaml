@@ -1,0 +1,478 @@
+openapi: 3.1.0
+info:
+  title: Coffee Shop Staff Operations API
+  version: 0.1.0
+paths:
+  /auth/login:
+    post:
+      summary: Create an authorized staff session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        "204":
+          description: Login accepted and HTTP-only session cookie set
+        "401":
+          description: Invalid credentials or inactive staff account
+
+  /auth/logout:
+    post:
+      summary: End the current staff session
+      responses:
+        "204":
+          description: Session ended
+        "401":
+          description: Staff authorization required
+
+  /staff/session:
+    get:
+      summary: Return the current authorized staff user
+      responses:
+        "200":
+          description: Authorized staff user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffUser"
+        "401":
+          description: Staff authorization required
+
+  /menu/categories:
+    get:
+      summary: List active menu categories with their menu items
+      responses:
+        "200":
+          description: Menu categories and items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuCategory"
+
+  /menu/items:
+    post:
+      summary: Create a menu item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MenuItemInput"
+      responses:
+        "201":
+          description: Menu item created
+
+  /menu/items/{itemId}:
+    patch:
+      summary: Update menu item details, availability, active state, or customization groups
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Menu item updated
+        "404":
+          description: Menu item not found
+
+  /orders:
+    post:
+      summary: Create an accepted counter order with a daily order number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created with daily order number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid order request
+
+  /orders/{orderId}/queue:
+    post:
+      summary: Push a created order to the brew queue
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order queued
+        "409":
+          description: Order cannot be queued from its current state
+
+  /queue/orders:
+    get:
+      summary: List waiting, in-progress, completed, and pickup-pending orders
+      responses:
+        "200":
+          description: Active brew queue
+
+  /queue/orders/{orderId}/claim:
+    post:
+      summary: Claim a waiting order and mark it in progress
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order claimed
+        "409":
+          description: Order already claimed or not waiting
+
+  /orders/{orderId}/beverages/{beverageId}/complete:
+    post:
+      summary: Mark one order beverage completed
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: beverageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Beverage completed
+        "409":
+          description: Beverage cannot be completed from its current state
+
+  /orders/{orderId}/beverages/{beverageId}/cancel:
+    post:
+      summary: Cancel one beverage without cancelling remaining beverages
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: beverageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Beverage cancelled
+        "409":
+          description: Beverage cannot be cancelled from its current state
+
+  /orders/{orderId}/complete:
+    post:
+      summary: Mark an order completed when all remaining beverages are done
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order ready for pickup
+        "409":
+          description: Remaining beverages are not complete or order state is invalid
+
+  /orders/{orderId}/pickup:
+    post:
+      summary: Confirm customer pickup after order completion
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pickup confirmed
+        "409":
+          description: Order is not completed
+
+  /orders/{orderId}/cancel:
+    post:
+      summary: Cancel a whole order before pickup
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order cancelled
+        "409":
+          description: Order cannot be cancelled from its current state
+
+  /orders/history:
+    get:
+      summary: Search current-day order history
+      parameters:
+        - name: dailyOrderNumber
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+        - name: pickupName
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching current-day orders
+
+components:
+  schemas:
+    OrderStatus:
+      type: string
+      enum:
+        - created
+        - queued
+        - in_progress
+        - completed
+        - picked_up
+        - cancelled
+    BeverageStatus:
+      type: string
+      enum:
+        - pending
+        - completed
+        - cancelled
+    StaffUser:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        authorizationStatus:
+          type: string
+          enum:
+            - authorized
+            - inactive
+    CreateOrderRequest:
+      type: object
+      required:
+        - beverages
+      properties:
+        pickupName:
+          type: string
+        beverages:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - menuItemId
+              - quantity
+            properties:
+              menuItemId:
+                type: string
+              quantity:
+                type: integer
+                minimum: 1
+              selectedCustomizations:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SelectedCustomization"
+              specialInstructions:
+                type: string
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        businessDate:
+          type: string
+          format: date
+        dailyOrderNumber:
+          type: integer
+        pickupName:
+          type: string
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        total:
+          type: number
+        beverages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderBeverage"
+    OrderBeverage:
+      type: object
+      properties:
+        id:
+          type: string
+        nameSnapshot:
+          type: string
+        quantity:
+          type: integer
+        priceSnapshot:
+          type: number
+        selectedCustomizationsSnapshot:
+          type: array
+          items:
+            $ref: "#/components/schemas/SelectedCustomizationSnapshot"
+        specialInstructions:
+          type: string
+        status:
+          $ref: "#/components/schemas/BeverageStatus"
+    MenuCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        menuItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/MenuItem"
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: string
+        categoryId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        available:
+          type: boolean
+        active:
+          type: boolean
+        customizationGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomizationGroup"
+    MenuItemInput:
+      type: object
+      required:
+        - categoryId
+        - name
+        - price
+      properties:
+        categoryId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        available:
+          type: boolean
+        active:
+          type: boolean
+        customizationGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomizationGroupInput"
+    CustomizationGroup:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        required:
+          type: boolean
+        minSelections:
+          type: integer
+          minimum: 0
+        maxSelections:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomizationChoice"
+    CustomizationGroupInput:
+      allOf:
+        - $ref: "#/components/schemas/CustomizationGroup"
+    CustomizationChoice:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        priceAdjustment:
+          type: number
+        available:
+          type: boolean
+        active:
+          type: boolean
+    SelectedCustomization:
+      type: object
+      required:
+        - customizationGroupId
+        - customizationChoiceIds
+      properties:
+        customizationGroupId:
+          type: string
+        customizationChoiceIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+    SelectedCustomizationSnapshot:
+      type: object
+      properties:
+        groupName:
+          type: string
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              choiceName:
+                type: string
+              priceAdjustment:
+                type: number
