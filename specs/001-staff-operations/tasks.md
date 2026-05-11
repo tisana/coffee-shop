@@ -70,25 +70,25 @@
 
 ### Tests for User Story 1
 
-- [ ] T032 [P] [US1] Add contract tests for `POST /auth/login`, `GET /staff/session`, `POST /orders`, and `POST /orders/{orderId}/queue` in `apps/api/tests/integration/order-create.contract.test.ts`
+- [ ] T032 [P] [US1] Add contract tests for `POST /auth/login`, `GET /staff/session`, `POST /orders` with optional pickup name, and `POST /orders/{orderId}/queue` in `apps/api/tests/integration/order-create.contract.test.ts`
 - [ ] T033 [P] [US1] Add daily order number concurrency test in `apps/api/tests/integration/daily-order-number.test.ts`
 - [ ] T034 [P] [US1] Add purchased customization snapshot test in `apps/api/tests/integration/order-snapshot.test.ts`
-- [ ] T035 [P] [US1] Add Playwright counter order flow test with 60-second order creation timing assertion in `apps/staff-web/tests/e2e/counter-order.spec.ts`
+- [ ] T035 [P] [US1] Add Playwright counter order flow test with optional pickup name capture, queue submission feedback, and 60-second order creation timing assertion in `apps/staff-web/tests/e2e/counter-order.spec.ts`
 
 ### Implementation for User Story 1
 
 - [ ] T036 [US1] Implement auth routes for login, logout, and current session in `apps/api/src/routes/authRoutes.ts`
 - [ ] T037 [US1] Implement menu read service for order taking in `apps/api/src/domain/menuService.ts`
-- [ ] T038 [US1] Implement order creation service with daily number transaction and purchased customization snapshots in `apps/api/src/domain/orderCreationService.ts`
+- [ ] T038 [US1] Implement order creation service with daily number transaction, pickup name persistence, purchased customization snapshots, and created status timestamp in `apps/api/src/domain/orderCreationService.ts`
 - [ ] T039 [US1] Implement order creation routes in `apps/api/src/routes/orderRoutes.ts`
-- [ ] T040 [US1] Implement queue submission service for created orders in `apps/api/src/domain/queueSubmissionService.ts`
+- [ ] T040 [US1] Implement queue submission service for created orders with queued status timestamp in `apps/api/src/domain/queueSubmissionService.ts`
 - [ ] T041 [US1] Implement order queue submission route in `apps/api/src/routes/queueSubmissionRoutes.ts`
 - [ ] T042 [US1] Create staff login page in `apps/staff-web/src/pages/LoginPage.tsx`
-- [ ] T043 [US1] Create counter order page with menu, scoped customizations, and order summary in `apps/staff-web/src/pages/CounterOrderPage.tsx`
+- [ ] T043 [US1] Create counter order page with optional pickup name input, menu, scoped customizations, and order summary in `apps/staff-web/src/pages/CounterOrderPage.tsx`
 - [ ] T044 [US1] Create menu item customization selector in `apps/staff-web/src/components/CustomizationSelector.tsx`
 - [ ] T045 [US1] Create order summary and submit controls in `apps/staff-web/src/components/OrderSummary.tsx`
 - [ ] T046 [US1] Wire order creation and queue submission client calls in `apps/staff-web/src/services/ordersApi.ts`
-- [ ] T047 [US1] Add created order confirmation with daily order number in `apps/staff-web/src/components/OrderCreatedBanner.tsx`
+- [ ] T047 [US1] Add created order and queue submission confirmation or error feedback with daily order number in `apps/staff-web/src/components/OrderCreatedBanner.tsx`
 
 **Checkpoint**: User Story 1 is independently functional and demonstrates the MVP order-taking path.
 
@@ -109,7 +109,7 @@
 ### Implementation for User Story 2
 
 - [ ] T051 [US2] Implement active queue query service in `apps/api/src/domain/queueService.ts`
-- [ ] T052 [US2] Implement atomic queue claim service with conflict handling in `apps/api/src/domain/queueClaimService.ts`
+- [ ] T052 [US2] Implement atomic queue claim service with conflict handling and in-progress status timestamp in `apps/api/src/domain/queueClaimService.ts`
 - [ ] T053 [US2] Implement queue list and claim routes in `apps/api/src/routes/queueRoutes.ts`
 - [ ] T054 [US2] Create brew queue page with waiting and in-progress sections in `apps/staff-web/src/pages/BrewQueuePage.tsx`
 - [ ] T055 [US2] Create queue order card showing daily number, beverages, customizations, and assigned barista in `apps/staff-web/src/components/QueueOrderCard.tsx`
@@ -128,8 +128,8 @@
 
 ### Tests for User Story 3
 
-- [ ] T058 [P] [US3] Add contract tests for beverage complete, beverage cancel, order complete, order pickup, and order cancel routes in `apps/api/tests/integration/order-fulfillment.contract.test.ts`
-- [ ] T059 [P] [US3] Add state transition guard tests in `apps/api/tests/unit/order-state-machine.test.ts`
+- [ ] T058 [P] [US3] Add contract tests for beverage complete, beverage cancel, order complete, order pickup, order cancel routes, and status timestamp responses in `apps/api/tests/integration/order-fulfillment.contract.test.ts`
+- [ ] T059 [P] [US3] Add state transition guard tests for valid transitions, invalid transitions, and required timestamp changes in `apps/api/tests/unit/order-state-machine.test.ts`
 - [ ] T060 [P] [US3] Add partial beverage cancellation test in `apps/api/tests/integration/partial-cancellation.test.ts`
 - [ ] T061 [P] [US3] Add Playwright complete and pickup flow test with 10-second pickup confirmation timing assertion in `apps/staff-web/tests/e2e/order-completion.spec.ts`
 
@@ -137,12 +137,12 @@
 
 - [ ] T062 [US3] Implement order state machine rules in `apps/api/src/domain/orderStateMachine.ts`
 - [ ] T063 [US3] Implement beverage completion and cancellation service in `apps/api/src/domain/beverageService.ts`
-- [ ] T064 [US3] Implement order completion, pickup confirmation, and order cancellation service in `apps/api/src/domain/orderFulfillmentService.ts`
+- [ ] T064 [US3] Implement order completion, pickup confirmation, and order cancellation service with completed, picked-up, and cancelled status timestamps in `apps/api/src/domain/orderFulfillmentService.ts`
 - [ ] T065 [US3] Implement beverage and order fulfillment routes in `apps/api/src/routes/orderFulfillmentRoutes.ts`
 - [ ] T066 [US3] Add beverage status controls to queue order cards in `apps/staff-web/src/components/BeverageStatusControls.tsx`
 - [ ] T067 [US3] Add ready-for-pickup callout panel using daily order number in `apps/staff-web/src/components/PickupCalloutPanel.tsx`
 - [ ] T068 [US3] Wire fulfillment client calls in `apps/staff-web/src/services/fulfillmentApi.ts`
-- [ ] T069 [US3] Add pickup confirmation interaction in `apps/staff-web/src/components/PickupConfirmationButton.tsx`
+- [ ] T069 [US3] Add pickup confirmation interaction with clear success or error feedback in `apps/staff-web/src/components/PickupConfirmationButton.tsx`
 
 **Checkpoint**: User Stories 1 through 3 form the complete staff order fulfillment journey.
 
@@ -156,16 +156,16 @@
 
 ### Tests for User Story 4
 
-- [ ] T070 [P] [US4] Add contract tests for menu item create/update and customization group updates in `apps/api/tests/integration/menu.contract.test.ts`
+- [ ] T070 [P] [US4] Add contract tests for menu item create/update, customization group updates, and save error responses in `apps/api/tests/integration/menu.contract.test.ts`
 - [ ] T071 [P] [US4] Add menu availability selection guard test in `apps/api/tests/integration/menu-availability.test.ts`
-- [ ] T072 [P] [US4] Add Playwright menu maintenance flow test with 20-second availability update timing assertion in `apps/staff-web/tests/e2e/menu-maintenance.spec.ts`
+- [ ] T072 [P] [US4] Add Playwright menu maintenance flow test with save feedback and 20-second availability update timing assertion in `apps/staff-web/tests/e2e/menu-maintenance.spec.ts`
 
 ### Implementation for User Story 4
 
 - [ ] T073 [US4] Implement menu maintenance service for item details, availability, active state, and customization groups in `apps/api/src/domain/menuMaintenanceService.ts`
 - [ ] T074 [US4] Implement menu maintenance routes in `apps/api/src/routes/menuRoutes.ts`
 - [ ] T075 [US4] Create menu maintenance page in `apps/staff-web/src/pages/MenuMaintenancePage.tsx`
-- [ ] T076 [US4] Create menu item editor with availability and active controls in `apps/staff-web/src/components/MenuItemEditor.tsx`
+- [ ] T076 [US4] Create menu item editor with availability, active controls, and save confirmation or error feedback in `apps/staff-web/src/components/MenuItemEditor.tsx`
 - [ ] T077 [US4] Create customization group and choice editor in `apps/staff-web/src/components/CustomizationGroupEditor.tsx`
 - [ ] T078 [US4] Wire menu maintenance client calls in `apps/staff-web/src/services/menuApi.ts`
 
@@ -183,7 +183,7 @@
 
 - [ ] T079 [P] [US5] Add contract tests for `GET /orders/history` filters in `apps/api/tests/integration/order-history.contract.test.ts`
 - [ ] T080 [P] [US5] Add current-day history query test in `apps/api/tests/integration/current-day-history.test.ts`
-- [ ] T081 [P] [US5] Add Playwright daily activity search test with 45-second current-day order lookup timing assertion in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
+- [ ] T081 [P] [US5] Add Playwright daily activity search test covering daily order number, status, pickup-name filters, and 45-second current-day order lookup timing assertion in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
 
 ### Implementation for User Story 5
 

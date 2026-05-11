@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-staff-operations`  
 **Created**: 2026-05-11  
-**Status**: Draft  
+**Status**: Ready for Implementation
 **Input**: User description: "Shop staff operations. Current journey: barista takes customer order, pushes it to a queue, available barista takes the queued order, marks it in progress, brews beverages, marks completed when all beverages are done, notifies customer by order number, and customer picks up the order. Order numbers are generated daily and can reset each day. If one beverage in a multi-beverage order is out of stock or cancelled, the remaining beverages continue and the customer is notified only when the remaining beverages are ready."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -17,7 +17,7 @@ As a barista taking an order from a customer, I need to create an order with the
 
 **Acceptance Scenarios**:
 
-1. **Given** a customer tells the barista their beverage order, **When** the barista creates the order, **Then** the order records each beverage, quantity, selected customizations, special instructions, and total.
+1. **Given** a customer tells the barista their beverage order, **When** the barista creates the order, **Then** the order records each beverage, quantity, selected customizations, special instructions, optional pickup name when provided, and total.
 2. **Given** the barista saves a new order, **When** the order is accepted, **Then** the system assigns the next available order number for the current business day.
 3. **Given** the order has been created, **When** the barista pushes it to the queue, **Then** available baristas can see it in the brew queue with its daily order number.
 
@@ -95,14 +95,14 @@ As a shop staff member, I need to review orders from the current business day, s
 - If staff attempt to complete an order that has not been marked in progress, the system must prevent completion and show the required next action.
 - If staff attempt to confirm pickup for an order that is still waiting or in progress, the system must prevent pickup confirmation.
 - If the daily order number resets, the system must still distinguish orders from different business days.
-- If order volume is high, the brew queue must remain scannable by separating waiting, in-progress, ready-for-pickup, and picked-up orders.
+- If order volume is high, the active brew queue must remain scannable by separating waiting, in-progress, and ready-for-pickup orders; picked-up orders leave the active queue and appear in current-day order history.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: System MUST allow an authorized barista to create a counter order while taking the customer's order.
-- **FR-002**: System MUST record each ordered beverage, quantity, selected customizations, special instructions, and total.
+- **FR-002**: System MUST record each ordered beverage, quantity, selected customizations, special instructions, optional pickup name when provided, and total.
 - **FR-003**: System MUST assign a short order number to each accepted order for the current business day.
 - **FR-004**: Daily order numbers MUST reset for each new business day while preserving the ability to distinguish orders across different days.
 - **FR-005**: Staff MUST be able to push a created order to the brew queue.
