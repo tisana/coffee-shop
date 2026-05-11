@@ -17,7 +17,7 @@ As a barista taking an order from a customer, I need to create an order with the
 
 **Acceptance Scenarios**:
 
-1. **Given** a customer tells the barista their beverage order, **When** the barista creates the order, **Then** the order records each beverage, quantity, selected options, special instructions, and total.
+1. **Given** a customer tells the barista their beverage order, **When** the barista creates the order, **Then** the order records each beverage, quantity, selected customizations, special instructions, and total.
 2. **Given** the barista saves a new order, **When** the order is accepted, **Then** the system assigns the next available order number for the current business day.
 3. **Given** the order has been created, **When** the barista pushes it to the queue, **Then** available baristas can see it in the brew queue with its daily order number.
 
@@ -59,7 +59,7 @@ As the barista brewing an order, I need to mark the order completed only after e
 
 ### User Story 4 - Maintain Menu Availability (Priority: P4)
 
-As a shop staff member, I need to update item availability and basic menu details, so baristas taking orders do not offer unavailable drinks or outdated options.
+As a shop staff member, I need to update item availability, scoped customizations, and basic menu details, so baristas taking orders do not offer unavailable drinks or outdated customization choices.
 
 **Why this priority**: Menu accuracy supports order taking, but the core journey can still be demonstrated with a small configured menu.
 
@@ -69,7 +69,7 @@ As a shop staff member, I need to update item availability and basic menu detail
 
 1. **Given** a menu item is currently available, **When** staff mark it unavailable, **Then** the item is clearly shown as unavailable and cannot be selected for new counter orders.
 2. **Given** a menu item is unavailable, **When** staff mark it available, **Then** the item becomes available for new counter orders again.
-3. **Given** staff update a menu item's display name, description, category, price, or options, **When** the change is saved, **Then** the updated menu information is used for future orders while existing orders keep their original purchased details.
+3. **Given** staff update a menu item's display name, description, category, price, or customization groups, **When** the change is saved, **Then** the updated menu information is used for future orders while existing orders keep their original purchased details.
 
 ---
 
@@ -102,12 +102,12 @@ As a shop staff member, I need to review orders from the current business day, s
 ### Functional Requirements
 
 - **FR-001**: System MUST allow an authorized barista to create a counter order while taking the customer's order.
-- **FR-002**: System MUST record each ordered beverage, quantity, selected options, special instructions, and total.
+- **FR-002**: System MUST record each ordered beverage, quantity, selected customizations, special instructions, and total.
 - **FR-003**: System MUST assign a short order number to each accepted order for the current business day.
 - **FR-004**: Daily order numbers MUST reset for each new business day while preserving the ability to distinguish orders across different days.
 - **FR-005**: Staff MUST be able to push a created order to the brew queue.
-- **FR-006**: System MUST provide a staff-facing brew queue for orders that are waiting, in progress, ready for pickup, or awaiting pickup confirmation.
-- **FR-007**: System MUST show each queued order's daily order number, received time, beverages, quantities, selected options, special instructions, current status, assigned barista when in progress, and total.
+- **FR-006**: System MUST provide a staff-facing brew queue for orders that are waiting, in progress, or completed and ready for pickup.
+- **FR-007**: System MUST show each queued order's daily order number, received time, beverages, quantities, selected customizations, special instructions, current status, assigned barista when in progress, and total.
 - **FR-008**: Available baristas MUST be able to take a waiting order from the queue and mark it in progress.
 - **FR-009**: System MUST prevent two baristas from taking the same waiting order at the same time.
 - **FR-010**: Staff MUST be able to mark an in-progress order completed only when all non-cancelled beverages in the order are done.
@@ -120,7 +120,7 @@ As a shop staff member, I need to review orders from the current business day, s
 - **FR-017**: System MUST preserve order beverage details as they were at purchase time, even if menu details change later.
 - **FR-018**: Staff MUST be able to view menu items grouped by category.
 - **FR-019**: Staff MUST be able to create, update, retire, and mark menu items available or unavailable for new counter orders.
-- **FR-020**: Staff MUST be able to manage order-facing item details including name, description, category, price, and available options.
+- **FR-020**: Staff MUST be able to manage order-facing item details including name, description, category, price, and available customization groups.
 - **FR-021**: System MUST provide current-day order history for completed, picked-up, and cancelled orders.
 - **FR-022**: Staff MUST be able to filter or search current-day order history by daily order number, final status, and pickup name when available.
 - **FR-023**: System MUST record when an order enters each major status: created, queued, in progress, completed, picked up, and cancelled.
@@ -130,10 +130,10 @@ As a shop staff member, I need to review orders from the current business day, s
 ### Key Entities
 
 - **Staff User**: A person authorized to access shop operations. Key attributes include display name and authorization status.
-- **Menu Item**: A sellable coffee shop product. Key attributes include name, description, category, price, availability, active or retired state, and customer-selectable options.
+- **Menu Item**: A sellable coffee shop product. Key attributes include name, description, category, price, availability, active or retired state, and staff-selectable customization groups.
 - **Menu Category**: A grouping used to organize menu items, such as coffee, tea, pastries, or seasonal items.
 - **Order**: A customer purchase request that staff create and fulfill. Key attributes include business date, daily order number, received time, current status, assigned barista, total, status timestamps, and order beverages.
-- **Order Beverage**: A purchased beverage snapshot within an order. Key attributes include beverage name, quantity, purchased price, selected options, special instructions, completion state, and cancellation state.
+- **Order Beverage**: A purchased beverage snapshot within an order. Key attributes include beverage name, quantity, purchased price, selected customizations, special instructions, completion state, and cancellation state.
 - **Daily Order Sequence**: The business-day numbering sequence used to generate short customer-facing order numbers and support later daily sales reporting.
 
 ## Success Criteria *(mandatory)*

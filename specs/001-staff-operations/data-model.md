@@ -101,7 +101,7 @@ Represents a customer order created by staff.
 - `businessDate`: date used with daily order number for historical uniqueness
 - `dailyOrderNumber`: short customer-facing number for callout
 - `pickupName`: optional customer pickup name
-- `status`: created, queued, in_progress, completed, picked_up, cancelled
+- `status`: created, queued, in_progress, completed, picked_up, cancelled. `completed` means the order is ready for pickup and waiting for pickup confirmation.
 - `createdByStaffId`
 - `assignedBaristaId`
 - `total`
@@ -129,6 +129,7 @@ Represents a customer order created by staff.
 
 **Rules**
 - Completed and picked-up orders cannot return to active preparation states.
+- A completed order is ready for pickup and remains active until pickup is confirmed.
 - Pickup cannot be confirmed before completion.
 - Completion is allowed only when all non-cancelled order beverages are completed.
 - Claiming a queued order must be atomic so only one barista can move it to in progress.

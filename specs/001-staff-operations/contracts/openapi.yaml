@@ -30,6 +30,8 @@ paths:
   /auth/logout:
     post:
       summary: End the current staff session
+      security:
+        - cookieAuth: []
       responses:
         "204":
           description: Session ended
@@ -39,6 +41,8 @@ paths:
   /staff/session:
     get:
       summary: Return the current authorized staff user
+      security:
+        - cookieAuth: []
       responses:
         "200":
           description: Authorized staff user
@@ -52,6 +56,8 @@ paths:
   /menu/categories:
     get:
       summary: List active menu categories with their menu items
+      security:
+        - cookieAuth: []
       responses:
         "200":
           description: Menu categories and items
@@ -65,6 +71,8 @@ paths:
   /menu/items:
     post:
       summary: Create a menu item
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -78,6 +86,8 @@ paths:
   /menu/items/{itemId}:
     patch:
       summary: Update menu item details, availability, active state, or customization groups
+      security:
+        - cookieAuth: []
       parameters:
         - name: itemId
           in: path
@@ -93,6 +103,8 @@ paths:
   /orders:
     post:
       summary: Create an accepted counter order with a daily order number
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -112,6 +124,8 @@ paths:
   /orders/{orderId}/queue:
     post:
       summary: Push a created order to the brew queue
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -126,7 +140,9 @@ paths:
 
   /queue/orders:
     get:
-      summary: List waiting, in-progress, completed, and pickup-pending orders
+      summary: List waiting, in-progress, and completed orders ready for pickup
+      security:
+        - cookieAuth: []
       responses:
         "200":
           description: Active brew queue
@@ -134,6 +150,8 @@ paths:
   /queue/orders/{orderId}/claim:
     post:
       summary: Claim a waiting order and mark it in progress
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -149,6 +167,8 @@ paths:
   /orders/{orderId}/beverages/{beverageId}/complete:
     post:
       summary: Mark one order beverage completed
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -169,6 +189,8 @@ paths:
   /orders/{orderId}/beverages/{beverageId}/cancel:
     post:
       summary: Cancel one beverage without cancelling remaining beverages
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -198,6 +220,8 @@ paths:
   /orders/{orderId}/complete:
     post:
       summary: Mark an order completed when all remaining beverages are done
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -213,6 +237,8 @@ paths:
   /orders/{orderId}/pickup:
     post:
       summary: Confirm customer pickup after order completion
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -228,6 +254,8 @@ paths:
   /orders/{orderId}/cancel:
     post:
       summary: Cancel a whole order before pickup
+      security:
+        - cookieAuth: []
       parameters:
         - name: orderId
           in: path
@@ -243,6 +271,8 @@ paths:
   /orders/history:
     get:
       summary: Search current-day order history
+      security:
+        - cookieAuth: []
       parameters:
         - name: dailyOrderNumber
           in: query
@@ -261,6 +291,11 @@ paths:
           description: Matching current-day orders
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: staff_session
   schemas:
     OrderStatus:
       type: string
