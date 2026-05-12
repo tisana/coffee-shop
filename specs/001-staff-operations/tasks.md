@@ -36,27 +36,27 @@
 
 **Critical**: No user story work should begin until this phase is complete.
 
-- [ ] T011 Configure Drizzle for PostgreSQL migrations in `apps/api/drizzle.config.ts`
-- [ ] T012 Define database schema for staff, menu, customizations, orders, beverages, sessions, and daily sequences in `apps/api/src/storage/schema.ts`
-- [ ] T013 Create initial Drizzle migration for all foundational tables in `apps/api/drizzle/migrations/0001_initial.sql`
-- [ ] T014 Implement PostgreSQL connection and transaction helper in `apps/api/src/storage/db.ts`
-- [ ] T015 Create database migration runner script in `apps/api/src/storage/migrate.ts`
-- [ ] T016 Create seed script for authorized staff and starter menu/customizations in `apps/api/src/storage/seed.ts`
-- [ ] T017 [P] Define shared order, beverage, menu, customization, and staff types in `packages/shared/src/domain/types.ts`
-- [ ] T018 [P] Define shared status transition constants in `packages/shared/src/domain/status.ts`
-- [ ] T019 [P] Define shared API request/response contracts in `packages/shared/src/contracts/api.ts`
-- [ ] T020 Implement Zod validators for auth, menu, order, queue, beverage, and history requests in `apps/api/src/routes/validators.ts`
-- [ ] T021 Implement Express app setup, JSON parsing, cookie parsing, and route mounting in `apps/api/src/app.ts`
-- [ ] T022 Implement server entrypoint and graceful shutdown in `apps/api/src/server.ts`
-- [ ] T023 Implement typed API error helpers and conflict responses in `apps/api/src/routes/errors.ts`
-- [ ] T024 Implement password hashing and verification utilities in `apps/api/src/auth/passwords.ts`
-- [ ] T025 Implement HTTP-only session creation, lookup, and deletion in `apps/api/src/auth/sessions.ts`
-- [ ] T026 Implement staff authorization middleware in `apps/api/src/auth/requireStaff.ts`
-- [ ] T027 [P] Configure Vitest for API unit and integration tests in `apps/api/vitest.config.ts`
-- [ ] T028 [P] Configure Playwright for staff workflow tests in `apps/staff-web/playwright.config.ts`
-- [ ] T029 [P] Create staff web Vite entrypoint in `apps/staff-web/src/main.tsx`
-- [ ] T030 [P] Create staff web API client foundation in `apps/staff-web/src/services/apiClient.ts`
-- [ ] T031 [P] Create staff web application shell and navigation in `apps/staff-web/src/App.tsx`
+- [X] T011 Configure Drizzle for PostgreSQL migrations in `apps/api/drizzle.config.ts`
+- [X] T012 Define database schema for staff, menu, customizations, orders, beverages, sessions, and daily sequences in `apps/api/src/storage/schema.ts`
+- [X] T013 Create initial Drizzle migration for all foundational tables in `apps/api/drizzle/migrations/0001_initial.sql`
+- [X] T014 Implement PostgreSQL connection and transaction helper in `apps/api/src/storage/db.ts`
+- [X] T015 Create database migration runner script in `apps/api/src/storage/migrate.ts`
+- [X] T016 Create seed script for authorized staff and starter menu/customizations in `apps/api/src/storage/seed.ts`
+- [X] T017 [P] Define shared order, beverage, menu, customization, and staff types in `packages/shared/src/domain/types.ts`
+- [X] T018 [P] Define shared status transition constants in `packages/shared/src/domain/status.ts`
+- [X] T019 [P] Define shared API request/response contracts in `packages/shared/src/contracts/api.ts`
+- [X] T020 Implement Zod validators for auth, menu, order, queue, beverage, and history requests in `apps/api/src/routes/validators.ts`
+- [X] T021 Implement Express app setup, JSON parsing, cookie parsing, and route mounting in `apps/api/src/app.ts`
+- [X] T022 Implement server entrypoint and graceful shutdown in `apps/api/src/server.ts`
+- [X] T023 Implement typed API error helpers and conflict responses in `apps/api/src/routes/errors.ts`
+- [X] T024 Implement password hashing and verification utilities in `apps/api/src/auth/passwords.ts`
+- [X] T025 Implement HTTP-only session creation, lookup, and deletion in `apps/api/src/auth/sessions.ts`
+- [X] T026 Implement staff authorization middleware in `apps/api/src/auth/requireStaff.ts`
+- [X] T027 [P] Configure Vitest for API unit and integration tests in `apps/api/vitest.config.ts`
+- [X] T028 [P] Configure Playwright for staff workflow tests in `apps/staff-web/playwright.config.ts`
+- [X] T029 [P] Create staff web Vite entrypoint in `apps/staff-web/src/main.tsx`
+- [X] T030 [P] Create staff web API client foundation in `apps/staff-web/src/services/apiClient.ts`
+- [X] T031 [P] Create staff web application shell and navigation in `apps/staff-web/src/App.tsx`
 
 **Checkpoint**: Foundation ready. User story implementation can start.
 

@@ -14,10 +14,10 @@
   ],
   "scripts": {
     "dev": "concurrently -n api,staff-web -c blue,green \"npm run dev --workspace @coffee-shop/api\" \"npm run dev --workspace @coffee-shop/staff-web\"",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspace @coffee-shop/shared && npm run build --workspace @coffee-shop/api && npm run build --workspace @coffee-shop/staff-web",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspace @coffee-shop/staff-web",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build --workspace @coffee-shop/shared && npm run typecheck --workspace @coffee-shop/api && npm run typecheck --workspace @coffee-shop/staff-web",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
