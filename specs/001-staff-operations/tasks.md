@@ -17,16 +17,16 @@
 
 **Purpose**: Initialize the monorepo, app shells, container files, and developer commands.
 
-- [ ] T001 Create root workspace package scripts for dev/test/db commands in `package.json`
-- [ ] T002 Create shared TypeScript configuration in `tsconfig.base.json`
-- [ ] T003 [P] Create API package manifest and scripts in `apps/api/package.json`
-- [ ] T004 [P] Create staff web package manifest and scripts in `apps/staff-web/package.json`
-- [ ] T005 [P] Create shared package manifest and exports in `packages/shared/package.json`
-- [ ] T006 Create Docker Compose database service in `infra/docker/compose.yml`
-- [ ] T007 [P] Create API Dockerfile in `apps/api/Dockerfile`
-- [ ] T008 [P] Create staff web Dockerfile in `apps/staff-web/Dockerfile`
-- [ ] T009 [P] Configure repo formatting and linting in `eslint.config.js`
-- [ ] T010 [P] Configure ignore rules for generated and local files in `.gitignore`
+- [X] T001 Create root workspace package scripts for dev/test/db commands in `package.json`
+- [X] T002 Create shared TypeScript configuration in `tsconfig.base.json`
+- [X] T003 [P] Create API package manifest and scripts in `apps/api/package.json`
+- [X] T004 [P] Create staff web package manifest and scripts in `apps/staff-web/package.json`
+- [X] T005 [P] Create shared package manifest and exports in `packages/shared/package.json`
+- [X] T006 Create Docker Compose database service in `infra/docker/compose.yml`
+- [X] T007 [P] Create API Dockerfile in `apps/api/Dockerfile`
+- [X] T008 [P] Create staff web Dockerfile in `apps/staff-web/Dockerfile`
+- [X] T009 [P] Configure repo formatting and linting in `eslint.config.js`
+- [X] T010 [P] Configure ignore rules for generated and local files in `.gitignore`
 
 ---
 

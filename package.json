@@ -1,0 +1,41 @@
+{
+  "name": "coffee-shop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/staff-web",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,staff-web -c blue,green \"npm run dev --workspace @coffee-shop/api\" \"npm run dev --workspace @coffee-shop/staff-web\"",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspace @coffee-shop/staff-web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose -f infra/docker/compose.yml up -d db",
+    "db:down": "docker compose -f infra/docker/compose.yml down",
+    "db:reset": "docker compose -f infra/docker/compose.yml down -v && docker compose -f infra/docker/compose.yml up -d db",
+    "db:generate": "npm run db:generate --workspace @coffee-shop/api",
+    "db:migrate": "npm run db:migrate --workspace @coffee-shop/api",
+    "db:seed": "npm run db:seed --workspace @coffee-shop/api"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}
