@@ -70,25 +70,25 @@
 
 ### Tests for User Story 1
 
-- [ ] T032 [P] [US1] Add contract tests for `POST /auth/login`, `GET /staff/session`, `POST /orders` with optional pickup name, and `POST /orders/{orderId}/queue` in `apps/api/tests/integration/order-create.contract.test.ts`
-- [ ] T033 [P] [US1] Add daily order number concurrency test in `apps/api/tests/integration/daily-order-number.test.ts`
-- [ ] T034 [P] [US1] Add purchased customization snapshot test in `apps/api/tests/integration/order-snapshot.test.ts`
-- [ ] T035 [P] [US1] Add Playwright counter order flow test with optional pickup name capture, queue submission feedback, and 60-second order creation timing assertion in `apps/staff-web/tests/e2e/counter-order.spec.ts`
+- [X] T032 [P] [US1] Add contract tests for `POST /auth/login`, `GET /staff/session`, `POST /orders` with optional pickup name, and `POST /orders/{orderId}/queue` in `apps/api/tests/integration/order-create.contract.test.ts`
+- [X] T033 [P] [US1] Add daily order number concurrency test in `apps/api/tests/integration/daily-order-number.test.ts`
+- [X] T034 [P] [US1] Add purchased customization snapshot test in `apps/api/tests/integration/order-snapshot.test.ts`
+- [X] T035 [P] [US1] Add Playwright counter order flow test with optional pickup name capture, queue submission feedback, and 60-second order creation timing assertion in `apps/staff-web/tests/e2e/counter-order.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T036 [US1] Implement auth routes for login, logout, and current session in `apps/api/src/routes/authRoutes.ts`
-- [ ] T037 [US1] Implement menu read service for order taking in `apps/api/src/domain/menuService.ts`
-- [ ] T038 [US1] Implement order creation service with daily number transaction, pickup name persistence, purchased customization snapshots, and created status timestamp in `apps/api/src/domain/orderCreationService.ts`
-- [ ] T039 [US1] Implement order creation routes in `apps/api/src/routes/orderRoutes.ts`
-- [ ] T040 [US1] Implement queue submission service for created orders with queued status timestamp in `apps/api/src/domain/queueSubmissionService.ts`
-- [ ] T041 [US1] Implement order queue submission route in `apps/api/src/routes/queueSubmissionRoutes.ts`
-- [ ] T042 [US1] Create staff login page in `apps/staff-web/src/pages/LoginPage.tsx`
-- [ ] T043 [US1] Create counter order page with optional pickup name input, menu, scoped customizations, and order summary in `apps/staff-web/src/pages/CounterOrderPage.tsx`
-- [ ] T044 [US1] Create menu item customization selector in `apps/staff-web/src/components/CustomizationSelector.tsx`
-- [ ] T045 [US1] Create order summary and submit controls in `apps/staff-web/src/components/OrderSummary.tsx`
-- [ ] T046 [US1] Wire order creation and queue submission client calls in `apps/staff-web/src/services/ordersApi.ts`
-- [ ] T047 [US1] Add created order and queue submission confirmation or error feedback with daily order number in `apps/staff-web/src/components/OrderCreatedBanner.tsx`
+- [X] T036 [US1] Implement auth routes for login, logout, and current session in `apps/api/src/routes/authRoutes.ts`
+- [X] T037 [US1] Implement menu read service for order taking in `apps/api/src/domain/menuService.ts`
+- [X] T038 [US1] Implement order creation service with daily number transaction, pickup name persistence, purchased customization snapshots, and created status timestamp in `apps/api/src/domain/orderCreationService.ts`
+- [X] T039 [US1] Implement order creation routes in `apps/api/src/routes/orderRoutes.ts`
+- [X] T040 [US1] Implement queue submission service for created orders with queued status timestamp in `apps/api/src/domain/queueSubmissionService.ts`
+- [X] T041 [US1] Implement order queue submission route in `apps/api/src/routes/queueSubmissionRoutes.ts`
+- [X] T042 [US1] Create staff login page in `apps/staff-web/src/pages/LoginPage.tsx`
+- [X] T043 [US1] Create counter order page with optional pickup name input, menu, scoped customizations, and order summary in `apps/staff-web/src/pages/CounterOrderPage.tsx`
+- [X] T044 [US1] Create menu item customization selector in `apps/staff-web/src/components/CustomizationSelector.tsx`
+- [X] T045 [US1] Create order summary and submit controls in `apps/staff-web/src/components/OrderSummary.tsx`
+- [X] T046 [US1] Wire order creation and queue submission client calls in `apps/staff-web/src/services/ordersApi.ts`
+- [X] T047 [US1] Add created order and queue submission confirmation or error feedback with daily order number in `apps/staff-web/src/components/OrderCreatedBanner.tsx`
 
 **Checkpoint**: User Story 1 is independently functional and demonstrates the MVP order-taking path.
 

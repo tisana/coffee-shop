@@ -1,44 +1,12 @@
 import cookieParser from "cookie-parser";
-import express, { Router, type Express } from "express";
+import express, { type Express } from "express";
 
-import { requireStaff } from "./auth/requireStaff";
-import { errorHandler, notImplementedHandler } from "./routes/errors";
-
-function createPlannedRoutes(): Router {
-  const router = Router();
-
-  router.post("/auth/login", notImplementedHandler);
-  router.post("/auth/logout", requireStaff, notImplementedHandler);
-  router.get("/staff/session", requireStaff, (request, response) => {
-    response.json(request.staff);
-  });
-
-  router.get("/menu/categories", requireStaff, notImplementedHandler);
-  router.post("/menu/items", requireStaff, notImplementedHandler);
-  router.patch("/menu/items/:itemId", requireStaff, notImplementedHandler);
-
-  router.post("/orders", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/queue", requireStaff, notImplementedHandler);
-  router.get("/orders/history", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/complete", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/pickup", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/cancel", requireStaff, notImplementedHandler);
-  router.post(
-    "/orders/:orderId/beverages/:beverageId/complete",
-    requireStaff,
-    notImplementedHandler
-  );
-  router.post(
-    "/orders/:orderId/beverages/:beverageId/cancel",
-    requireStaff,
-    notImplementedHandler
-  );
-
-  router.get("/queue/orders", requireStaff, notImplementedHandler);
-  router.post("/queue/orders/:orderId/claim", requireStaff, notImplementedHandler);
-
-  return router;
-}
+import { createAuthRoutes } from "./routes/authRoutes";
+import { errorHandler } from "./routes/errors";
+import { createMenuRoutes } from "./routes/menuRoutes";
+import { createOrderRoutes } from "./routes/orderRoutes";
+import { createQueueRoutes } from "./routes/queueRoutes";
+import { createQueueSubmissionRoutes } from "./routes/queueSubmissionRoutes";
 
 export function createApp(): Express {
   const app = express();
@@ -51,7 +19,11 @@ export function createApp(): Express {
     response.json({ ok: true });
   });
 
-  app.use(createPlannedRoutes());
+  app.use(createAuthRoutes());
+  app.use(createMenuRoutes());
+  app.use(createOrderRoutes());
+  app.use(createQueueSubmissionRoutes());
+  app.use(createQueueRoutes());
   app.use(errorHandler);
 
   return app;
