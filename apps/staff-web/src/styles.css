@@ -391,6 +391,14 @@ nav a[aria-current="page"] {
   color: #60594d;
 }
 
+.summary-item-details {
+  display: grid;
+  gap: 3px;
+  color: #60594d;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .summary-list button {
   justify-self: start;
   padding: 7px 10px;

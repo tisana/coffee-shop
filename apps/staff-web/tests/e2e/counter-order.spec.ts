@@ -180,6 +180,8 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
   await page.getByLabel("Oat Milk").check();
   await page.getByLabel("Special instructions").fill("Extra hot");
   await page.getByRole("button", { name: "Add beverage" }).click();
+  await expect(page.getByText("Milk: Oat Milk")).toBeVisible();
+  await expect(page.getByText("Note: Extra hot")).toBeVisible();
   await page.getByRole("button", { name: "Create counter order" }).click();
 
   await expect(page.getByText("#42")).toBeVisible();

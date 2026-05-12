@@ -27,6 +27,30 @@ function getBeverageUnitPrice(beverage: DraftBeverage): number {
   return Number(beverage.menuItem.price) + adjustments;
 }
 
+function getCustomizationReviewLines(beverage: DraftBeverage): string[] {
+  return beverage.selectedCustomizations
+    .map((selection) => {
+      const group = beverage.menuItem.customizationGroups.find(
+        (candidate) => candidate.id === selection.customizationGroupId
+      );
+
+      if (!group) {
+        return null;
+      }
+
+      const choiceNames = group.choices
+        .filter((choice) => selection.customizationChoiceIds.includes(choice.id))
+        .map((choice) => choice.name);
+
+      if (choiceNames.length === 0) {
+        return null;
+      }
+
+      return `${group.name}: ${choiceNames.join(", ")}`;
+    })
+    .filter((line): line is string => Boolean(line));
+}
+
 export function getDraftOrderTotal(beverages: DraftBeverage[]): string {
   return beverages
     .reduce((sum, beverage) => sum + getBeverageUnitPrice(beverage) * beverage.quantity, 0)
@@ -45,20 +69,33 @@ export function OrderSummary({ beverages, submitting, onRemove, onSubmit }: Orde
         <p className="empty-state">Add beverages from the menu.</p>
       ) : (
         <ul className="summary-list">
-          {beverages.map((beverage) => (
-            <li key={beverage.id}>
-              <div>
-                <strong>
-                  {beverage.quantity}x {beverage.menuItem.name}
-                </strong>
-                <span>${(getBeverageUnitPrice(beverage) * beverage.quantity).toFixed(2)}</span>
-              </div>
-              {beverage.specialInstructions ? <p>{beverage.specialInstructions}</p> : null}
-              <button type="button" onClick={() => onRemove(beverage.id)}>
-                Remove
-              </button>
-            </li>
-          ))}
+          {beverages.map((beverage) => {
+            const reviewLines = getCustomizationReviewLines(beverage);
+
+            return (
+              <li key={beverage.id}>
+                <div>
+                  <strong>
+                    {beverage.quantity}x {beverage.menuItem.name}
+                  </strong>
+                  <span>${(getBeverageUnitPrice(beverage) * beverage.quantity).toFixed(2)}</span>
+                </div>
+                {reviewLines.length > 0 || beverage.specialInstructions ? (
+                  <div className="summary-item-details">
+                    {reviewLines.map((line) => (
+                      <span key={line}>{line}</span>
+                    ))}
+                    {beverage.specialInstructions ? (
+                      <span>Note: {beverage.specialInstructions}</span>
+                    ) : null}
+                  </div>
+                ) : null}
+                <button type="button" onClick={() => onRemove(beverage.id)}>
+                  Remove
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
