@@ -1,3 +1,5 @@
+import { ShoppingBag, Trash2 } from "lucide-react";
+
 import type { MenuItem, SelectedCustomization } from "@coffee-shop/shared/domain/types";
 
 export interface DraftBeverage {
@@ -60,9 +62,9 @@ export function getDraftOrderTotal(beverages: DraftBeverage[]): string {
 export function OrderSummary({ beverages, submitting, onRemove, onSubmit }: OrderSummaryProps) {
   return (
     <aside className="summary-panel" aria-label="Order summary">
-      <div>
-        <p className="eyebrow">Current Order</p>
-        <h3>{beverages.length} beverage{beverages.length === 1 ? "" : "s"}</h3>
+      <div className="summary-heading">
+        <h3>Current Order</h3>
+        <ShoppingBag size={22} strokeWidth={1.7} aria-hidden="true" />
       </div>
 
       {beverages.length === 0 ? (
@@ -91,6 +93,7 @@ export function OrderSummary({ beverages, submitting, onRemove, onSubmit }: Orde
                   </div>
                 ) : null}
                 <button type="button" onClick={() => onRemove(beverage.id)}>
+                  <Trash2 size={16} aria-hidden="true" />
                   Remove
                 </button>
               </li>

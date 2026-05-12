@@ -1,4 +1,19 @@
 import { useEffect, useState } from "react";
+import {
+  Bell,
+  ChartColumn,
+  ClipboardList,
+  Coffee,
+  History,
+  Menu as MenuIcon,
+  Package,
+  Search,
+  Settings,
+  ShoppingBag,
+  Store,
+  UserRound,
+  Users
+} from "lucide-react";
 
 import type { StaffUser } from "@coffee-shop/shared/domain/types";
 
@@ -8,10 +23,15 @@ import { ApiClientError } from "./services/apiClient";
 import { getCurrentSession, logout } from "./services/authApi";
 
 const navItems = [
-  { href: "#counter", label: "Counter" },
-  { href: "#queue", label: "Brew Queue" },
-  { href: "#menu", label: "Menu" },
-  { href: "#history", label: "Activity" }
+  { href: "#counter", label: "Counter order", icon: Coffee },
+  { href: "#queue", label: "Orders", icon: ClipboardList },
+  { href: "#history", label: "History", icon: History },
+  { href: "#customers", label: "Customers", icon: Users },
+  { href: "#menu", label: "Menu", icon: MenuIcon },
+  { href: "#inventory", label: "Inventory", icon: Package },
+  { href: "#reports", label: "Reports", icon: ChartColumn },
+  { href: "#staff", label: "Staff", icon: UserRound },
+  { href: "#settings", label: "Settings", icon: Settings }
 ];
 
 export function App() {
@@ -61,7 +81,7 @@ export function App() {
       <aside className="sidebar" aria-label="Staff navigation">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
-            CS
+            <Coffee size={29} strokeWidth={1.8} />
           </span>
           <div>
             <h1>Coffee Shop</h1>
@@ -69,29 +89,46 @@ export function App() {
           </div>
         </div>
         <nav>
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              aria-current={activeView === item.href ? "page" : undefined}
-              href={item.href}
-            >
-              {item.label}
-            </a>
-          ))}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <a
+                key={item.href}
+                aria-current={activeView === item.href ? "page" : undefined}
+                href={item.href}
+              >
+                <Icon size={22} strokeWidth={1.8} />
+                <span>{item.label}</span>
+              </a>
+            );
+          })}
         </nav>
+
+        <div className="sidebar-staff-card">
+          <span aria-hidden="true">DB</span>
+          <div>
+            <strong>{staff.displayName}</strong>
+            <small>Downtown Location</small>
+          </div>
+        </div>
       </aside>
 
       <div className="main-panel">
         <header className="topbar">
-          <div>
-            <p className="eyebrow">Today</p>
-            <h2>Service Dashboard</h2>
-          </div>
-          <div className="session-actions">
-            <span className="session-pill">{staff.displayName}</span>
-            <button type="button" onClick={handleLogout}>
-              Sign out
+          <button type="button" className="icon-button" aria-label="Toggle navigation">
+            <MenuIcon size={24} />
+          </button>
+          <label className="global-search">
+            <Search size={23} aria-hidden="true" />
+            <input placeholder="Search menu items, orders, customers..." />
+          </label>
+          <div className="topbar-actions">
+            <button type="button" className="notification-button" aria-label="Notifications">
+              <Bell size={24} />
+              <span aria-hidden="true" />
             </button>
+            <ShoppingBag size={22} aria-hidden="true" />
           </div>
         </header>
 
@@ -102,6 +139,9 @@ export function App() {
             <section className="placeholder-panel">
               <p className="eyebrow">Planned</p>
               <h3>{navItems.find((item) => item.href === activeView)?.label ?? "Workflow"}</h3>
+              <button type="button" onClick={handleLogout}>
+                Sign out
+              </button>
             </section>
           )}
         </main>
