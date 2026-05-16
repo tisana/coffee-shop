@@ -10,7 +10,6 @@ import {
   Search,
   Settings,
   ShoppingBag,
-  Store,
   UserRound,
   Users
 } from "lucide-react";
@@ -18,6 +17,7 @@ import {
 import type { StaffUser } from "@coffee-shop/shared/domain/types";
 
 import { CounterOrderPage } from "./pages/CounterOrderPage";
+import { BrewQueuePage } from "./pages/BrewQueuePage";
 import { LoginPage } from "./pages/LoginPage";
 import { ApiClientError } from "./services/apiClient";
 import { getCurrentSession, logout } from "./services/authApi";
@@ -135,6 +135,8 @@ export function App() {
         <main className="workspace">
           {activeView === "#counter" ? (
             <CounterOrderPage />
+          ) : activeView === "#queue" ? (
+            <BrewQueuePage staff={staff} />
           ) : (
             <section className="placeholder-panel">
               <p className="eyebrow">Planned</p>

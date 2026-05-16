@@ -1,0 +1,41 @@
+import { and, eq } from "drizzle-orm";
+
+import type { Order } from "@coffee-shop/shared/domain/types";
+
+import { conflict, notFound } from "../routes/errors";
+import { db } from "../storage/db";
+import { orders } from "../storage/schema";
+import { getOrderById } from "./orderCreationService";
+
+export async function claimQueuedOrder(orderId: string, staffId: string): Promise<Order> {
+  const [updatedOrder] = await db
+    .update(orders)
+    .set({
+      status: "in_progress",
+      assignedBaristaId: staffId,
+      inProgressAt: new Date()
+    })
+    .where(and(eq(orders.id, orderId), eq(orders.status, "queued")))
+    .returning();
+
+  if (!updatedOrder) {
+    const existingOrder = await getOrderById(orderId);
+
+    if (!existingOrder) {
+      throw notFound("Order not found.");
+    }
+
+    throw conflict("Only queued orders can be claimed from the brew queue.", {
+      status: existingOrder.status,
+      assignedBaristaId: existingOrder.assignedBaristaId
+    });
+  }
+
+  const order = await getOrderById(updatedOrder.id);
+
+  if (!order) {
+    throw notFound("Order not found.");
+  }
+
+  return order;
+}

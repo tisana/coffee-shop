@@ -102,19 +102,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T048 [P] [US2] Add contract tests for `GET /queue/orders` and `POST /queue/orders/{orderId}/claim` in `apps/api/tests/integration/queue.contract.test.ts`
-- [ ] T049 [P] [US2] Add concurrent order claim conflict test in `apps/api/tests/integration/queue-claim-concurrency.test.ts`
-- [ ] T050 [P] [US2] Add Playwright brew queue claim flow test with 15-second claim timing assertion in `apps/staff-web/tests/e2e/brew-queue.spec.ts`
+- [X] T048 [P] [US2] Add contract tests for `GET /queue/orders` and `POST /queue/orders/{orderId}/claim` in `apps/api/tests/integration/queue.contract.test.ts`
+- [X] T049 [P] [US2] Add concurrent order claim conflict test in `apps/api/tests/integration/queue-claim-concurrency.test.ts`
+- [X] T050 [P] [US2] Add Playwright brew queue claim flow test with 15-second claim timing assertion in `apps/staff-web/tests/e2e/brew-queue.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T051 [US2] Implement active queue query service in `apps/api/src/domain/queueService.ts`
-- [ ] T052 [US2] Implement atomic queue claim service with conflict handling and in-progress status timestamp in `apps/api/src/domain/queueClaimService.ts`
-- [ ] T053 [US2] Implement queue list and claim routes in `apps/api/src/routes/queueRoutes.ts`
-- [ ] T054 [US2] Create brew queue page with waiting and in-progress sections in `apps/staff-web/src/pages/BrewQueuePage.tsx`
-- [ ] T055 [US2] Create queue order card showing daily number, beverages, customizations, and assigned barista in `apps/staff-web/src/components/QueueOrderCard.tsx`
-- [ ] T056 [US2] Wire queue list and claim client calls in `apps/staff-web/src/services/queueApi.ts`
-- [ ] T057 [US2] Add conflict feedback when a queued order is already claimed in `apps/staff-web/src/components/QueueConflictMessage.tsx`
+- [X] T051 [US2] Implement active queue query service in `apps/api/src/domain/queueService.ts`
+- [X] T052 [US2] Implement atomic queue claim service with conflict handling and in-progress status timestamp in `apps/api/src/domain/queueClaimService.ts`
+- [X] T053 [US2] Implement queue list and claim routes in `apps/api/src/routes/queueRoutes.ts`
+- [X] T054 [US2] Create brew queue page with waiting and in-progress sections in `apps/staff-web/src/pages/BrewQueuePage.tsx`
+- [X] T055 [US2] Create queue order card showing daily number, beverages, customizations, and assigned barista in `apps/staff-web/src/components/QueueOrderCard.tsx`
+- [X] T056 [US2] Wire queue list and claim client calls in `apps/staff-web/src/services/queueApi.ts`
+- [X] T057 [US2] Add conflict feedback when a queued order is already claimed in `apps/staff-web/src/components/QueueConflictMessage.tsx`
 
 **Checkpoint**: User Stories 1 and 2 work independently after foundation.
 
