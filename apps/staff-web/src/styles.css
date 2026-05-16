@@ -458,11 +458,16 @@ nav a[aria-current="page"] {
 
 .menu-row {
   display: grid;
-  grid-template-columns: 64px 1fr auto;
+  grid-template-columns: 64px 1fr;
   gap: 18px;
   align-items: center;
+  width: 100%;
   border-bottom: 1px solid #ebe5dc;
   padding: 10px;
+  color: #10110f;
+  background: #fff;
+  text-align: left;
+  font-weight: 400;
 }
 
 .menu-row:last-child {
@@ -479,11 +484,10 @@ nav a[aria-current="page"] {
   gap: 5px;
 }
 
-.menu-row button {
-  border: 1px solid #799183;
-  color: #174e38;
-  background: #fff;
-  min-width: 74px;
+.menu-row:hover:not(:disabled),
+.menu-row:focus-visible:not(:disabled) {
+  background: #f8fbf7;
+  outline: none;
 }
 
 .beverage-editor,
@@ -495,6 +499,10 @@ nav a[aria-current="page"] {
   border-radius: 8px;
   padding: 18px;
   background: #fff;
+}
+
+.beverage-editor {
+  scroll-margin-top: 22px;
 }
 
 .customization-list {
@@ -665,6 +673,14 @@ nav a[aria-current="page"] {
   border-radius: 8px;
   padding: 16px;
   background: #eef5e9;
+}
+
+.queued-status {
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #174e38;
+  background: #dcebd8;
+  font-weight: 800;
 }
 
 .quantity-stepper {
@@ -871,7 +887,7 @@ nav a[aria-current="page"] {
   }
 
   .menu-row {
-    grid-template-columns: 54px 1fr auto;
+    grid-template-columns: 54px 1fr;
   }
 
   .menu-row img {

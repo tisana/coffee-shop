@@ -7,16 +7,30 @@ interface OrderCreatedBannerProps {
 }
 
 export function OrderCreatedBanner({ order, queueing, onQueue }: OrderCreatedBannerProps) {
+  const isQueued = order.status === "queued";
+
   return (
     <section className="order-created-banner" aria-live="polite">
       <div>
-        <p className="eyebrow">Order Created</p>
+        <p className="eyebrow">{isQueued ? "Order queued" : "Order created"}</p>
         <h3>#{order.dailyOrderNumber}</h3>
-        <p>{order.pickupName ? `${order.pickupName} is ready for queueing.` : "Ready for queueing."}</p>
+        <p>
+          {isQueued
+            ? order.pickupName
+              ? `${order.pickupName} is in the brew queue.`
+              : "Order is in the brew queue."
+            : order.pickupName
+              ? `${order.pickupName} still needs to be sent to the brew queue.`
+              : "Order still needs to be sent to the brew queue."}
+        </p>
       </div>
-      <button type="button" disabled={queueing || order.status !== "created"} onClick={onQueue}>
-        {order.status === "queued" ? "Queued" : queueing ? "Sending to queue" : "Send to brew queue"}
-      </button>
+      {isQueued ? (
+        <span className="queued-status">Queued</span>
+      ) : (
+        <button type="button" disabled={queueing} onClick={onQueue}>
+          {queueing ? "Sending to queue" : "Retry queue"}
+        </button>
+      )}
     </section>
   );
 }

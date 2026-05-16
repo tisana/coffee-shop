@@ -8,6 +8,7 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
   const groupId = "8a7ea15d-9d7f-4d95-859d-5eb0c5a40f4f";
   const choiceId = "91e6d2ab-5519-4a2d-b5f7-c8cf38b5a1f0";
   const createdAt = new Date().toISOString();
+  let queueRequestCount = 0;
   const createdOrder = {
     id: "6d8d6e6a-86d4-4f2f-b472-a7f96917908b",
     businessDate: createdAt.slice(0, 10),
@@ -132,6 +133,7 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
     }
 
     if (path === `/orders/${createdOrder.id}/queue`) {
+      queueRequestCount += 1;
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -176,18 +178,23 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
 
   const startedAt = Date.now();
   await page.getByLabel("Pickup name").fill("Ari");
-  await page.locator(".menu-row").getByRole("button", { name: "Add" }).click();
-  await expect(page.getByText("Milk: Oat Milk")).toBeVisible();
-  await page.getByRole("button", { name: "Remove" }).click();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.locator(".popular-card").click();
+  await expect(page.getByTestId("beverage-editor")).toBeInViewport();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  await page.locator(".menu-row").click();
+  await expect(page.getByTestId("beverage-editor")).toBeInViewport();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  await expect(page.getByRole("button", { name: "Create and queue order" })).toBeDisabled();
   await page.getByLabel("Special instructions").fill("Extra hot");
   await page.getByRole("button", { name: "Customize & add" }).click();
   await expect(page.getByText("Milk: Oat Milk")).toBeVisible();
   await expect(page.getByText("Note: Extra hot")).toBeVisible();
-  await page.getByRole("button", { name: "Create counter order" }).click();
+  await page.getByRole("button", { name: "Create and queue order" }).click();
 
   await expect(page.getByText("#42")).toBeVisible();
+  await expect(page.getByText("Ari is in the brew queue.")).toBeVisible();
+  await expect(page.locator(".queued-status").filter({ hasText: "Queued" })).toBeVisible();
+  expect(queueRequestCount).toBe(1);
   expect(Date.now() - startedAt).toBeLessThan(60_000);
-
-  await page.getByRole("button", { name: "Send to brew queue" }).click();
-  await expect(page.getByRole("button", { name: "Queued" })).toBeVisible();
 });

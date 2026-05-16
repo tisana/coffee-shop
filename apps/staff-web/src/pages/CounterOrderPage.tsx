@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 
 import type {
@@ -70,6 +70,7 @@ function getDefaultSelections(item: MenuItem): SelectedCustomization[] {
 }
 
 export function CounterOrderPage() {
+  const beverageEditorRef = useRef<HTMLElement | null>(null);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState("all");
   const [selectedItemId, setSelectedItemId] = useState("");
@@ -138,6 +139,9 @@ export function CounterOrderPage() {
     setSelectedCustomizations(getDefaultSelections(item));
     setSpecialInstructions("");
     setQuantity(1);
+    window.requestAnimationFrame(() => {
+      beverageEditorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   function addBeverageToOrder(
@@ -196,13 +200,9 @@ export function CounterOrderPage() {
     addBeverageToOrder(selectedItem, quantity, selectedCustomizations, specialInstructions);
   }
 
-  function addMenuItemWithDefaults(item: MenuItem) {
-    addBeverageToOrder(item, 1, getDefaultSelections(item));
-    setSelectedItemId(item.id);
-  }
-
   async function submitOrder() {
     setSubmitting(true);
+    setQueueing(true);
     setError(null);
 
     try {
@@ -217,12 +217,13 @@ export function CounterOrderPage() {
             : {})
         }))
       });
-      setCreatedOrder(order);
+      setCreatedOrder(await submitOrderToQueue(order.id));
       setBeverages([]);
     } catch (caught) {
       setError(caught instanceof ApiClientError ? caught.message : "Unable to create order.");
     } finally {
       setSubmitting(false);
+      setQueueing(false);
     }
   }
 
@@ -318,23 +319,19 @@ export function CounterOrderPage() {
               <div className="menu-list">
                 {visibleCategories.flatMap((category) =>
                   category.menuItems.map((item) => (
-                    <article
+                    <button
                       key={item.id}
+                      type="button"
                       className={item.id === selectedItemId ? "menu-row selected-menu-item" : "menu-row"}
+                      disabled={!item.available}
+                      onClick={() => selectItem(item.id)}
                     >
                       <img src={getMenuImage(item)} alt="" loading="lazy" />
                       <div>
                         <strong>{item.name}</strong>
                         <span>${item.price}</span>
                       </div>
-                      <button
-                        type="button"
-                        disabled={!item.available}
-                        onClick={() => addMenuItemWithDefaults(item)}
-                      >
-                        Add
-                      </button>
-                    </article>
+                    </button>
                   ))
                 )}
               </div>
@@ -343,7 +340,7 @@ export function CounterOrderPage() {
         )}
 
         {selectedItem ? (
-          <section className="beverage-editor">
+          <section ref={beverageEditorRef} className="beverage-editor" data-testid="beverage-editor">
             <div>
               <p className="eyebrow">Customize beverage</p>
               <h3>{selectedItem.name}</h3>

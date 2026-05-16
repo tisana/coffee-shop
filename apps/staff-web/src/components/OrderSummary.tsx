@@ -108,7 +108,7 @@ export function OrderSummary({ beverages, submitting, onRemove, onSubmit }: Orde
       </div>
 
       <button type="button" disabled={submitting || beverages.length === 0} onClick={onSubmit}>
-        {submitting ? "Creating order" : "Create counter order"}
+        {submitting ? "Creating and queueing" : "Create and queue order"}
       </button>
     </aside>
   );
