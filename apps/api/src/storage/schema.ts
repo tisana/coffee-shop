@@ -1,5 +1,6 @@
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -14,6 +15,7 @@ import {
   uuid,
   varchar
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 import type { SelectedCustomizationSnapshot } from "@coffee-shop/shared/domain/types";
 
@@ -103,7 +105,11 @@ export const customizationGroups = pgTable("customization_groups", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
 }, (table) => ({
-  menuItemIndex: index("customization_groups_menu_item_id_idx").on(table.menuItemId)
+  menuItemIndex: index("customization_groups_menu_item_id_idx").on(table.menuItemId),
+  selectionBounds: check(
+    "customization_groups_selection_bounds",
+    sql`${table.minSelections} >= 0 AND ${table.maxSelections} >= ${table.minSelections} AND (${table.required} OR ${table.minSelections} = 0)`
+  )
 }));
 
 export const customizationChoices = pgTable("customization_choices", {
@@ -173,7 +179,8 @@ export const orderBeverages = pgTable("order_beverages", {
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   cancellationReason: text("cancellation_reason")
 }, (table) => ({
-  orderIndex: index("order_beverages_order_id_idx").on(table.orderId)
+  orderIndex: index("order_beverages_order_id_idx").on(table.orderId),
+  quantityPositive: check("order_beverages_quantity_positive", sql`${table.quantity} > 0`)
 }));
 
 export const dailyOrderSequences = pgTable("daily_order_sequences", {
