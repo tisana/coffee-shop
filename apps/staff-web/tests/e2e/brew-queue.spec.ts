@@ -13,6 +13,7 @@ test("barista claims a queued order within the brew queue", async ({ page }) => 
     status: "queued",
     createdByStaffId: staffId,
     assignedBaristaId: null,
+    assignedBaristaDisplayName: null,
     total: "9.75",
     createdAt,
     queuedAt: createdAt,
@@ -76,6 +77,7 @@ test("barista claims a queued order within the brew queue", async ({ page }) => 
         ...queuedOrder,
         status: "in_progress",
         assignedBaristaId: staffId,
+        assignedBaristaDisplayName: "Demo Barista",
         inProgressAt: new Date().toISOString()
       };
       await route.fulfill({

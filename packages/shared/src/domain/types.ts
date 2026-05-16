@@ -70,6 +70,7 @@ export interface Order {
   status: OrderStatus;
   createdByStaffId: string;
   assignedBaristaId: string | null;
+  assignedBaristaDisplayName?: string | null;
   total: string;
   createdAt: string;
   queuedAt: string | null;

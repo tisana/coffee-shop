@@ -1,17 +1,33 @@
-import { asc, inArray } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 
-import type { Order, OrderStatus } from "@coffee-shop/shared/domain/types";
+import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
+import type { OrderStatus } from "@coffee-shop/shared/domain/types";
 
 import { db } from "../storage/db";
-import { orderBeverages, orders } from "../storage/schema";
+import { orderBeverages, orders, staffUsers } from "../storage/schema";
 import { mapOrder } from "./orderMapper";
 
 const activeQueueStatuses: OrderStatus[] = ["queued", "in_progress", "completed"];
 
-export async function listActiveQueueOrders(): Promise<Order[]> {
+function mapQueueOrder(
+  row: typeof orders.$inferSelect,
+  beverages: Array<typeof orderBeverages.$inferSelect>,
+  assignedBaristaDisplayName: string | null
+): QueueOrder {
+  return {
+    ...mapOrder(row, beverages),
+    assignedBaristaDisplayName
+  };
+}
+
+export async function listActiveQueueOrders(): Promise<QueueOrder[]> {
   const activeOrders = await db
-    .select()
+    .select({
+      order: orders,
+      assignedBaristaDisplayName: staffUsers.displayName
+    })
     .from(orders)
+    .leftJoin(staffUsers, eq(orders.assignedBaristaId, staffUsers.id))
     .where(inArray(orders.status, activeQueueStatuses))
     .orderBy(asc(orders.queuedAt), asc(orders.dailyOrderNumber));
 
@@ -25,7 +41,7 @@ export async function listActiveQueueOrders(): Promise<Order[]> {
     .where(
       inArray(
         orderBeverages.orderId,
-        activeOrders.map((order) => order.id)
+        activeOrders.map(({ order }) => order.id)
       )
     );
   const beveragesByOrderId = new Map<string, typeof beverages>();
@@ -36,5 +52,30 @@ export async function listActiveQueueOrders(): Promise<Order[]> {
     beveragesByOrderId.set(beverage.orderId, existing);
   }
 
-  return activeOrders.map((order) => mapOrder(order, beveragesByOrderId.get(order.id) ?? []));
+  return activeOrders.map(({ order, assignedBaristaDisplayName }) =>
+    mapQueueOrder(order, beveragesByOrderId.get(order.id) ?? [], assignedBaristaDisplayName)
+  );
+}
+
+export async function getQueueOrderById(orderId: string): Promise<QueueOrder | null> {
+  const [result] = await db
+    .select({
+      order: orders,
+      assignedBaristaDisplayName: staffUsers.displayName
+    })
+    .from(orders)
+    .leftJoin(staffUsers, eq(orders.assignedBaristaId, staffUsers.id))
+    .where(eq(orders.id, orderId))
+    .limit(1);
+
+  if (!result) {
+    return null;
+  }
+
+  const beverages = await db
+    .select()
+    .from(orderBeverages)
+    .where(eq(orderBeverages.orderId, result.order.id));
+
+  return mapQueueOrder(result.order, beverages, result.assignedBaristaDisplayName);
 }

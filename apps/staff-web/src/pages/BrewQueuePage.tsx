@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
-import type { Order, StaffUser } from "@coffee-shop/shared/domain/types";
+import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
+import type { StaffUser } from "@coffee-shop/shared/domain/types";
 
 import { QueueConflictMessage } from "../components/QueueConflictMessage";
 import { QueueOrderCard } from "../components/QueueOrderCard";
@@ -12,7 +13,7 @@ interface BrewQueuePageProps {
 }
 
 export function BrewQueuePage({ staff }: BrewQueuePageProps) {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<QueueOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingOrderId, setClaimingOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

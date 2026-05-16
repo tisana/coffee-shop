@@ -7,6 +7,10 @@ import type {
   StaffUser
 } from "../domain/types";
 
+export type QueueOrder = Order & {
+  assignedBaristaDisplayName: string | null;
+};
+
 export interface LoginRequest {
   username: string;
   password: string;
@@ -27,7 +31,7 @@ export interface CreateOrderRequest {
 export type CreateOrderResponse = Order;
 
 export interface QueueOrdersResponse {
-  orders: Order[];
+  orders: QueueOrder[];
 }
 
 export interface MenuCategoriesResponse {

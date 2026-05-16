@@ -55,9 +55,22 @@ describe("US2 brew queue contract", () => {
     expect(claimResponse.body).toMatchObject({
       id: queuedOrder.id,
       status: "in_progress",
-      assignedBaristaId: staff.id
+      assignedBaristaId: staff.id,
+      assignedBaristaDisplayName: staff.displayName
     });
     expect(claimResponse.body.inProgressAt).toEqual(expect.any(String));
+
+    const claimedListResponse = await agent.get("/queue/orders");
+    const claimedListOrder = claimedListResponse.body.orders.find(
+      (order: { id: string }) => order.id === queuedOrder.id
+    );
+
+    expect(claimedListOrder).toMatchObject({
+      id: queuedOrder.id,
+      status: "in_progress",
+      assignedBaristaId: staff.id,
+      assignedBaristaDisplayName: staff.displayName
+    });
 
     const alreadyClaimedResponse = await agent.post(`/queue/orders/${queuedOrder.id}/claim`).send();
 

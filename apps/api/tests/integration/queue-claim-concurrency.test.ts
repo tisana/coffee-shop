@@ -40,6 +40,9 @@ describe("US2 queue claim concurrency", () => {
       status: "in_progress"
     });
     expect([first.staff.id, second.staff.id]).toContain(successfulClaim?.body.assignedBaristaId);
+    expect([first.staff.displayName, second.staff.displayName]).toContain(
+      successfulClaim?.body.assignedBaristaDisplayName
+    );
     expect(rejectedClaim?.body).toMatchObject({
       code: "CONFLICT",
       details: {

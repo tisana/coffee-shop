@@ -140,10 +140,40 @@ export function CounterOrderPage() {
     setQuantity(1);
   }
 
-  function validateCurrentBeverage(item: MenuItem): string | null {
+  function addBeverageToOrder(
+    item: MenuItem,
+    itemQuantity: number,
+    itemCustomizations: SelectedCustomization[],
+    instructions?: string
+  ) {
+    const validationError = validateBeverage(item, itemCustomizations);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setBeverages((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        menuItem: item,
+        quantity: itemQuantity,
+        selectedCustomizations: itemCustomizations,
+        ...(instructions?.trim() ? { specialInstructions: instructions.trim() } : {})
+      }
+    ]);
+    setSelectedCustomizations(getDefaultSelections(item));
+    setSpecialInstructions("");
+    setQuantity(1);
+    setCreatedOrder(null);
+    setError(null);
+  }
+
+  function validateBeverage(item: MenuItem, customizations: SelectedCustomization[]): string | null {
     for (const group of item.customizationGroups) {
       const count =
-        selectedCustomizations.find((selection) => selection.customizationGroupId === group.id)
+        customizations.find((selection) => selection.customizationGroupId === group.id)
           ?.customizationChoiceIds.length ?? 0;
 
       if (group.required && count < group.minSelections) {
@@ -163,28 +193,12 @@ export function CounterOrderPage() {
       return;
     }
 
-    const validationError = validateCurrentBeverage(selectedItem);
+    addBeverageToOrder(selectedItem, quantity, selectedCustomizations, specialInstructions);
+  }
 
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setBeverages((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        menuItem: selectedItem,
-        quantity,
-        selectedCustomizations,
-        ...(specialInstructions.trim() ? { specialInstructions: specialInstructions.trim() } : {})
-      }
-    ]);
-    setSelectedCustomizations([]);
-    setSpecialInstructions("");
-    setQuantity(1);
-    setCreatedOrder(null);
-    setError(null);
+  function addMenuItemWithDefaults(item: MenuItem) {
+    addBeverageToOrder(item, 1, getDefaultSelections(item));
+    setSelectedItemId(item.id);
   }
 
   async function submitOrder() {
@@ -313,7 +327,11 @@ export function CounterOrderPage() {
                         <strong>{item.name}</strong>
                         <span>${item.price}</span>
                       </div>
-                      <button type="button" disabled={!item.available} onClick={() => selectItem(item.id)}>
+                      <button
+                        type="button"
+                        disabled={!item.available}
+                        onClick={() => addMenuItemWithDefaults(item)}
+                      >
                         Add
                       </button>
                     </article>

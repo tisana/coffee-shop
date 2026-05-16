@@ -176,6 +176,9 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
 
   const startedAt = Date.now();
   await page.getByLabel("Pickup name").fill("Ari");
+  await page.locator(".menu-row").getByRole("button", { name: "Add" }).click();
+  await expect(page.getByText("Milk: Oat Milk")).toBeVisible();
+  await page.getByRole("button", { name: "Remove" }).click();
   await page.getByLabel("Special instructions").fill("Extra hot");
   await page.getByRole("button", { name: "Customize & add" }).click();
   await expect(page.getByText("Milk: Oat Milk")).toBeVisible();

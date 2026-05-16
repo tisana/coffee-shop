@@ -1,15 +1,16 @@
 import { CircleCheck, Coffee, UserRound } from "lucide-react";
 
-import type { Order, StaffUser } from "@coffee-shop/shared/domain/types";
+import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
+import type { StaffUser } from "@coffee-shop/shared/domain/types";
 
 interface QueueOrderCardProps {
-  order: Order;
+  order: QueueOrder;
   currentStaff: StaffUser;
   claiming: boolean;
   onClaim: (orderId: string) => void;
 }
 
-function statusLabel(order: Order): string {
+function statusLabel(order: QueueOrder): string {
   if (order.status === "queued") {
     return "Waiting";
   }
@@ -21,9 +22,13 @@ function statusLabel(order: Order): string {
   return "Ready for pickup";
 }
 
-function assignedLabel(order: Order, currentStaff: StaffUser): string {
+function assignedLabel(order: QueueOrder, currentStaff: StaffUser): string {
   if (!order.assignedBaristaId) {
     return "Unassigned";
+  }
+
+  if (order.assignedBaristaDisplayName) {
+    return `Assigned to ${order.assignedBaristaDisplayName}`;
   }
 
   if (order.assignedBaristaId === currentStaff.id) {
