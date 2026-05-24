@@ -25,19 +25,6 @@ export function createOrderRoutes(): Router {
   });
 
   router.get("/orders/history", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/complete", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/pickup", requireStaff, notImplementedHandler);
-  router.post("/orders/:orderId/cancel", requireStaff, notImplementedHandler);
-  router.post(
-    "/orders/:orderId/beverages/:beverageId/complete",
-    requireStaff,
-    notImplementedHandler
-  );
-  router.post(
-    "/orders/:orderId/beverages/:beverageId/cancel",
-    requireStaff,
-    notImplementedHandler
-  );
 
   return router;
 }

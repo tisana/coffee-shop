@@ -3,11 +3,17 @@ import { CircleCheck, Coffee, UserRound } from "lucide-react";
 import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
 import type { StaffUser } from "@coffee-shop/shared/domain/types";
 
+import { BeverageStatusControls } from "./BeverageStatusControls";
+
 interface QueueOrderCardProps {
   order: QueueOrder;
   currentStaff: StaffUser;
   claiming: boolean;
+  busyActionId?: string | null;
   onClaim: (orderId: string) => void;
+  onCancelBeverage?: (orderId: string, beverageId: string) => void;
+  onCompleteBeverage?: (orderId: string, beverageId: string) => void;
+  onCompleteOrder?: (orderId: string) => void;
 }
 
 function statusLabel(order: QueueOrder): string {
@@ -38,8 +44,26 @@ function assignedLabel(order: QueueOrder, currentStaff: StaffUser): string {
   return `Assigned staff ${order.assignedBaristaId.slice(0, 8)}`;
 }
 
-export function QueueOrderCard({ order, currentStaff, claiming, onClaim }: QueueOrderCardProps) {
+function canCompleteOrder(order: QueueOrder): boolean {
+  return (
+    order.status === "in_progress" &&
+    order.beverages.some((beverage) => beverage.status === "completed") &&
+    order.beverages.every((beverage) => beverage.status !== "pending")
+  );
+}
+
+export function QueueOrderCard({
+  order,
+  currentStaff,
+  claiming,
+  busyActionId,
+  onClaim,
+  onCancelBeverage,
+  onCompleteBeverage,
+  onCompleteOrder
+}: QueueOrderCardProps) {
   const claimLabel = `Claim order #${order.dailyOrderNumber}`;
+  const completeOrderLabel = `Mark order #${order.dailyOrderNumber} ready for pickup`;
 
   return (
     <article className="queue-order-card">
@@ -72,6 +96,14 @@ export function QueueOrderCard({ order, currentStaff, claiming, onClaim }: Queue
                 </span>
               ) : null}
               {beverage.specialInstructions ? <span>Note: {beverage.specialInstructions}</span> : null}
+              {order.status === "in_progress" ? (
+                <BeverageStatusControls
+                  beverage={beverage}
+                  disabled={busyActionId === beverage.id}
+                  onCancel={() => onCancelBeverage?.(order.id, beverage.id)}
+                  onComplete={() => onCompleteBeverage?.(order.id, beverage.id)}
+                />
+              ) : null}
             </div>
           </li>
         ))}
@@ -89,6 +121,11 @@ export function QueueOrderCard({ order, currentStaff, claiming, onClaim }: Queue
         {order.status === "queued" ? (
           <button type="button" disabled={claiming} onClick={() => onClaim(order.id)}>
             {claiming ? "Claiming" : claimLabel}
+          </button>
+        ) : null}
+        {canCompleteOrder(order) ? (
+          <button type="button" disabled={busyActionId === order.id} onClick={() => onCompleteOrder?.(order.id)}>
+            {busyActionId === order.id ? "Marking ready" : completeOrderLabel}
           </button>
         ) : null}
       </div>

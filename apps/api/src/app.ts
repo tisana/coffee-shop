@@ -4,6 +4,7 @@ import express, { type Express } from "express";
 import { createAuthRoutes } from "./routes/authRoutes";
 import { errorHandler } from "./routes/errors";
 import { createMenuRoutes } from "./routes/menuRoutes";
+import { createOrderFulfillmentRoutes } from "./routes/orderFulfillmentRoutes";
 import { createOrderRoutes } from "./routes/orderRoutes";
 import { createQueueRoutes } from "./routes/queueRoutes";
 import { createQueueSubmissionRoutes } from "./routes/queueSubmissionRoutes";
@@ -23,6 +24,7 @@ export function createApp(): Express {
   app.use(createMenuRoutes());
   app.use(createOrderRoutes());
   app.use(createQueueSubmissionRoutes());
+  app.use(createOrderFulfillmentRoutes());
   app.use(createQueueRoutes());
   app.use(errorHandler);
 

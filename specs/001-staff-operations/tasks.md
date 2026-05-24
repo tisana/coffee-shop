@@ -128,21 +128,21 @@
 
 ### Tests for User Story 3
 
-- [ ] T058 [P] [US3] Add contract tests for beverage complete, beverage cancel, order complete, order pickup, order cancel routes, and status timestamp responses in `apps/api/tests/integration/order-fulfillment.contract.test.ts`
-- [ ] T059 [P] [US3] Add state transition guard tests for valid transitions, invalid transitions, and required timestamp changes in `apps/api/tests/unit/order-state-machine.test.ts`
-- [ ] T060 [P] [US3] Add partial beverage cancellation test in `apps/api/tests/integration/partial-cancellation.test.ts`
-- [ ] T061 [P] [US3] Add Playwright complete and pickup flow test with 10-second pickup confirmation timing assertion in `apps/staff-web/tests/e2e/order-completion.spec.ts`
+- [X] T058 [P] [US3] Add contract tests for beverage complete, beverage cancel, order complete, order pickup, order cancel routes, and status timestamp responses in `apps/api/tests/integration/order-fulfillment.contract.test.ts`
+- [X] T059 [P] [US3] Add state transition guard tests for valid transitions, invalid transitions, and required timestamp changes in `apps/api/tests/unit/order-state-machine.test.ts`
+- [X] T060 [P] [US3] Add partial beverage cancellation test in `apps/api/tests/integration/partial-cancellation.test.ts`
+- [X] T061 [P] [US3] Add Playwright complete and pickup flow test with 10-second pickup confirmation timing assertion in `apps/staff-web/tests/e2e/order-completion.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T062 [US3] Implement order state machine rules in `apps/api/src/domain/orderStateMachine.ts`
-- [ ] T063 [US3] Implement beverage completion and cancellation service in `apps/api/src/domain/beverageService.ts`
-- [ ] T064 [US3] Implement order completion, pickup confirmation, and order cancellation service with completed, picked-up, and cancelled status timestamps in `apps/api/src/domain/orderFulfillmentService.ts`
-- [ ] T065 [US3] Implement beverage and order fulfillment routes in `apps/api/src/routes/orderFulfillmentRoutes.ts`
-- [ ] T066 [US3] Add beverage status controls to queue order cards in `apps/staff-web/src/components/BeverageStatusControls.tsx`
-- [ ] T067 [US3] Add ready-for-pickup callout panel using daily order number in `apps/staff-web/src/components/PickupCalloutPanel.tsx`
-- [ ] T068 [US3] Wire fulfillment client calls in `apps/staff-web/src/services/fulfillmentApi.ts`
-- [ ] T069 [US3] Add pickup confirmation interaction with clear success or error feedback in `apps/staff-web/src/components/PickupConfirmationButton.tsx`
+- [X] T062 [US3] Implement order state machine rules in `apps/api/src/domain/orderStateMachine.ts`
+- [X] T063 [US3] Implement beverage completion and cancellation service in `apps/api/src/domain/beverageService.ts`
+- [X] T064 [US3] Implement order completion, pickup confirmation, and order cancellation service with completed, picked-up, and cancelled status timestamps in `apps/api/src/domain/orderFulfillmentService.ts`
+- [X] T065 [US3] Implement beverage and order fulfillment routes in `apps/api/src/routes/orderFulfillmentRoutes.ts`
+- [X] T066 [US3] Add beverage status controls to queue order cards in `apps/staff-web/src/components/BeverageStatusControls.tsx`
+- [X] T067 [US3] Add ready-for-pickup callout panel using daily order number in `apps/staff-web/src/components/PickupCalloutPanel.tsx`
+- [X] T068 [US3] Wire fulfillment client calls in `apps/staff-web/src/services/fulfillmentApi.ts`
+- [X] T069 [US3] Add pickup confirmation interaction with clear success or error feedback in `apps/staff-web/src/components/PickupConfirmationButton.tsx`
 
 **Checkpoint**: User Stories 1 through 3 form the complete staff order fulfillment journey.
 

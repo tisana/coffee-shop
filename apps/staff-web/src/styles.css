@@ -727,6 +727,11 @@ nav a[aria-current="page"] {
   gap: 22px;
 }
 
+.queue-workspace {
+  display: grid;
+  gap: 22px;
+}
+
 .queue-column {
   display: grid;
   gap: 14px;
@@ -823,6 +828,63 @@ nav a[aria-current="page"] {
   gap: 5px;
 }
 
+.beverage-status-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.beverage-status-controls > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.beverage-status-controls button,
+.pickup-callout-panel button,
+.queue-card-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.secondary-danger-button {
+  border: 1px solid #d79d94;
+  color: #9c241b;
+  background: #fff;
+}
+
+.secondary-danger-button:hover:not(:disabled),
+.secondary-danger-button:focus-visible:not(:disabled) {
+  color: #fff;
+  background: #9c241b;
+}
+
+.beverage-status {
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.beverage-status-pending {
+  color: #795000;
+  background: #fff0c9;
+}
+
+.beverage-status-completed {
+  color: #174e38;
+  background: #dcebd8;
+}
+
+.beverage-status-cancelled {
+  color: #7a1c16;
+  background: #fff0ed;
+}
+
 .queue-beverage-list span,
 .queue-card-actions span {
   color: #60594d;
@@ -849,6 +911,41 @@ nav a[aria-current="page"] {
 
 .queue-conflict p {
   margin-top: 5px;
+}
+
+.pickup-callouts {
+  display: grid;
+  gap: 12px;
+}
+
+.pickup-callout-panel,
+.pickup-success {
+  border: 1px solid #b9cae5;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f0f6ff;
+}
+
+.pickup-callout-panel {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.pickup-callout-panel > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #1454a8;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.pickup-callout-panel p,
+.pickup-success {
+  margin: 0;
+  color: #173f75;
 }
 
 @media (max-width: 760px) {
