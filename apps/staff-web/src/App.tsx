@@ -19,6 +19,7 @@ import type { StaffUser } from "@coffee-shop/shared/domain/types";
 import { CounterOrderPage } from "./pages/CounterOrderPage";
 import { BrewQueuePage } from "./pages/BrewQueuePage";
 import { LoginPage } from "./pages/LoginPage";
+import { MenuMaintenancePage } from "./pages/MenuMaintenancePage";
 import { ApiClientError } from "./services/apiClient";
 import { getCurrentSession, logout } from "./services/authApi";
 
@@ -137,6 +138,8 @@ export function App() {
             <CounterOrderPage />
           ) : activeView === "#queue" ? (
             <BrewQueuePage staff={staff} />
+          ) : activeView === "#menu" ? (
+            <MenuMaintenancePage />
           ) : (
             <section className="placeholder-panel">
               <p className="eyebrow">Planned</p>

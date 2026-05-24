@@ -96,6 +96,7 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
                   categoryId: "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
                   name: "Latte",
                   description: "Espresso with steamed milk",
+                  imageUrl: "https://cdn.example.test/menu/custom-latte.jpg",
                   price: "4.50",
                   available: true,
                   active: true,
@@ -179,6 +180,10 @@ test("staff creates a counter order with pickup name and sends it to the brew qu
   const startedAt = Date.now();
   await page.getByLabel("Pickup name").fill("Ari");
   await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(page.locator(".popular-card img")).toHaveAttribute(
+    "src",
+    "https://cdn.example.test/menu/custom-latte.jpg"
+  );
   await page.locator(".popular-card").click();
   await expect(page.getByTestId("beverage-editor")).toBeInViewport();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);

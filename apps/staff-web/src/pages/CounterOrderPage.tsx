@@ -45,6 +45,7 @@ const menuImages: Record<string, string> = {
 
 function getMenuImage(item: MenuItem): string {
   return (
+    item.imageUrl ??
     menuImages[item.name] ??
     "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=320&q=80"
   );

@@ -81,6 +81,7 @@ export const menuItems = pgTable("menu_items", {
     .references(() => menuCategories.id, { onDelete: "restrict" }),
   name: varchar("name", { length: 160 }).notNull(),
   description: text("description"),
+  imageUrl: text("image_url"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   available: boolean("available").notNull().default(true),
   active: boolean("active").notNull().default(true),

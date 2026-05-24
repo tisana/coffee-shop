@@ -20,6 +20,7 @@ export interface MenuItem {
   categoryId: string;
   name: string;
   description: string | null;
+  imageUrl: string | null;
   price: string;
   available: boolean;
   active: boolean;

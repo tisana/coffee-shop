@@ -1,4 +1,6 @@
 import type {
+  CustomizationChoice,
+  CustomizationGroup,
   MenuCategory,
   MenuItem,
   Order,
@@ -38,25 +40,44 @@ export interface MenuCategoriesResponse {
   categories: MenuCategory[];
 }
 
-export type MenuItemInput = Omit<MenuItem, "id" | "customizationGroups" | "displayOrder"> & {
-  customizationGroups?: Array<{
-    id?: string;
-    name: string;
-    required?: boolean;
-    minSelections?: number;
-    maxSelections?: number;
-    displayOrder?: number;
-    active?: boolean;
-    choices?: Array<{
-      id?: string;
-      name: string;
-      priceAdjustment?: string;
-      available?: boolean;
-      displayOrder?: number;
-      active?: boolean;
-    }>;
-  }>;
+export interface CustomizationChoiceInput {
+  id?: string | undefined;
+  name: string;
+  priceAdjustment?: string | undefined;
+  available?: boolean | undefined;
+  displayOrder?: number | undefined;
+  active?: boolean | undefined;
+}
+
+export interface CustomizationGroupInput {
+  id?: string | undefined;
+  name: string;
+  required?: boolean | undefined;
+  minSelections?: number | undefined;
+  maxSelections?: number | undefined;
+  displayOrder?: number | undefined;
+  active?: boolean | undefined;
+  choices?: CustomizationChoiceInput[] | undefined;
+}
+
+export interface MenuItemInput {
+  categoryId: string;
+  name: string;
+  description?: string | null | undefined;
+  imageUrl?: string | null | undefined;
+  price: string;
+  available?: boolean | undefined;
+  active?: boolean | undefined;
+  customizationGroups?: CustomizationGroupInput[] | undefined;
+}
+
+export type MenuItemResponse = Omit<MenuItem, "customizationGroups"> & {
+  customizationGroups: Array<CustomizationGroup & { choices: CustomizationChoice[] }>;
 };
+
+export interface MenuItemSaveResponse {
+  item: MenuItemResponse;
+}
 
 export interface BeverageCancelRequest {
   reason?: string;

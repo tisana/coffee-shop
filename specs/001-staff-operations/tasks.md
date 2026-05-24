@@ -156,18 +156,18 @@
 
 ### Tests for User Story 4
 
-- [ ] T070 [P] [US4] Add contract tests for menu item create/update, customization group updates, and save error responses in `apps/api/tests/integration/menu.contract.test.ts`
-- [ ] T071 [P] [US4] Add menu availability selection guard test in `apps/api/tests/integration/menu-availability.test.ts`
-- [ ] T072 [P] [US4] Add Playwright menu maintenance flow test with save feedback and 20-second availability update timing assertion in `apps/staff-web/tests/e2e/menu-maintenance.spec.ts`
+- [X] T070 [P] [US4] Add contract tests for menu item create/update/delete, image URL persistence, customization group updates, and save error responses in `apps/api/tests/integration/menu.contract.test.ts`
+- [X] T071 [P] [US4] Add menu availability selection guard test in `apps/api/tests/integration/menu-availability.test.ts`
+- [X] T072 [P] [US4] Add Playwright menu maintenance flow test with selectable category, reusable customization templates, image URL editing, add, delete, save feedback, and 20-second availability update timing assertion in `apps/staff-web/tests/e2e/menu-maintenance.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T073 [US4] Implement menu maintenance service for item details, availability, active state, and customization groups in `apps/api/src/domain/menuMaintenanceService.ts`
-- [ ] T074 [US4] Implement menu maintenance routes in `apps/api/src/routes/menuRoutes.ts`
-- [ ] T075 [US4] Create menu maintenance page in `apps/staff-web/src/pages/MenuMaintenancePage.tsx`
-- [ ] T076 [US4] Create menu item editor with availability, active controls, and save confirmation or error feedback in `apps/staff-web/src/components/MenuItemEditor.tsx`
-- [ ] T077 [US4] Create customization group and choice editor in `apps/staff-web/src/components/CustomizationGroupEditor.tsx`
-- [ ] T078 [US4] Wire menu maintenance client calls in `apps/staff-web/src/services/menuApi.ts`
+- [X] T073 [US4] Implement menu maintenance service for item details, availability, active state, retirement, and customization groups in `apps/api/src/domain/menuMaintenanceService.ts`
+- [X] T074 [US4] Implement menu maintenance routes in `apps/api/src/routes/menuRoutes.ts`
+- [X] T075 [US4] Create menu maintenance page in `apps/staff-web/src/pages/MenuMaintenancePage.tsx`
+- [X] T076 [US4] Create menu item editor with selectable category, image URL, reusable customization templates, availability, active controls, and save confirmation or error feedback in `apps/staff-web/src/components/MenuItemEditor.tsx`
+- [X] T077 [US4] Create customization group and choice editor in `apps/staff-web/src/components/CustomizationGroupEditor.tsx`
+- [X] T078 [US4] Wire menu maintenance client calls in `apps/staff-web/src/services/menuApi.ts`
 
 **Checkpoint**: Menu changes affect future orders and preserve existing order snapshots.
 

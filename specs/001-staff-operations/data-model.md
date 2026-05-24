@@ -38,6 +38,7 @@ Represents a beverage or sellable product that can be added to a counter order.
 - `categoryId`
 - `name`
 - `description`
+- `imageUrl`: optional menu thumbnail image shown during counter order selection
 - `price`
 - `available`
 - `active`

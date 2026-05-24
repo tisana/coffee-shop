@@ -99,6 +99,23 @@ paths:
           description: Menu item updated
         "404":
           description: Menu item not found
+    delete:
+      summary: Retire a menu item from future menus without changing existing order snapshots
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Menu item retired
+        "409":
+          description: Menu item is still available for new orders or active on the staff menu
+        "404":
+          description: Menu item not found
 
   /orders:
     post:
@@ -414,6 +431,10 @@ components:
           type: string
         description:
           type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
         price:
           type: number
         available:
@@ -437,6 +458,10 @@ components:
           type: string
         description:
           type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
         price:
           type: number
         available:

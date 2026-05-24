@@ -17,8 +17,38 @@ interface SeedItem {
   description: string;
   price: string;
   displayOrder: number;
+  imageUrl?: string;
   customizable?: boolean;
 }
+
+const menuImages: Record<string, string> = {
+  Americano:
+    "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=320&q=80",
+  Cappuccino:
+    "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=320&q=80",
+  "Caramel Macchiato":
+    "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=320&q=80",
+  "Cold Brew":
+    "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=320&q=80",
+  "Drip Coffee":
+    "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=320&q=80",
+  Espresso:
+    "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=320&q=80",
+  "Flat White":
+    "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=320&q=80",
+  Latte:
+    "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=320&q=80",
+  Mocha:
+    "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?auto=format&fit=crop&w=320&q=80",
+  "Matcha Latte":
+    "https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?auto=format&fit=crop&w=320&q=80",
+  "Hot Chocolate":
+    "https://images.unsplash.com/photo-1517578239113-b03992dcdd25?auto=format&fit=crop&w=320&q=80",
+  Croissant:
+    "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=320&q=80",
+  "Blueberry Muffin":
+    "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&w=320&q=80"
+};
 
 const seedItems: SeedItem[] = [
   {
@@ -206,6 +236,7 @@ async function upsertMenuItem(categoryId: string, item: SeedItem) {
       .set({
         categoryId,
         description: item.description,
+        imageUrl: item.imageUrl ?? menuImages[item.name] ?? null,
         price: item.price,
         available: true,
         active: true,
@@ -227,6 +258,7 @@ async function upsertMenuItem(categoryId: string, item: SeedItem) {
       categoryId,
       name: item.name,
       description: item.description,
+      imageUrl: item.imageUrl ?? menuImages[item.name] ?? null,
       price: item.price,
       available: true,
       active: true,

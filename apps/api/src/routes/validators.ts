@@ -71,14 +71,26 @@ export const customizationGroupInputSchema = z
     }
   });
 
-export const menuItemInputSchema = z.object({
+const menuItemBaseInputSchema = z.object({
   categoryId: idSchema,
   name: z.string().trim().min(1).max(160),
   description: z.string().trim().max(1000).nullable().optional(),
+  imageUrl: z.string().trim().url().max(2048).nullable().optional(),
   price: moneySchema,
   available: z.boolean().default(true),
-  active: z.boolean().default(true),
+  active: z.boolean().default(true)
+});
+
+export const menuItemInputSchema = menuItemBaseInputSchema.extend({
   customizationGroups: z.array(customizationGroupInputSchema).default([])
+});
+
+export const menuItemUpdateInputSchema = menuItemBaseInputSchema.extend({
+  customizationGroups: z.array(customizationGroupInputSchema).optional()
+});
+
+export const menuItemParamsSchema = z.object({
+  itemId: idSchema
 });
 
 export const orderIdParamsSchema = z.object({
