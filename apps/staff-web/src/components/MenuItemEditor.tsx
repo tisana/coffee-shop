@@ -141,7 +141,7 @@ export function MenuItemEditor({
         </span>
       </div>
 
-      <div className="menu-editor-grid">
+      <div className="menu-editor-grid menu-item-fields-grid">
         <label>
           Category
           <select value={categoryId} onChange={(event) => changeCategory(event.target.value)}>

@@ -55,7 +55,14 @@ test("staff maintains menu availability and customization choices", async ({ pag
       }
     ]
   };
-  let hotMenuItems = [savedMenuItem];
+  const extraHotMenuItems = Array.from({ length: 18 }, (_, index) => ({
+    ...savedMenuItem,
+    id: `2d20d6c7-337e-4216-a900-b7dcdf4f${String(index).padStart(4, "0")}`,
+    name: `Menu Scroll Item ${index + 1}`,
+    displayOrder: index + 2,
+    customizationGroups: []
+  }));
+  let hotMenuItems = [savedMenuItem, ...extraHotMenuItems];
   let icedMenuItems: typeof hotMenuItems = [];
 
   await page.route("**/api/**", async (route) => {
@@ -279,11 +286,29 @@ test("staff maintains menu availability and customization choices", async ({ pag
     });
   });
 
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#menu");
   await page.getByRole("button", { name: "Sign in" }).click();
 
   const startedAt = Date.now();
   await expect(page.getByRole("heading", { name: "Menu maintenance" })).toBeVisible();
+
+  const navBox = await page.locator("nav").boundingBox();
+  const staffBoxBeforeScroll = await page.locator(".sidebar-staff-card").boundingBox();
+  if (!navBox || !staffBoxBeforeScroll) {
+    throw new Error("Sidebar layout did not render.");
+  }
+  expect(staffBoxBeforeScroll.y - (navBox.y + navBox.height)).toBeLessThan(80);
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const staffBoxAfterScroll = await page.locator(".sidebar-staff-card").boundingBox();
+  if (!staffBoxAfterScroll) {
+    throw new Error("Sidebar staff card did not render after scrolling.");
+  }
+  expect(staffBoxAfterScroll.y).toBeLessThan(820);
+  expect(staffBoxAfterScroll.y - (navBox.y + navBox.height)).toBeLessThan(80);
+  await page.evaluate(() => window.scrollTo(0, 0));
+
   await page.getByRole("button", { name: "Edit Latte" }).click();
   await page.getByLabel("Available for new orders").uncheck();
   await page.getByLabel("Oat Milk available").uncheck();
@@ -294,6 +319,13 @@ test("staff maintains menu availability and customization choices", async ({ pag
   await expect(page.getByLabel("Available for new orders")).not.toBeChecked();
 
   await page.getByRole("button", { name: "Add menu item" }).click();
+  const categoryBox = await page.getByLabel("Category").boundingBox();
+  const itemNameBox = await page.getByLabel("Item name").boundingBox();
+  if (!categoryBox || !itemNameBox) {
+    throw new Error("Menu item field layout did not render.");
+  }
+  expect(categoryBox.width).toBeLessThan(itemNameBox.width);
+
   await page.getByLabel("Category").selectOption(icedCategoryId);
   await expect(page.getByRole("button", { name: "Edit New menu item Draft" })).toBeVisible();
   await page.getByLabel("Item name").fill("Seasonal Mocha");

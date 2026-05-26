@@ -73,8 +73,11 @@ a {
 }
 
 .app-shell {
+  --sidebar-width: 300px;
+
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  align-items: start;
   min-height: 100vh;
   background: #fbfaf7;
 }
@@ -83,7 +86,12 @@ a {
   display: flex;
   flex-direction: column;
   gap: 28px;
-  min-height: 100vh;
+  width: var(--sidebar-width);
+  height: 100vh;
+  overflow-y: auto;
+  position: fixed;
+  left: 0;
+  top: 0;
   padding: 30px 16px 18px;
   color: #f8f5ee;
   background:
@@ -165,7 +173,6 @@ nav a[aria-current="page"] {
   grid-template-columns: auto 1fr;
   gap: 12px;
   align-items: center;
-  margin-top: auto;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   padding: 18px 12px;
@@ -193,7 +200,10 @@ nav a[aria-current="page"] {
 
 .main-panel {
   display: grid;
+  grid-column: 2;
   grid-template-rows: auto 1fr;
+  min-width: 0;
+  min-height: 100vh;
 }
 
 .topbar {
@@ -639,7 +649,9 @@ nav a[aria-current="page"] {
 
 @media (max-width: 1320px) {
   .app-shell {
-    grid-template-columns: 270px 1fr;
+    --sidebar-width: 270px;
+
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   }
 
   .brand-mark {
@@ -1060,6 +1072,10 @@ nav a[aria-current="page"] {
   gap: 14px;
 }
 
+.menu-item-fields-grid {
+  grid-template-columns: minmax(150px, 220px) minmax(260px, 1fr) minmax(110px, 160px);
+}
+
 .menu-image-preview {
   align-self: end;
   overflow: hidden;
@@ -1213,11 +1229,21 @@ nav a[aria-current="page"] {
 
 @media (max-width: 760px) {
   .app-shell {
+    --sidebar-width: auto;
+
     grid-template-columns: 1fr;
   }
 
   .sidebar {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
     padding: 16px;
+  }
+
+  .main-panel {
+    grid-column: auto;
   }
 
   nav {
@@ -1266,6 +1292,7 @@ nav a[aria-current="page"] {
 
   .menu-maintenance-workspace,
   .menu-editor-grid,
+  .menu-item-fields-grid,
   .choice-editor-row {
     grid-template-columns: 1fr;
   }
