@@ -975,6 +975,27 @@ nav a[aria-current="page"] {
   align-items: start;
 }
 
+.menu-maintenance-submenu {
+  display: inline-flex;
+  overflow: hidden;
+  justify-self: start;
+  border: 1px solid #d8d2c8;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.menu-maintenance-submenu button {
+  border: 0;
+  border-radius: 0;
+  color: #5c5143;
+  background: transparent;
+}
+
+.menu-maintenance-submenu button[aria-pressed="true"] {
+  color: #f8f5ee;
+  background: #174e38;
+}
+
 .menu-maintenance-list,
 .menu-item-editor {
   display: grid;
@@ -1033,6 +1054,21 @@ nav a[aria-current="page"] {
 
 .menu-maintenance-row small {
   color: #6d5d49;
+}
+
+.customization-template-manager {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.customization-template-header {
+  grid-column: 1 / -1;
+}
+
+.customization-template-header h3 {
+  margin: 0;
 }
 
 .menu-item-editor {
@@ -1291,10 +1327,15 @@ nav a[aria-current="page"] {
   }
 
   .menu-maintenance-workspace,
+  .customization-template-manager,
   .menu-editor-grid,
   .menu-item-fields-grid,
   .choice-editor-row {
     grid-template-columns: 1fr;
+  }
+
+  .customization-template-header {
+    grid-column: auto;
   }
 
   .queue-order-topline,

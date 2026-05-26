@@ -142,7 +142,7 @@ test("staff maintains menu availability and customization choices", async ({ pag
       });
       expect(body.customizationGroups[0].choices).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ name: "Whole Milk", priceAdjustment: "0.00" }),
+          expect.objectContaining({ name: "Whole Milk Default", priceAdjustment: "0.00" }),
           expect.objectContaining({ name: "Oat Milk", priceAdjustment: "0.75" })
         ])
       );
@@ -287,6 +287,7 @@ test("staff maintains menu availability and customization choices", async ({ pag
   });
 
   await page.setViewportSize({ width: 1280, height: 900 });
+  await page.addInitScript(() => window.localStorage.clear());
   await page.goto("/#menu");
   await page.getByRole("button", { name: "Sign in" }).click();
 
@@ -308,6 +309,29 @@ test("staff maintains menu availability and customization choices", async ({ pag
   expect(staffBoxAfterScroll.y).toBeLessThan(820);
   expect(staffBoxAfterScroll.y - (navBox.y + navBox.height)).toBeLessThan(80);
   await page.evaluate(() => window.scrollTo(0, 0));
+
+  await page.getByRole("button", { name: "Customization templates" }).click();
+  await expect(page.getByRole("heading", { name: "Customization templates" })).toBeVisible();
+  await page.getByRole("button", { name: "Edit Latte customizations" }).click();
+  await page.getByLabel("Template name").fill("Coffee base");
+  await page.getByLabel("Choice name").first().fill("Whole Milk Default");
+  await page.getByRole("button", { name: "Save template" }).click();
+  await expect(page.getByText("Coffee base template saved.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Edit Coffee base" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Delete template" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Add template" }).click();
+  await page.getByLabel("Template name").fill("Sweetness");
+  await page.getByRole("button", { name: "Add group" }).click();
+  await page.getByLabel("Group name").fill("Sweetness");
+  await page.getByRole("button", { name: "Add choice" }).click();
+  await page.getByLabel("Choice name").fill("Less Sweet");
+  await page.getByRole("button", { name: "Save template" }).click();
+  await expect(page.getByText("Sweetness template saved.")).toBeVisible();
+  await page.getByRole("button", { name: "Delete template" }).click();
+  await expect(page.getByText("Sweetness template deleted.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Menu items" }).click();
 
   await page.getByRole("button", { name: "Edit Latte" }).click();
   await page.getByLabel("Available for new orders").uncheck();
@@ -332,9 +356,9 @@ test("staff maintains menu availability and customization choices", async ({ pag
   await page.getByLabel("Price").fill("6.25");
   await page.getByLabel("Description").fill("Dark chocolate and espresso");
   await page.getByLabel("Image URL").fill("https://cdn.example.test/menu/seasonal-mocha.jpg");
-  await page.getByLabel("Customization template").selectOption("template:2d20d6c7-337e-4216-a900-b7dcdf4fc2eb");
+  await page.getByLabel("Customization template").selectOption({ label: "Coffee base" });
   await expect(page.getByLabel("Group name")).toHaveValue("Milk");
-  await expect(page.getByLabel("Choice name").first()).toHaveValue("Whole Milk");
+  await expect(page.getByLabel("Choice name").first()).toHaveValue("Whole Milk Default");
   await page.getByRole("button", { name: "Create menu item" }).click();
 
   await expect(page.getByText("Seasonal Mocha added to the menu.")).toBeVisible();

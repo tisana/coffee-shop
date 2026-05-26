@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { MenuCategory, MenuItem } from "@coffee-shop/shared/domain/types";
 import type { MenuItemInput, MenuItemResponse } from "@coffee-shop/shared/contracts/api";
 
+import { CustomizationTemplateManager } from "../components/CustomizationTemplateManager";
 import { type CustomizationTemplate, MenuItemEditor } from "../components/MenuItemEditor";
 import { ApiClientError } from "../services/apiClient";
 import {
@@ -14,6 +15,7 @@ import {
 } from "../services/menuApi";
 
 const NEW_ITEM_ID = "__new_menu_item__";
+const CUSTOMIZATION_TEMPLATES_STORAGE_KEY = "coffee-shop.customizationTemplates.v1";
 
 function replaceMenuItem(categories: MenuCategory[], updatedItem: MenuItemResponse): MenuCategory[] {
   return categories.map((category) => ({
@@ -109,9 +111,35 @@ function buildCustomizationTemplates(items: MenuItem[]): CustomizationTemplate[]
   return templates;
 }
 
+function readStoredCustomizationTemplates(): CustomizationTemplate[] | null {
+  try {
+    const storedTemplates = window.localStorage.getItem(CUSTOMIZATION_TEMPLATES_STORAGE_KEY);
+
+    if (!storedTemplates) {
+      return null;
+    }
+
+    const parsedTemplates = JSON.parse(storedTemplates);
+
+    return Array.isArray(parsedTemplates) ? parsedTemplates : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredCustomizationTemplates(templates: CustomizationTemplate[]) {
+  try {
+    window.localStorage.setItem(CUSTOMIZATION_TEMPLATES_STORAGE_KEY, JSON.stringify(templates));
+  } catch {
+    // Template editing still works for the current session if browser storage is unavailable.
+  }
+}
+
 export function MenuMaintenancePage() {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [selectedItemId, setSelectedItemId] = useState("");
+  const [activeMenuView, setActiveMenuView] = useState<"items" | "templates">("items");
+  const [customizationTemplates, setCustomizationTemplates] = useState<CustomizationTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
@@ -130,6 +158,10 @@ export function MenuMaintenancePage() {
 
         setCategories(response.categories);
         setSelectedItemId(response.categories.flatMap((category) => category.menuItems)[0]?.id ?? "");
+        setCustomizationTemplates(
+          readStoredCustomizationTemplates() ??
+            buildCustomizationTemplates(response.categories.flatMap((category) => category.menuItems))
+        );
       })
       .catch((caught) => {
         setError(caught instanceof ApiClientError ? caught.message : "Unable to load menu.");
@@ -151,10 +183,11 @@ export function MenuMaintenancePage() {
   );
   const selectedItem = allItems.find((item) => item.id === selectedItemId) ?? null;
   const editableItem = selectedItemId === NEW_ITEM_ID ? draftItem : selectedItem;
-  const customizationTemplates = useMemo(
-    () => buildCustomizationTemplates(allItems),
-    [allItems]
-  );
+
+  function updateCustomizationTemplates(nextTemplates: CustomizationTemplate[]) {
+    setCustomizationTemplates(nextTemplates);
+    writeStoredCustomizationTemplates(nextTemplates);
+  }
 
   async function saveItem(itemId: string, input: MenuItemInput) {
     setSavingItemId(itemId);
@@ -244,65 +277,103 @@ export function MenuMaintenancePage() {
       {loading ? (
         <p className="empty-state">Loading menu.</p>
       ) : (
-        <div className="menu-maintenance-workspace">
-          <section className="menu-maintenance-list" aria-label="Menu items">
-            <button type="button" className="add-menu-item-button" onClick={addDraftItem}>
-              <Plus size={17} aria-hidden="true" />
-              Add menu item
+        <>
+          <div className="menu-maintenance-submenu" aria-label="Menu maintenance sections">
+            <button
+              type="button"
+              aria-pressed={activeMenuView === "items"}
+              onClick={() => setActiveMenuView("items")}
+            >
+              Menu items
             </button>
-            {categories.map((category) => (
-              <div key={category.id} className="menu-maintenance-category">
-                <h3>{category.name}</h3>
-                <div>
-                  {category.menuItems.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={selectedItemId === item.id ? "menu-maintenance-row selected" : "menu-maintenance-row"}
-                      onClick={() => {
-                        setSelectedItemId(item.id);
-                        setSuccessMessage(null);
-                      }}
-                    >
-                      <Pencil size={16} aria-hidden="true" />
-                      <span>Edit {item.name}</span>
-                      <small>{item.available && item.active ? "Available" : "Unavailable"}</small>
-                    </button>
-                  ))}
-                  {draftItem?.categoryId === category.id ? (
-                    <button
-                      type="button"
-                      className={selectedItemId === NEW_ITEM_ID ? "menu-maintenance-row selected" : "menu-maintenance-row"}
-                      onClick={() => setSelectedItemId(NEW_ITEM_ID)}
-                    >
-                      <Pencil size={16} aria-hidden="true" />
-                      <span>Edit New menu item</span>
-                      <small>Draft</small>
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </section>
+            <button
+              type="button"
+              aria-pressed={activeMenuView === "templates"}
+              onClick={() => setActiveMenuView("templates")}
+            >
+              Customization templates
+            </button>
+          </div>
 
-          {editableItem ? (
-            <MenuItemEditor
-              item={editableItem as MenuItem}
-              categories={categories}
-              customizationTemplates={customizationTemplates}
-              isNew={editableItem.id === NEW_ITEM_ID}
-              saving={savingItemId === editableItem.id}
-              deleting={deletingItemId === editableItem.id}
-              onSave={saveItem}
-              onDelete={deleteItem}
-              {...(editableItem.id === NEW_ITEM_ID
-                ? { onCategoryChange: updateDraftCategory }
-                : {})}
-            />
+          {activeMenuView === "items" ? (
+            <div className="menu-maintenance-workspace">
+              <section className="menu-maintenance-list" aria-label="Menu items">
+                <button type="button" className="add-menu-item-button" onClick={addDraftItem}>
+                  <Plus size={17} aria-hidden="true" />
+                  Add menu item
+                </button>
+                {categories.map((category) => (
+                  <div key={category.id} className="menu-maintenance-category">
+                    <h3>{category.name}</h3>
+                    <div>
+                      {category.menuItems.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className={
+                            selectedItemId === item.id
+                              ? "menu-maintenance-row selected"
+                              : "menu-maintenance-row"
+                          }
+                          onClick={() => {
+                            setSelectedItemId(item.id);
+                            setSuccessMessage(null);
+                          }}
+                        >
+                          <Pencil size={16} aria-hidden="true" />
+                          <span>Edit {item.name}</span>
+                          <small>{item.available && item.active ? "Available" : "Unavailable"}</small>
+                        </button>
+                      ))}
+                      {draftItem?.categoryId === category.id ? (
+                        <button
+                          type="button"
+                          className={
+                            selectedItemId === NEW_ITEM_ID
+                              ? "menu-maintenance-row selected"
+                              : "menu-maintenance-row"
+                          }
+                          onClick={() => setSelectedItemId(NEW_ITEM_ID)}
+                        >
+                          <Pencil size={16} aria-hidden="true" />
+                          <span>Edit New menu item</span>
+                          <small>Draft</small>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </section>
+
+              {editableItem ? (
+                <MenuItemEditor
+                  item={editableItem as MenuItem}
+                  categories={categories}
+                  customizationTemplates={customizationTemplates}
+                  isNew={editableItem.id === NEW_ITEM_ID}
+                  saving={savingItemId === editableItem.id}
+                  deleting={deletingItemId === editableItem.id}
+                  onSave={saveItem}
+                  onDelete={deleteItem}
+                  {...(editableItem.id === NEW_ITEM_ID
+                    ? { onCategoryChange: updateDraftCategory }
+                    : {})}
+                />
+              ) : (
+                <p className="empty-state">No menu items found.</p>
+              )}
+            </div>
           ) : (
-            <p className="empty-state">No menu items found.</p>
+            <CustomizationTemplateManager
+              templates={customizationTemplates}
+              onTemplatesChange={updateCustomizationTemplates}
+              onMessage={(message) => {
+                setSuccessMessage(message);
+                setError(null);
+              }}
+            />
           )}
-        </div>
+        </>
       )}
     </section>
   );
