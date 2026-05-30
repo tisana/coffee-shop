@@ -15,6 +15,11 @@ const statusLabels: Record<Order["status"], string> = {
   cancelled: "Cancelled"
 };
 
+function formatReceivedTime(value: string): string {
+  const [date, time = ""] = value.split("T");
+  return `${date} ${time.slice(0, 5)} UTC`;
+}
+
 export function OrderHistoryList({ orders }: OrderHistoryListProps) {
   if (orders.length === 0) {
     return <p className="empty-state">No current-day orders match those filters.</p>;
@@ -37,7 +42,7 @@ export function OrderHistoryList({ orders }: OrderHistoryListProps) {
           <div className="history-order-meta">
             <span>
               <ReceiptText size={18} aria-hidden="true" />
-              {order.businessDate}
+              Received {formatReceivedTime(order.createdAt)}
             </span>
             <strong>${order.total}</strong>
           </div>

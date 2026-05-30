@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import type { OrderHistoryResponse } from "@coffee-shop/shared/contracts/api";
 import type { Order } from "@coffee-shop/shared/domain/types";
 
-const createdAt = new Date().toISOString();
+const createdAt = "2026-05-30T15:42:00.000Z";
 const staffId = "5e2a85b5-30e5-4b37-9b7c-122229476d62";
 
 function historyOrder(overrides: Partial<Order>): Order {
@@ -120,6 +120,7 @@ test("staff searches current-day activity by number, status, and pickup name", a
   await expect(page.getByRole("heading", { name: "Daily activity" })).toBeVisible();
   await expect(page.getByText("#44")).toBeVisible();
   await expect(page.getByText("#45")).toBeVisible();
+  await expect(page.getByText("Received 2026-05-30 15:42 UTC")).toHaveCount(2);
 
   await page.getByLabel("Daily order number").fill("44");
   await page.getByRole("button", { name: "Search history" }).click();

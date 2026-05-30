@@ -218,8 +218,8 @@
 - [X] T094 [P] [US1] Add configurable shop-timezone daily order number reset test in `apps/api/tests/integration/daily-order-number.test.ts`
 - [X] T095 [US1] Implement shared shop business-date helper and use it for order creation in `apps/api/src/domain/businessDate.ts` and `apps/api/src/domain/orderCreationService.ts`
 - [X] T096 [US5] Use shared shop business-date helper for current-day history queries in `apps/api/src/domain/orderHistoryService.ts`
-- [ ] T097 [P] [US5] Add Playwright assertion that daily activity shows received time in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
-- [ ] T098 [US5] Show each order's received time in daily activity results in `apps/staff-web/src/components/OrderHistoryList.tsx`
+- [X] T097 [P] [US5] Add Playwright assertion that daily activity shows received time in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
+- [X] T098 [US5] Show each order's received time in daily activity results in `apps/staff-web/src/components/OrderHistoryList.tsx`
 - [X] T099 [P] [US2] Add Playwright conflict feedback coverage for already-claimed queue orders in `apps/staff-web/tests/e2e/brew-queue.spec.ts`
 - [X] T100 [P] Document `SHOP_TIME_ZONE` business-day behavior in `apps/api/README.md`, `specs/001-staff-operations/spec.md`, `specs/001-staff-operations/plan.md`, and `specs/001-staff-operations/data-model.md`
 
