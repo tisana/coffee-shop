@@ -5,7 +5,7 @@
 
 ## Summary
 
-Build the first staff-operated coffee shop workflow as a web application with a shared backend. Authorized staff can create counter orders, generate daily order numbers, push orders to a brew queue, let available baristas take queued orders, track beverage completion or cancellation, complete orders only when remaining beverages are ready, confirm pickup, maintain menu availability, and review current-day activity.
+Build the first staff-operated coffee shop workflow as a web application with a shared backend. Authorized staff can create counter orders, generate daily order numbers, push orders to a brew queue, let available baristas take queued orders, track beverage completion or cancellation, complete orders only when remaining beverages are ready, confirm pickup, maintain menu availability, and review current-day activity across all workflow statuses with received time.
 
 The technical approach is a small TypeScript monorepo with a staff web UI, a backend API, shared domain types, PostgreSQL persistence, Drizzle migrations, HTTP-only session-cookie staff authentication, and Docker Compose for local services. This keeps development repeatable while still supporting real shared queue state, valid status transitions, daily order numbering, conflict-safe order claiming, and a deployable container path.
 
@@ -26,7 +26,7 @@ The technical approach is a small TypeScript monorepo with a staff web UI, a bac
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 - **I. Staff Workflow Integrity**: PASS. The plan models the required counter order -> brew queue -> in progress -> completed -> pickup-confirmed journey.
-- **II. Daily Order Identity**: PASS. The plan includes a daily order sequence with historical uniqueness via business date plus daily order number.
+- **II. Daily Order Identity**: PASS. The plan includes a daily order sequence with historical uniqueness via configured shop business date plus daily order number.
 - **III. Queue State Correctness**: PASS. The plan requires server-side status transitions and conflict-safe claiming of waiting orders.
 - **IV. Purchased Detail Preservation**: PASS. The data model scopes allowed customizations per menu item and snapshots purchased beverage name, price, selected customizations, and instructions on order beverages.
 - **V. Incremental, Spec-Driven Delivery**: PASS. Artifacts preserve prioritized user stories and keep implementation details in the plan, not the spec.
