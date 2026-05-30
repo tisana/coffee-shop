@@ -211,6 +211,20 @@
 
 ---
 
+## Phase 9: Clarification Follow-Up
+
+**Purpose**: Align tasks with the clarified daily activity and shop business-day requirements.
+
+- [X] T094 [P] [US1] Add configurable shop-timezone daily order number reset test in `apps/api/tests/integration/daily-order-number.test.ts`
+- [X] T095 [US1] Implement shared shop business-date helper and use it for order creation in `apps/api/src/domain/businessDate.ts` and `apps/api/src/domain/orderCreationService.ts`
+- [X] T096 [US5] Use shared shop business-date helper for current-day history queries in `apps/api/src/domain/orderHistoryService.ts`
+- [ ] T097 [P] [US5] Add Playwright assertion that daily activity shows received time in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
+- [ ] T098 [US5] Show each order's received time in daily activity results in `apps/staff-web/src/components/OrderHistoryList.tsx`
+- [X] T099 [P] [US2] Add Playwright conflict feedback coverage for already-claimed queue orders in `apps/staff-web/tests/e2e/brew-queue.spec.ts`
+- [X] T100 [P] Document `SHOP_TIME_ZONE` business-day behavior in `apps/api/README.md`, `specs/001-staff-operations/spec.md`, `specs/001-staff-operations/plan.md`, and `specs/001-staff-operations/data-model.md`
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -223,6 +237,7 @@
 - **Phase 6 US4**: Depends on Phase 2; can be developed in parallel after foundation
 - **Phase 7 US5**: Depends on Phase 2 and benefits from completed/cancelled seeded orders
 - **Phase 8 Polish**: Depends on selected story phases
+- **Phase 9 Clarification Follow-Up**: Depends on the clarified spec and relevant completed story phases
 
 ### User Story Dependencies
 
@@ -247,6 +262,7 @@
 - Test tasks within each user story can run in parallel before implementation.
 - US4 menu maintenance can be implemented in parallel with US2 or US3 after foundation.
 - US5 history can be implemented in parallel if seeded data is available.
+- T097 can be written before T098, while T094, T099, and T100 are independent once the clarified requirements are known.
 
 ## Parallel Example: User Story 1
 
@@ -290,6 +306,7 @@ Task: "T077 [US4] Create customization group editor in apps/staff-web/src/compon
 - Validate state transition guards before pickup confirmation.
 - Validate purchased customization snapshots before allowing menu edits.
 - Validate auth middleware before exposing staff operations.
+- Validate clarified daily activity received-time display before treating US5 as fully aligned with the updated spec.
 
 ## Notes
 
