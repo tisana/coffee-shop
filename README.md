@@ -40,6 +40,20 @@ Start the API and staff web app together:
 npm run dev
 ```
 
+This writes API and staff web logs under `logs/`.
+
+Start both apps without writing project-managed log files:
+
+```powershell
+npm run dev:console
+```
+
+Clean generated logs:
+
+```powershell
+npm run logs:clean
+```
+
 Start one workspace at a time:
 
 ```powershell
