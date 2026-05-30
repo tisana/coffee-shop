@@ -42,6 +42,7 @@ export async function createStaffSession(staffId: string): Promise<{ token: stri
 export function setSessionCookie(response: Response, token: string, expiresAt: Date): void {
   response.cookie(STAFF_SESSION_COOKIE, token, {
     httpOnly: true,
+    maxAge: SESSION_TTL_MS,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     expires: expiresAt,

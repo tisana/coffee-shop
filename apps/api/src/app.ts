@@ -5,6 +5,7 @@ import { createAuthRoutes } from "./routes/authRoutes";
 import { errorHandler } from "./routes/errors";
 import { createMenuRoutes } from "./routes/menuRoutes";
 import { createOrderFulfillmentRoutes } from "./routes/orderFulfillmentRoutes";
+import { createOrderHistoryRoutes } from "./routes/orderHistoryRoutes";
 import { createOrderRoutes } from "./routes/orderRoutes";
 import { createQueueRoutes } from "./routes/queueRoutes";
 import { createQueueSubmissionRoutes } from "./routes/queueSubmissionRoutes";
@@ -23,6 +24,7 @@ export function createApp(): Express {
   app.use(createAuthRoutes());
   app.use(createMenuRoutes());
   app.use(createOrderRoutes());
+  app.use(createOrderHistoryRoutes());
   app.use(createQueueSubmissionRoutes());
   app.use(createOrderFulfillmentRoutes());
   app.use(createQueueRoutes());

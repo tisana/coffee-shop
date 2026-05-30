@@ -181,17 +181,17 @@
 
 ### Tests for User Story 5
 
-- [ ] T079 [P] [US5] Add contract tests for `GET /orders/history` filters in `apps/api/tests/integration/order-history.contract.test.ts`
-- [ ] T080 [P] [US5] Add current-day history query test in `apps/api/tests/integration/current-day-history.test.ts`
-- [ ] T081 [P] [US5] Add Playwright daily activity search test covering daily order number, status, pickup-name filters, and 45-second current-day order lookup timing assertion in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
+- [X] T079 [P] [US5] Add contract tests for `GET /orders/history` filters in `apps/api/tests/integration/order-history.contract.test.ts`
+- [X] T080 [P] [US5] Add current-day history query test in `apps/api/tests/integration/current-day-history.test.ts`
+- [X] T081 [P] [US5] Add Playwright daily activity search test covering daily order number, status, pickup-name filters, and 45-second current-day order lookup timing assertion in `apps/staff-web/tests/e2e/daily-activity.spec.ts`
 
 ### Implementation for User Story 5
 
-- [ ] T082 [US5] Implement current-day order history service in `apps/api/src/domain/orderHistoryService.ts`
-- [ ] T083 [US5] Implement order history route in `apps/api/src/routes/orderHistoryRoutes.ts`
-- [ ] T084 [US5] Create daily activity page with number, status, and pickup-name filters in `apps/staff-web/src/pages/DailyActivityPage.tsx`
-- [ ] T085 [US5] Create order history result list in `apps/staff-web/src/components/OrderHistoryList.tsx`
-- [ ] T086 [US5] Wire order history client calls in `apps/staff-web/src/services/historyApi.ts`
+- [X] T082 [US5] Implement current-day order history service in `apps/api/src/domain/orderHistoryService.ts`
+- [X] T083 [US5] Implement order history route in `apps/api/src/routes/orderHistoryRoutes.ts`
+- [X] T084 [US5] Create daily activity page with number, status, and pickup-name filters in `apps/staff-web/src/pages/DailyActivityPage.tsx`
+- [X] T085 [US5] Create order history result list in `apps/staff-web/src/components/OrderHistoryList.tsx`
+- [X] T086 [US5] Wire order history client calls in `apps/staff-web/src/services/historyApi.ts`
 
 **Checkpoint**: Current-day activity review is independently functional.
 
@@ -201,13 +201,13 @@
 
 **Purpose**: Validate the full workflow, improve reliability, and prepare the next Speckit phase.
 
-- [ ] T087 [P] Add API README with local commands and service ports in `apps/api/README.md`
-- [ ] T088 [P] Add staff web README with local commands and test flow in `apps/staff-web/README.md`
-- [ ] T089 Update root README with Docker Compose, migration, seed, dev, and test commands in `README.md`
-- [ ] T090 Add quickstart validation notes after manual walkthrough in `specs/001-staff-operations/quickstart.md`
-- [ ] T091 Add cross-story Playwright smoke test for login, order creation, queue claim, completion, pickup, menu availability, and history in `apps/staff-web/tests/e2e/full-staff-workflow.spec.ts`
-- [ ] T092 Add security hardening checklist for session cookies and auth middleware in `apps/api/tests/integration/auth-security.test.ts`
-- [ ] T093 Run and document final validation commands and all timing evidence in `specs/001-staff-operations/checklists/implementation-validation.md`
+- [X] T087 [P] Add API README with local commands and service ports in `apps/api/README.md`
+- [X] T088 [P] Add staff web README with local commands and test flow in `apps/staff-web/README.md`
+- [X] T089 Update root README with Docker Compose, migration, seed, dev, and test commands in `README.md`
+- [X] T090 Add quickstart validation notes after manual walkthrough in `specs/001-staff-operations/quickstart.md`
+- [X] T091 Add cross-story Playwright smoke test for login, order creation, queue claim, completion, pickup, menu availability, and history in `apps/staff-web/tests/e2e/full-staff-workflow.spec.ts`
+- [X] T092 Add security hardening checklist for session cookies and auth middleware in `apps/api/tests/integration/auth-security.test.ts`
+- [X] T093 Run and document final validation commands and all timing evidence in `specs/001-staff-operations/checklists/implementation-validation.md`
 
 ---
 

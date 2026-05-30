@@ -2,7 +2,6 @@ import { Router } from "express";
 
 import { requireStaff } from "../auth/requireStaff";
 import { createOrderForStaff } from "../domain/orderCreationService";
-import { notImplementedHandler } from "./errors";
 import { createOrderRequestSchema } from "./validators";
 
 export function createOrderRoutes(): Router {
@@ -23,8 +22,6 @@ export function createOrderRoutes(): Router {
       next(error);
     }
   });
-
-  router.get("/orders/history", requireStaff, notImplementedHandler);
 
   return router;
 }

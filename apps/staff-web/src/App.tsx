@@ -18,6 +18,7 @@ import type { StaffUser } from "@coffee-shop/shared/domain/types";
 
 import { CounterOrderPage } from "./pages/CounterOrderPage";
 import { BrewQueuePage } from "./pages/BrewQueuePage";
+import { DailyActivityPage } from "./pages/DailyActivityPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuMaintenancePage } from "./pages/MenuMaintenancePage";
 import { ApiClientError } from "./services/apiClient";
@@ -138,6 +139,8 @@ export function App() {
             <CounterOrderPage />
           ) : activeView === "#queue" ? (
             <BrewQueuePage staff={staff} />
+          ) : activeView === "#history" ? (
+            <DailyActivityPage />
           ) : activeView === "#menu" ? (
             <MenuMaintenancePage />
           ) : (
