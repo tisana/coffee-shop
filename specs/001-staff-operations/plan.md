@@ -18,7 +18,7 @@ The technical approach is a small TypeScript monorepo with a staff web UI, a bac
 **Target Platform**: Browser-based staff web app backed by a Node.js service  
 **Project Type**: Full-stack web application  
 **Performance Goals**: Order creation <= 60 seconds, queued order take <= 15 seconds, pickup confirmation <= 10 seconds, menu availability update <= 20 seconds, current-day order lookup <= 45 seconds  
-**Constraints**: Shared queue state, conflict-safe order claiming, daily order numbers reset by business day, purchased beverage details must not change after order creation, database schema changes must use migrations, staff operations must require authorized HTTP-only cookie sessions, database start/stop must be scriptable through containers  
+**Constraints**: Shared queue state, conflict-safe order claiming, daily order numbers reset by business day in the configured shop timezone (`SHOP_TIME_ZONE`, default `UTC`), purchased beverage details must not change after order creation, database schema changes must use migrations, staff operations must require authorized HTTP-only cookie sessions, database start/stop must be scriptable through containers
 **Scale/Scope**: Single coffee shop first version; dozens of active orders per business day; simple authorized staff model
 
 ## Constitution Check

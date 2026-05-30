@@ -5,6 +5,14 @@
 **Status**: Ready for Implementation
 **Input**: User description: "Shop staff operations. Current journey: barista takes customer order, pushes it to a queue, available barista takes the queued order, marks it in progress, brews beverages, marks completed when all beverages are done, notifies customer by order number, and customer picks up the order. Order numbers are generated daily and can reset each day. If one beverage in a multi-beverage order is out of stock or cancelled, the remaining beverages continue and the customer is notified only when the remaining beverages are ready."
 
+## Clarifications
+
+### Session 2026-05-30
+
+- Q: Which statuses should current-day daily activity include? -> A: Current-day daily activity includes all order statuses: created, queued, in progress, completed, picked up, and cancelled.
+- Q: Which timestamp should daily activity show as the order time? -> A: Daily activity shows the order's received time captured when staff create the order.
+- Q: Which timezone defines the shop business day for daily order numbers and current-day history? -> A: The shop business day uses configurable `SHOP_TIME_ZONE`, defaulting to `UTC`.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Take a Counter Order (Priority: P1)
@@ -79,12 +87,12 @@ As a shop staff member, I need to review orders from the current business day, s
 
 **Why this priority**: Daily activity is useful after orders are being created and completed. It also prepares the data shape for a later sales report phase without requiring reporting in this feature.
 
-**Independent Test**: Can be fully tested by creating, completing, and picking up sample orders, then finding them in current-day order history with their daily order numbers and final statuses.
+**Independent Test**: Can be fully tested by creating sample orders across active and completed workflow states, then finding them in current-day daily activity with their daily order numbers and current statuses.
 
 **Acceptance Scenarios**:
 
-1. **Given** orders have been created during the current business day, **When** staff open daily order history, **Then** those orders are listed with daily order number, final status, order time, items, and total.
-2. **Given** staff need to find a recent order, **When** they search or filter by daily order number, final status, or pickup name when available, **Then** matching current-day orders are shown.
+1. **Given** orders have been created during the current business day, **When** staff open daily order history, **Then** those orders are listed with daily order number, current status, received time, items, and total.
+2. **Given** staff need to find a recent order, **When** they search or filter by daily order number, current status, or pickup name when available, **Then** matching current-day orders are shown.
 
 ### Edge Cases
 
@@ -104,7 +112,7 @@ As a shop staff member, I need to review orders from the current business day, s
 - **FR-001**: System MUST allow an authorized barista to create a counter order while taking the customer's order.
 - **FR-002**: System MUST record each ordered beverage, quantity, selected customizations, special instructions, optional pickup name when provided, and total.
 - **FR-003**: System MUST assign a short order number to each accepted order for the current business day.
-- **FR-004**: Daily order numbers MUST reset for each new business day while preserving the ability to distinguish orders across different days.
+- **FR-004**: Daily order numbers MUST reset for each new business day in the configured shop timezone while preserving the ability to distinguish orders across different days.
 - **FR-005**: Staff MUST be able to push a created order to the brew queue.
 - **FR-006**: System MUST provide a staff-facing brew queue for orders that are waiting, in progress, or completed and ready for pickup.
 - **FR-007**: System MUST show each queued order's daily order number, received time, beverages, quantities, selected customizations, special instructions, current status, assigned barista when in progress, and total.
@@ -121,8 +129,8 @@ As a shop staff member, I need to review orders from the current business day, s
 - **FR-018**: Staff MUST be able to view menu items grouped by category.
 - **FR-019**: Staff MUST be able to create, update, retire, and mark menu items available or unavailable for new counter orders.
 - **FR-020**: Staff MUST be able to manage order-facing item details including name, description, category, price, and available customization groups.
-- **FR-021**: System MUST provide current-day order history for completed, picked-up, and cancelled orders.
-- **FR-022**: Staff MUST be able to filter or search current-day order history by daily order number, final status, and pickup name when available.
+- **FR-021**: System MUST provide current-day order history for orders in any workflow status: created, queued, in progress, completed, picked up, or cancelled, including each order's received time captured when staff create the order.
+- **FR-022**: Staff MUST be able to filter or search current-day order history by daily order number, current status, and pickup name when available.
 - **FR-023**: System MUST record when an order enters each major status: created, queued, in progress, completed, picked up, and cancelled.
 - **FR-024**: System MUST make staff operations available only to authorized staff users.
 - **FR-025**: System MUST show clear confirmation or error messages after staff create orders, push orders to the queue, change order status, confirm pickup, cancel a beverage, or save menu changes.
@@ -155,6 +163,6 @@ As a shop staff member, I need to review orders from the current business day, s
 - Payment handling is outside this spec unless later planning explicitly adds it; the operational queue starts from an accepted counter order.
 - Staff roles are simple for the first version: authorized staff can take orders, brew queued orders, update order status, confirm pickup, and maintain the menu.
 - The shop uses pickup orders, not table service or delivery, for the first version.
-- Daily order numbers are short customer-facing numbers that reset each business day; historical uniqueness comes from combining business date and order number.
+- Daily order numbers are short customer-facing numbers that reset each business day in the configured shop timezone; historical uniqueness comes from combining business date and order number.
 - Menu changes affect future orders only; existing orders keep the details shown when the barista created the order.
 - Daily sales reporting is a later phase; this spec only preserves the order dates, numbers, totals, and statuses needed to support it later.

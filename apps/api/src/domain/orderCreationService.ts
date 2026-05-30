@@ -16,6 +16,7 @@ import {
   orderBeverages,
   orders
 } from "../storage/schema";
+import { currentBusinessDate } from "./businessDate";
 import { mapOrder } from "./orderMapper";
 
 export interface CreateOrderInput {
@@ -35,10 +36,6 @@ interface BeverageSnapshotInput {
   priceSnapshot: string;
   selectedCustomizationsSnapshot: SelectedCustomizationSnapshot[];
   specialInstructions?: string | undefined;
-}
-
-function currentBusinessDate(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function addMoney(left: string, right: string): string {

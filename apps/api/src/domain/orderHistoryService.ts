@@ -5,11 +5,8 @@ import type { Order } from "@coffee-shop/shared/domain/types";
 
 import { db } from "../storage/db";
 import { orderBeverages, orders } from "../storage/schema";
+import { currentBusinessDate } from "./businessDate";
 import { mapOrder } from "./orderMapper";
-
-function currentBusinessDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export async function listCurrentDayOrderHistory(
   query: OrderHistoryQuery

@@ -99,7 +99,7 @@ Represents a customer order created by staff.
 
 **Fields**
 - `id`: durable system identity
-- `businessDate`: date used with daily order number for historical uniqueness
+- `businessDate`: date in the configured shop timezone used with daily order number for historical uniqueness
 - `dailyOrderNumber`: short customer-facing number for callout
 - `pickupName`: optional customer pickup name
 - `status`: created, queued, in_progress, completed, picked_up, cancelled. `completed` means the order is ready for pickup and waiting for pickup confirmation.
@@ -171,5 +171,5 @@ Tracks short customer-facing order numbers for each business day.
 **Rules**
 - The next daily order number is generated atomically during order creation.
 - Historical uniqueness is `businessDate + dailyOrderNumber`.
-- Sequence reset occurs by using a new business date.
+- Sequence reset occurs by using a new business date in the configured shop timezone (`SHOP_TIME_ZONE`, default `UTC`).
 - PostgreSQL transactions must protect sequence updates from duplicate numbers when multiple baristas create orders at the same time.

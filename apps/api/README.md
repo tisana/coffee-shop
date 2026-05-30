@@ -42,5 +42,7 @@ npm run db:migrate --workspace @coffee-shop/api
 
 The local Docker database defaults are defined in `infra/docker/compose.yml`.
 For direct API runs, keep `DATABASE_URL` pointed at the local PostgreSQL service.
+Set `SHOP_TIME_ZONE` to the shop's IANA timezone when daily order numbers and
+current-day history need to follow local shop time; it defaults to `UTC`.
 In production, set `NODE_ENV=production` so session cookies include the `Secure`
 attribute in addition to `HttpOnly`, `SameSite=Lax`, `Max-Age`, and `Path=/`.
