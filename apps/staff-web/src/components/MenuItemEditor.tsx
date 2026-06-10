@@ -6,6 +6,20 @@ import type { MenuCategory, MenuItem } from "@coffee-shop/shared/domain/types";
 
 import { CustomizationGroupEditor } from "./CustomizationGroupEditor";
 
+function toSafeImageUrl(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface CustomizationTemplate {
   id: string;
   label: string;
@@ -180,11 +194,14 @@ export function MenuItemEditor({
             onChange={(event) => setImageUrl(event.target.value)}
           />
         </label>
-        {imageUrl.trim() ? (
-          <div className="menu-image-preview" aria-label="Menu image preview">
-            <img src={imageUrl.trim()} alt="" />
-          </div>
-        ) : null}
+        {(() => {
+          const safePreviewImageUrl = toSafeImageUrl(imageUrl);
+          return safePreviewImageUrl ? (
+            <div className="menu-image-preview" aria-label="Menu image preview">
+              <img src={safePreviewImageUrl} alt="" />
+            </div>
+          ) : null;
+        })()}
       </div>
 
       <div className="menu-editor-toggles">
