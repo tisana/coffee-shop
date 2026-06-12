@@ -21,6 +21,9 @@ export interface TestMenuFixture {
   oatMilkChoiceId: string;
 }
 
+type LoggedInAgent = ReturnType<typeof request.agent>;
+type UnsafeAgentMethod = "delete" | "patch" | "post" | "put";
+
 export async function createTestStaff(password = "barista-pass") {
   const suffix = randomUUID().slice(0, 8);
   const [staff] = await db
@@ -127,17 +130,36 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
 export async function createLoggedInAgent() {
   const credentials = await createTestStaff();
   const agent = request.agent(createApp());
-  const loginResponse = await agent.post("/auth/login").send({
-    username: credentials.staff.username,
-    password: credentials.password
-  });
+  const csrfResponse = await agent.get("/auth/csrf-token");
+
+  if (csrfResponse.status !== 200 || typeof csrfResponse.body.csrfToken !== "string") {
+    throw new Error(`Test CSRF token request failed with status ${csrfResponse.status}.`);
+  }
+
+  const loginResponse = await agent
+    .post("/auth/login")
+    .set("X-CSRF-Token", csrfResponse.body.csrfToken)
+    .send({
+      username: credentials.staff.username,
+      password: credentials.password
+    });
 
   if (loginResponse.status !== 204) {
     throw new Error(`Test login failed with status ${loginResponse.status}.`);
   }
 
+  attachCsrfToken(agent, csrfResponse.body.csrfToken);
+
   return {
     agent,
     staff: credentials.staff
   };
+}
+
+function attachCsrfToken(agent: LoggedInAgent, csrfToken: string): void {
+  for (const method of ["delete", "patch", "post", "put"] as const satisfies UnsafeAgentMethod[]) {
+    const original = agent[method].bind(agent);
+
+    agent[method] = ((url: string) => original(url).set("X-CSRF-Token", csrfToken)) as LoggedInAgent[typeof method];
+  }
 }

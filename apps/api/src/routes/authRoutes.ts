@@ -1,4 +1,5 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { eq } from "drizzle-orm";
 
 import { requireStaff } from "../auth/requireStaff";
@@ -11,13 +12,27 @@ import {
 import { verifyPassword } from "../auth/passwords";
 import { db } from "../storage/db";
 import { staffUsers } from "../storage/schema";
-import { unauthorized } from "./errors";
+import { sendApiError, tooManyRequests, unauthorized } from "./errors";
 import { loginRequestSchema } from "./validators";
+
+const loginRateLimit = rateLimit({
+  windowMs: 60_000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_request, response) => {
+    sendApiError(response, tooManyRequests("Too many login attempts. Try again later."));
+  }
+});
 
 export function createAuthRoutes(): Router {
   const router = Router();
 
-  router.post("/auth/login", async (request, response, next) => {
+  router.get("/auth/csrf-token", (request, response) => {
+    response.json({ csrfToken: request.csrfToken() });
+  });
+
+  router.post("/auth/login", loginRateLimit, async (request, response, next) => {
     try {
       const body = loginRequestSchema.parse(request.body);
       const [staff] = await db

@@ -32,13 +32,27 @@ function getSetCookieHeaders(header: string | string[] | undefined): string[] {
 }
 
 describe("Phase 8 auth security hardening", () => {
+  async function getCsrfToken(agent: ReturnType<typeof request.agent>): Promise<string> {
+    const response = await agent.get("/auth/csrf-token");
+
+    expect(response.status).toBe(200);
+    expect(response.body.csrfToken).toEqual(expect.any(String));
+
+    return response.body.csrfToken as string;
+  }
+
   it("sets the staff session cookie with http-only, same-site, max-age, and path constraints", async () => {
     const { staff, password } = await createTestStaff();
+    const agent = request.agent(createApp());
+    const csrfToken = await getCsrfToken(agent);
 
-    const response = await request(createApp()).post("/auth/login").send({
-      username: staff.username,
-      password
-    });
+    const response = await agent
+      .post("/auth/login")
+      .set("X-CSRF-Token", csrfToken)
+      .send({
+        username: staff.username,
+        password
+      });
 
     expect(response.status).toBe(204);
     const sessionCookie = getSetCookieHeaders(response.headers["set-cookie"]).find((cookie) =>

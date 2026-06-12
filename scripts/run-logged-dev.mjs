@@ -5,7 +5,15 @@ import { spawn } from "node:child_process";
 
 const rootDir = process.cwd();
 const logDir = path.join(rootDir, "logs");
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const npmCommand =
+  process.platform === "win32"
+    ? {
+        command: process.execPath,
+        prefixArgs: [
+          path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js")
+        ]
+      }
+    : { command: "npm", prefixArgs: [] };
 
 const processes = [
   {
@@ -25,7 +33,7 @@ const processes = [
 await mkdir(logDir, { recursive: true });
 
 const children = processes.map((processConfig) => {
-  const child = spawn(npmCommand, processConfig.args, {
+  const child = spawn(npmCommand.command, [...npmCommand.prefixArgs, ...processConfig.args], {
     cwd: rootDir,
     env: process.env,
     stdio: ["inherit", "pipe", "pipe"]

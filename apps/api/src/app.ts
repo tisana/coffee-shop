@@ -1,4 +1,5 @@
 import cookieParser from "cookie-parser";
+import csrf from "csurf";
 import express, { type Express } from "express";
 
 import { createAuthRoutes } from "./routes/authRoutes";
@@ -16,6 +17,17 @@ export function createApp(): Express {
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
+  app.use(
+    csrf({
+      cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/"
+      },
+      value: (request) => request.header("X-CSRF-Token") ?? ""
+    })
+  );
 
   app.get("/health", (_request, response) => {
     response.json({ ok: true });

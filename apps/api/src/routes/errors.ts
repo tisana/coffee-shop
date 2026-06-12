@@ -20,6 +20,14 @@ export function unauthorized(message = "Staff authorization required."): ApiErro
   return new ApiError(401, "UNAUTHORIZED", message);
 }
 
+export function forbidden(message: string): ApiError {
+  return new ApiError(403, "FORBIDDEN", message);
+}
+
+export function tooManyRequests(message: string): ApiError {
+  return new ApiError(429, "TOO_MANY_REQUESTS", message);
+}
+
 export function notFound(message = "Resource not found."): ApiError {
   return new ApiError(404, "NOT_FOUND", message);
 }
@@ -45,6 +53,15 @@ export function notImplementedHandler(_request: Request, response: Response): vo
 
 export const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
   void _next;
+
+  if (typeof error === "object" && error !== null && "code" in error) {
+    const csrfError = error as { code?: unknown };
+
+    if (csrfError.code === "EBADCSRFTOKEN") {
+      sendApiError(response, forbidden("Invalid or missing CSRF token."));
+      return;
+    }
+  }
 
   if (error instanceof ApiError) {
     sendApiError(response, error);
