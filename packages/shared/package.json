@@ -1,0 +1,24 @@
+{
+  "name": "@coffee-shop/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./contracts/api": "./dist/contracts/api.js",
+    "./domain/status": "./dist/domain/status.js",
+    "./domain/types": "./dist/domain/types.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}

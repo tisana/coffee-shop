@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: coffee_shop_db
+    environment:
+      POSTGRES_DB: coffee_shop
+      POSTGRES_USER: coffee_shop
+      POSTGRES_PASSWORD: coffee_shop_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - coffee_shop_postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coffee_shop -d coffee_shop"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  coffee_shop_postgres_data:
