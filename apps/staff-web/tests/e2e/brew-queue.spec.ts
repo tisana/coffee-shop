@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import type { Order } from "@coffee-shop/shared/domain/types";
+import { fulfillCsrfToken } from "./testApiMocks";
 
 test("barista claims a queued order within the brew queue", async ({ page }) => {
   const createdAt = new Date().toISOString();
@@ -47,6 +48,10 @@ test("barista claims a queued order within the brew queue", async ({ page }) => 
 
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+
+    if (await fulfillCsrfToken(route, path)) {
+      return;
+    }
 
     if (path === "/staff/session") {
       await route.fulfill({
@@ -151,6 +156,10 @@ test("barista sees conflict feedback when a queued order was already claimed", a
 
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+
+    if (await fulfillCsrfToken(route, path)) {
+      return;
+    }
 
     if (path === "/staff/session") {
       await route.fulfill({

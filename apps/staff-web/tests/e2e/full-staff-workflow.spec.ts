@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import type { MenuCategory, Order } from "@coffee-shop/shared/domain/types";
+import { fulfillCsrfToken } from "./testApiMocks";
 
 const createdAt = new Date().toISOString();
 const staffId = "5e2a85b5-30e5-4b37-9b7c-122229476d62";
@@ -109,6 +110,10 @@ test("staff completes the full counter-to-history workflow", async ({ page }) =>
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace(/^\/api/, "");
+
+    if (await fulfillCsrfToken(route, path)) {
+      return;
+    }
 
     if (path === "/staff/session") {
       if (!sessionActive) {

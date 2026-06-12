@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
+import { fulfillCsrfToken } from "./testApiMocks";
 
 test("barista completes remaining beverages, calls out pickup, and confirms pickup", async ({
   page
@@ -65,6 +66,10 @@ test("barista completes remaining beverages, calls out pickup, and confirms pick
 
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+
+    if (await fulfillCsrfToken(route, path)) {
+      return;
+    }
 
     if (path === "/staff/session") {
       await route.fulfill({

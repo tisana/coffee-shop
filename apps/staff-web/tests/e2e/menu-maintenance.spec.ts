@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { fulfillCsrfToken } from "./testApiMocks";
+
 test("staff maintains menu availability and customization choices", async ({ page }) => {
   let sessionActive = false;
   const categoryId = "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa";
@@ -67,6 +69,10 @@ test("staff maintains menu availability and customization choices", async ({ pag
 
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+
+    if (await fulfillCsrfToken(route, path)) {
+      return;
+    }
 
     if (path === "/staff/session") {
       if (!sessionActive) {
