@@ -21,7 +21,7 @@
     "cookie-parser": "^1.4.7",
     "csurf": "^1.11.0",
     "dotenv": "^16.4.0",
-    "drizzle-orm": "^0.36.0",
+    "drizzle-orm": "^0.45.2",
     "express": "^5.0.0",
     "express-rate-limit": "^8.5.2",
     "pg": "^8.13.0",
