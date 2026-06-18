@@ -25,14 +25,14 @@ import { ApiClientError } from "./services/apiClient";
 import { getCurrentSession, logout } from "./services/authApi";
 
 const navItems = [
-  { href: "#counter", label: "Counter order", icon: Coffee },
+  { href: "#counter", label: "Counter Order", icon: Coffee },
   { href: "#queue", label: "Orders", icon: ClipboardList },
   { href: "#history", label: "History", icon: History },
-  { href: "#customers", label: "Customers", icon: Users },
   { href: "#menu", label: "Menu", icon: MenuIcon },
-  { href: "#inventory", label: "Inventory", icon: Package },
   { href: "#reports", label: "Reports", icon: ChartColumn },
+  { href: "#customers", label: "Customers", icon: Users },
   { href: "#staff", label: "Staff", icon: UserRound },
+  { href: "#inventory", label: "Inventory", icon: Package },
   { href: "#settings", label: "Settings", icon: Settings }
 ];
 
@@ -118,9 +118,6 @@ export function App() {
 
       <div className="main-panel">
         <header className="topbar">
-          <button type="button" className="icon-button" aria-label="Toggle navigation">
-            <MenuIcon size={24} />
-          </button>
           <label className="global-search">
             <Search size={23} aria-hidden="true" />
             <input placeholder="Search menu items, orders, customers..." />

@@ -208,7 +208,7 @@ nav a[aria-current="page"] {
 
 .topbar {
   display: grid;
-  grid-template-columns: auto minmax(280px, 590px) auto;
+  grid-template-columns: minmax(320px, 720px) auto;
   align-items: center;
   gap: 18px;
   justify-content: space-between;
@@ -245,6 +245,7 @@ nav a[aria-current="page"] {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   color: #696d66;
   font-weight: 400;
 }
