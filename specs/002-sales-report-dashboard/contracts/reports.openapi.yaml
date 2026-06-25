@@ -1,0 +1,390 @@
+openapi: 3.1.0
+info:
+  title: Coffee Shop Reports API
+  version: 0.1.0
+paths:
+  /reports/sales:
+    get:
+      summary: Return aggregate sales report dashboard data
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: First shop business date included in the report
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Last shop business date included in the report
+        - name: period
+          in: query
+          schema:
+            $ref: "#/components/schemas/ReportPeriodType"
+          description: Period grouping for summary rows
+        - name: statuses
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+          style: form
+          explode: false
+          description: Comma-separated statuses to include; defaults to completed,picked_up
+        - name: menuCategoryId
+          in: query
+          schema:
+            type: string
+          description: Optional current menu category filter
+        - name: menuItemId
+          in: query
+          schema:
+            type: string
+          description: Optional source menu item filter
+      responses:
+        "200":
+          description: Aggregate report data for charts and tables
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportSalesResponse"
+        "400":
+          description: Invalid report filter
+        "401":
+          description: Staff authorization required
+
+  /reports/orders:
+    get:
+      summary: Return supporting order details for report drill-down
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: period
+          in: query
+          schema:
+            $ref: "#/components/schemas/ReportPeriodType"
+        - name: periodKey
+          in: query
+          schema:
+            type: string
+          description: Optional selected period key from the aggregate response
+        - name: statuses
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+          style: form
+          explode: false
+        - name: menuCategoryId
+          in: query
+          schema:
+            type: string
+        - name: menuItemId
+          in: query
+          schema:
+            type: string
+        - name: combinationKey
+          in: query
+          schema:
+            type: string
+          description: Optional selected popular combination key
+      responses:
+        "200":
+          description: Supporting report order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportOrdersResponse"
+        "400":
+          description: Invalid report filter
+        "401":
+          description: Staff authorization required
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: staff_session
+  schemas:
+    ReportPeriodType:
+      type: string
+      enum:
+        - daily
+        - weekly
+        - monthly
+    OrderStatus:
+      type: string
+      enum:
+        - created
+        - queued
+        - in_progress
+        - completed
+        - picked_up
+        - cancelled
+    ReportFilter:
+      type: object
+      required:
+        - startDate
+        - endDate
+        - period
+        - statuses
+      properties:
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        period:
+          $ref: "#/components/schemas/ReportPeriodType"
+        statuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderStatus"
+        menuCategoryId:
+          type: string
+          nullable: true
+        menuItemId:
+          type: string
+          nullable: true
+    Money:
+      type: string
+      pattern: "^[0-9]+\\.[0-9]{2}$"
+    OverallReportTotals:
+      type: object
+      required:
+        - totalSales
+        - orderCount
+        - averageOrderValue
+      properties:
+        totalSales:
+          $ref: "#/components/schemas/Money"
+        orderCount:
+          type: integer
+          minimum: 0
+        averageOrderValue:
+          $ref: "#/components/schemas/Money"
+        topSellingItemName:
+          type: string
+          nullable: true
+        topSellingItemQuantity:
+          type: integer
+          nullable: true
+    ReportPeriodSummary:
+      type: object
+      required:
+        - key
+        - label
+        - startDate
+        - endDate
+        - partial
+        - totalSales
+        - orderCount
+        - averageOrderValue
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        partial:
+          type: boolean
+        totalSales:
+          $ref: "#/components/schemas/Money"
+        orderCount:
+          type: integer
+          minimum: 0
+        averageOrderValue:
+          $ref: "#/components/schemas/Money"
+        topSellingItemName:
+          type: string
+          nullable: true
+        topSellingItemQuantity:
+          type: integer
+          nullable: true
+    PopularItemReport:
+      type: object
+      required:
+        - rank
+        - sourceMenuItemId
+        - itemName
+        - quantitySold
+        - orderCount
+        - salesAmount
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+        sourceMenuItemId:
+          type: string
+        itemName:
+          type: string
+        categoryName:
+          type: string
+          nullable: true
+        quantitySold:
+          type: integer
+          minimum: 0
+        orderCount:
+          type: integer
+          minimum: 0
+        salesAmount:
+          $ref: "#/components/schemas/Money"
+    PopularCombinationReport:
+      type: object
+      required:
+        - rank
+        - combinationKey
+        - combinationLabel
+        - orderFrequency
+        - itemCount
+        - salesAmount
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+        combinationKey:
+          type: string
+        combinationLabel:
+          type: string
+        orderFrequency:
+          type: integer
+          minimum: 0
+        itemCount:
+          type: integer
+          minimum: 0
+        salesAmount:
+          $ref: "#/components/schemas/Money"
+    ReportSalesResponse:
+      type: object
+      required:
+        - filters
+        - generatedAt
+        - overall
+        - periods
+        - popularItems
+        - popularCombinations
+      properties:
+        filters:
+          $ref: "#/components/schemas/ReportFilter"
+        generatedAt:
+          type: string
+          format: date-time
+        overall:
+          $ref: "#/components/schemas/OverallReportTotals"
+        periods:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportPeriodSummary"
+        popularItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/PopularItemReport"
+        popularCombinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/PopularCombinationReport"
+    ReportOrderItem:
+      type: object
+      required:
+        - beverageId
+        - sourceMenuItemId
+        - name
+        - quantity
+        - unitPrice
+        - lineTotal
+        - status
+      properties:
+        beverageId:
+          type: string
+        sourceMenuItemId:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        unitPrice:
+          $ref: "#/components/schemas/Money"
+        lineTotal:
+          $ref: "#/components/schemas/Money"
+        status:
+          type: string
+          enum:
+            - pending
+            - completed
+            - cancelled
+        selectedCustomizations:
+          type: array
+          items:
+            type: string
+    ReportOrderDetail:
+      type: object
+      required:
+        - orderId
+        - businessDate
+        - dailyOrderNumber
+        - status
+        - reportableTotal
+        - items
+      properties:
+        orderId:
+          type: string
+        businessDate:
+          type: string
+          format: date
+        dailyOrderNumber:
+          type: integer
+          minimum: 1
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        reportableTotal:
+          $ref: "#/components/schemas/Money"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportOrderItem"
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        pickedUpAt:
+          type: string
+          format: date-time
+          nullable: true
+    ReportOrdersResponse:
+      type: object
+      required:
+        - filters
+        - orders
+      properties:
+        filters:
+          $ref: "#/components/schemas/ReportFilter"
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportOrderDetail"
