@@ -174,6 +174,7 @@ components:
         - averageOrderValue
       properties:
         totalSales:
+          description: Sum of included supporting order reportable totals from non-cancelled beverage snapshots.
           $ref: "#/components/schemas/Money"
         orderCount:
           type: integer
@@ -181,6 +182,7 @@ components:
         averageOrderValue:
           $ref: "#/components/schemas/Money"
         topSellingItemName:
+          description: Purchased item name with the highest quantity sold, breaking ties by reportable sales amount and then purchased item name.
           type: string
           nullable: true
         topSellingItemQuantity:
@@ -211,6 +213,7 @@ components:
         partial:
           type: boolean
         totalSales:
+          description: Sum of included supporting order reportable totals from non-cancelled beverage snapshots.
           $ref: "#/components/schemas/Money"
         orderCount:
           type: integer
@@ -218,6 +221,7 @@ components:
         averageOrderValue:
           $ref: "#/components/schemas/Money"
         topSellingItemName:
+          description: Purchased item name with the highest quantity sold, breaking ties by reportable sales amount and then purchased item name.
           type: string
           nullable: true
         topSellingItemQuantity:
@@ -346,6 +350,7 @@ components:
         - businessDate
         - dailyOrderNumber
         - status
+        - capturedOrderTotal
         - reportableTotal
         - items
       properties:
@@ -359,7 +364,11 @@ components:
           minimum: 1
         status:
           $ref: "#/components/schemas/OrderStatus"
+        capturedOrderTotal:
+          description: Original order total captured when staff created the order.
+          $ref: "#/components/schemas/Money"
         reportableTotal:
+          description: Sum of included non-cancelled beverage line amounts used for report sales totals.
           $ref: "#/components/schemas/Money"
         items:
           type: array

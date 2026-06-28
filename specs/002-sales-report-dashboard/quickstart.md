@@ -81,7 +81,19 @@ The Playwright flow should confirm:
 - Daily, weekly, and monthly controls update the dashboard.
 - Filters update every graph and table.
 - Table sorting works for sales summaries, popular items, popular combinations, and supporting orders.
+- Timed validation confirms 10-second initial summary visibility, 30-second top-10 discovery, and 2-second filter updates over 90 days of reportable order history.
 - Loading, empty, and error states are visible and accessible.
+
+## BI Question Usability Review
+
+After automated checks pass, run a manual review with an authorized staff user or reviewer. Confirm they can answer these questions without assistance:
+
+- Today's sales
+- This week's sales
+- This month's sales
+- Most popular item for the selected period
+
+Record the reviewer, date, dataset used, and pass/fail notes here during implementation.
 
 ## Full Verification
 

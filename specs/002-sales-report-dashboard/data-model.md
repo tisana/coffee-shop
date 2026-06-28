@@ -46,11 +46,11 @@ Represents aggregated shop performance for one report period.
 
 **Fields**
 - `periodKey`
-- `totalSales`: sum of included non-cancelled beverage line amounts
+- `totalSales`: sum of included supporting order `reportableTotal` values from non-cancelled beverage line amounts
 - `orderCount`: count of included orders
 - `averageOrderValue`: `totalSales / orderCount`, or zero when order count is zero
-- `topSellingItemName`: purchased item name with the highest quantity sold for the period, when available
-- `topSellingItemQuantity`: quantity sold for the top item, when available
+- `topSellingItemName`: purchased item name with the highest quantity sold for the period, using reportable sales amount and then purchased item name to break ties deterministically, when available
+- `topSellingItemQuantity`: quantity sold for the top-selling item, when available
 
 **Relationships**
 - Belongs to one report period.
@@ -60,8 +60,9 @@ Represents aggregated shop performance for one report period.
 - Include only orders matching the active report filter.
 - Default totals include completed and picked_up orders only.
 - Exclude cancelled beverages from sales amount and item quantity.
+- Break top-selling item ties by reportable sales amount, then purchased item name.
 - Preserve item names and prices from order beverage snapshots.
-- Zero-order periods return zero totals and no top-selling item.
+- Zero-order periods return zero totals and no top-selling item by quantity.
 
 ## Popular Item
 
@@ -118,6 +119,7 @@ Represents the order-level evidence behind a report row.
 - `dailyOrderNumber`
 - `status`
 - `items`: purchased item names, quantities, line amounts, and beverage statuses
+- `capturedOrderTotal`: original order total captured when staff created the order
 - `reportableTotal`: sum of non-cancelled beverage line amounts
 - `createdAt`
 - `completedAt`
@@ -129,6 +131,7 @@ Represents the order-level evidence behind a report row.
 
 **Rules**
 - `businessDate + dailyOrderNumber` identifies the order for staff.
+- `capturedOrderTotal` preserves the original order value as captured by staff operations.
 - `reportableTotal` excludes cancelled beverages.
 - Fully cancelled orders appear only when staff include cancelled statuses in filters.
 - Supporting details must match the active dashboard filters.
@@ -140,7 +143,7 @@ Represents the complete aggregate payload shown in the dashboard.
 **Fields**
 - `filters`: active report filter
 - `generatedAt`: timestamp when the report was produced
-- `overall`: total sales, order count, average order value, and top-selling item for the full filter range
+- `overall`: reportable total sales, order count, average order value, and top-selling item by quantity sold for the full filter range
 - `periods`: ordered sales summary rows
 - `popularItems`: top item rows
 - `popularCombinations`: top combination rows

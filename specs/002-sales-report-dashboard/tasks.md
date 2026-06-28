@@ -18,7 +18,7 @@
 **Purpose**: Prepare report-specific test fixtures and orient the existing app entry point before feature work begins.
 
 - [ ] T001 Review the current `#reports` placeholder and existing Reports nav entry in `apps/staff-web/src/App.tsx`
-- [ ] T002 [P] Add reusable API report test fixture helpers for completed, picked-up, fully cancelled, and partially cancelled orders in `apps/api/tests/integration/reportTestFixtures.ts`
+- [ ] T002 [P] Add reusable API report test fixture helpers for completed, picked-up, fully cancelled, partially cancelled, and 90-day performance orders in `apps/api/tests/integration/reportTestFixtures.ts`
 - [ ] T003 [P] Add staff-web report mock data builders for sales periods, popularity rows, and supporting orders in `apps/staff-web/tests/e2e/reportTestData.ts`
 - [ ] T004 [P] Add staff-web unit test mock helpers for report responses in `apps/staff-web/src/test/reportTestData.ts`
 
@@ -35,11 +35,11 @@
 - [ ] T007 Create report period, money, and line-total helper functions in `apps/api/src/domain/reportingService.ts`
 - [ ] T008 Create authenticated report route scaffolding for `/reports/sales` and `/reports/orders` in `apps/api/src/routes/reportRoutes.ts`
 - [ ] T009 Register report routes in the Express application in `apps/api/src/app.ts`
-- [ ] T010 Create the staff-web report API client methods in `apps/staff-web/src/services/reportsApi.ts`
-- [ ] T011 [P] Create reusable report filter controls for period, date range, statuses, category, and item in `apps/staff-web/src/components/ReportFilters.tsx`
+- [ ] T010 Create the staff-web report API client methods and define the category/item filter option source by reusing `/menu/categories` or report response metadata in `apps/staff-web/src/services/reportsApi.ts`
+- [ ] T011 [P] Create reusable report filter controls for period, date range, statuses, category, and item options from the chosen filter option source in `apps/staff-web/src/components/ReportFilters.tsx`
 - [ ] T012 [P] Create a reusable sortable report table component with keyboard-accessible sort buttons in `apps/staff-web/src/components/SortableReportTable.tsx`
 - [ ] T013 [P] Create accessible report chart primitives for trend and top-N bar charts in `apps/staff-web/src/components/ReportChart.tsx`
-- [ ] T014 [P] Create report metric cells for total sales, order count, average order value, and top item in `apps/staff-web/src/components/ReportMetricGrid.tsx`
+- [ ] T014 [P] Create report metric cells for total sales, order count, average order value, and top-selling item by quantity sold in `apps/staff-web/src/components/ReportMetricGrid.tsx`
 - [ ] T015 Add base report dashboard layout, chart, table, loading, empty, and error styles in `apps/staff-web/src/styles.css`
 
 **Checkpoint**: Shared contracts, route shell, API client, and reusable report UI primitives are ready.
@@ -50,14 +50,14 @@
 
 **Goal**: Authorized staff can open the existing Reports menu and review daily, weekly, and monthly sales summaries with graph/table parity.
 
-**Independent Test**: Open `/#reports`, select daily, weekly, and monthly views for a known date range, and confirm total sales, order count, average order value, and top-selling item match in the KPI cells, chart, and table.
+**Independent Test**: Open `/#reports`, select daily, weekly, and monthly views for a known date range, and confirm total sales, order count, average order value, and top-selling item by quantity sold match in the KPI cells, chart, and table.
 
 ### Tests for User Story 1
 
 - [ ] T016 [P] [US1] Add API contract tests for `GET /reports/sales` authorization, default statuses, date validation, and daily/weekly/monthly period totals in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T017 [P] [US1] Add unit tests for business-date period grouping, partial periods, average order value, and cancelled-beverage exclusion in `apps/api/tests/unit/reportingService.test.ts`
+- [ ] T017 [P] [US1] Add unit tests for business-date period grouping, partial periods, average order value, top-selling item tie-breaks, and cancelled-beverage exclusion in `apps/api/tests/unit/reportingService.test.ts`
 - [ ] T018 [P] [US1] Add staff-web component tests for `ReportsPage` loading, empty, error, and sales summary rendering in `apps/staff-web/src/pages/ReportsPage.test.tsx`
-- [ ] T019 [P] [US1] Add Playwright flow for opening the existing Reports sidebar link and switching daily, weekly, and monthly summaries in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [ ] T019 [P] [US1] Add Playwright flow for opening the existing Reports sidebar link, switching daily, weekly, and monthly summaries, and asserting 10-second summary visibility in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
 
 ### Implementation for User Story 1
 
@@ -83,7 +83,7 @@
 - [ ] T026 [P] [US2] Add API contract tests for popular item ranking by quantity sold, order count, sales amount, and tie handling in `apps/api/tests/integration/reports.contract.test.ts`
 - [ ] T027 [P] [US2] Add API contract tests for popular order combination ranking by frequency, sales amount, and cancelled beverage exclusion in `apps/api/tests/integration/reports.contract.test.ts`
 - [ ] T028 [P] [US2] Add unit tests for item and combination aggregation from purchased beverage snapshots in `apps/api/tests/unit/reportingService.test.ts`
-- [ ] T029 [P] [US2] Add Playwright checks for popular item and popular combination charts and tables in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [ ] T029 [P] [US2] Add Playwright checks for popular item and popular combination charts and tables, including 30-second top-10 discovery assertions, in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
 
 ### Implementation for User Story 2
 
@@ -106,9 +106,9 @@
 ### Tests for User Story 3
 
 - [ ] T035 [P] [US3] Add API contract tests for `GET /reports/orders` supporting order details, selected period filtering, selected item filtering, selected combination filtering, and authorization in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T036 [P] [US3] Add unit tests for supporting order reportable totals and filter matching in `apps/api/tests/unit/reportingService.test.ts`
+- [ ] T036 [P] [US3] Add unit tests for supporting order captured totals, reportable totals, and filter matching in `apps/api/tests/unit/reportingService.test.ts`
 - [ ] T037 [P] [US3] Add staff-web component tests for sortable report table behavior and filter control state changes in `apps/staff-web/src/components/SortableReportTable.test.tsx`
-- [ ] T038 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, and table sorting in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [ ] T038 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, table sorting, and 2-second filter update assertions in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
 
 ### Implementation for User Story 3
 
@@ -117,7 +117,7 @@
 - [ ] T041 [US3] Extend the report API client with supporting order detail loading in `apps/staff-web/src/services/reportsApi.ts`
 - [ ] T042 [US3] Implement filter submission, clear filters, and synchronized dashboard reload behavior in `apps/staff-web/src/pages/ReportsPage.tsx`
 - [ ] T043 [US3] Implement row selection from summary, popular item, and popular combination tables in `apps/staff-web/src/pages/ReportsPage.tsx`
-- [ ] T044 [US3] Create the supporting order detail table with sortable business date, daily order number, status, item, and total columns in `apps/staff-web/src/components/SupportingOrdersTable.tsx`
+- [ ] T044 [US3] Create the supporting order detail table with sortable business date, daily order number, status, item, captured order total, and reportable sales total columns in `apps/staff-web/src/components/SupportingOrdersTable.tsx`
 - [ ] T045 [US3] Add responsive table overflow, selected-row state, and supporting-order detail styles in `apps/staff-web/src/styles.css`
 
 **Checkpoint**: All report tables are sortable and filterable, and drill-down details match the selected report data.
@@ -135,6 +135,8 @@
 - [ ] T050 Run unit and integration tests for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
 - [ ] T051 Run the focused reports Playwright flow and record results in `specs/002-sales-report-dashboard/tasks.md`
 - [ ] T052 Run the production build and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T053 Run report performance validation for 10-second initial load, 30-second top-10 discovery, and 2-second filter updates over 90 days of orders and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T054 Run a manual BI-question usability review for today's sales, this week's sales, this month's sales, and most popular item, then record evidence in `specs/002-sales-report-dashboard/quickstart.md`
 
 ---
 
@@ -170,6 +172,7 @@
 - Test tasks inside each user story can run in parallel because they target different test files or independent sections of existing test files.
 - US2 backend aggregation tasks can proceed while US1 UI polish continues after the shared contract is stable.
 - Documentation polish tasks T046, T047, and T048 can run in parallel.
+- Final validation tasks T049 through T054 should run after the implemented report flow is available.
 
 ---
 
@@ -177,9 +180,9 @@
 
 ```text
 Task: "T016 [P] [US1] Add API contract tests for GET /reports/sales authorization, default statuses, date validation, and daily/weekly/monthly period totals in apps/api/tests/integration/reports.contract.test.ts"
-Task: "T017 [P] [US1] Add unit tests for business-date period grouping, partial periods, average order value, and cancelled-beverage exclusion in apps/api/tests/unit/reportingService.test.ts"
+Task: "T017 [P] [US1] Add unit tests for business-date period grouping, partial periods, average order value, top-selling item tie-breaks, and cancelled-beverage exclusion in apps/api/tests/unit/reportingService.test.ts"
 Task: "T018 [P] [US1] Add staff-web component tests for ReportsPage loading, empty, error, and sales summary rendering in apps/staff-web/src/pages/ReportsPage.test.tsx"
-Task: "T019 [P] [US1] Add Playwright flow for opening the existing Reports sidebar link and switching daily, weekly, and monthly summaries in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
+Task: "T019 [P] [US1] Add Playwright flow for opening the existing Reports sidebar link, switching daily, weekly, and monthly summaries, and asserting 10-second summary visibility in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
 ```
 
 ## Parallel Example: User Story 2
@@ -188,16 +191,16 @@ Task: "T019 [P] [US1] Add Playwright flow for opening the existing Reports sideb
 Task: "T026 [P] [US2] Add API contract tests for popular item ranking by quantity sold, order count, sales amount, and tie handling in apps/api/tests/integration/reports.contract.test.ts"
 Task: "T027 [P] [US2] Add API contract tests for popular order combination ranking by frequency, sales amount, and cancelled beverage exclusion in apps/api/tests/integration/reports.contract.test.ts"
 Task: "T028 [P] [US2] Add unit tests for item and combination aggregation from purchased beverage snapshots in apps/api/tests/unit/reportingService.test.ts"
-Task: "T029 [P] [US2] Add Playwright checks for popular item and popular combination charts and tables in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
+Task: "T029 [P] [US2] Add Playwright checks for popular item and popular combination charts and tables, including 30-second top-10 discovery assertions, in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
 ```
 
 ## Parallel Example: User Story 3
 
 ```text
 Task: "T035 [P] [US3] Add API contract tests for GET /reports/orders supporting order details, selected period filtering, selected item filtering, selected combination filtering, and authorization in apps/api/tests/integration/reports.contract.test.ts"
-Task: "T036 [P] [US3] Add unit tests for supporting order reportable totals and filter matching in apps/api/tests/unit/reportingService.test.ts"
+Task: "T036 [P] [US3] Add unit tests for supporting order captured totals, reportable totals, and filter matching in apps/api/tests/unit/reportingService.test.ts"
 Task: "T037 [P] [US3] Add staff-web component tests for sortable report table behavior and filter control state changes in apps/staff-web/src/components/SortableReportTable.test.tsx"
-Task: "T038 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, and table sorting in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
+Task: "T038 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, table sorting, and 2-second filter update assertions in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
 ```
 
 ---
