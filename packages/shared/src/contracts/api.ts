@@ -5,6 +5,7 @@ import type {
   MenuItem,
   Order,
   OrderStatus,
+  BeverageStatus,
   SelectedCustomization,
   StaffUser
 } from "../domain/types";
@@ -91,6 +92,104 @@ export interface OrderHistoryQuery {
 
 export interface OrderHistoryResponse {
   orders: Order[];
+}
+
+export type ReportPeriodType = "daily" | "weekly" | "monthly";
+
+export interface ReportFilter {
+  startDate: string;
+  endDate: string;
+  period: ReportPeriodType;
+  statuses: OrderStatus[];
+  menuCategoryId: string | null;
+  menuItemId: string | null;
+}
+
+export interface ReportSalesQuery {
+  startDate?: string;
+  endDate?: string;
+  period?: ReportPeriodType;
+  statuses?: OrderStatus[];
+  menuCategoryId?: string;
+  menuItemId?: string;
+}
+
+export interface ReportOrdersQuery extends ReportSalesQuery {
+  periodKey?: string;
+  combinationKey?: string;
+}
+
+export interface OverallReportTotals {
+  totalSales: string;
+  orderCount: number;
+  averageOrderValue: string;
+  topSellingItemName: string | null;
+  topSellingItemQuantity: number | null;
+}
+
+export interface ReportPeriodSummary extends OverallReportTotals {
+  key: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  partial: boolean;
+}
+
+export interface PopularItemReport {
+  rank: number;
+  sourceMenuItemId: string;
+  itemName: string;
+  categoryName: string | null;
+  quantitySold: number;
+  orderCount: number;
+  salesAmount: string;
+}
+
+export interface PopularCombinationReport {
+  rank: number;
+  combinationKey: string;
+  combinationLabel: string;
+  orderFrequency: number;
+  itemCount: number;
+  salesAmount: string;
+}
+
+export interface ReportSalesResponse {
+  filters: ReportFilter;
+  generatedAt: string;
+  overall: OverallReportTotals;
+  periods: ReportPeriodSummary[];
+  popularItems: PopularItemReport[];
+  popularCombinations: PopularCombinationReport[];
+}
+
+export interface ReportOrderItem {
+  beverageId: string;
+  sourceMenuItemId: string;
+  name: string;
+  quantity: number;
+  unitPrice: string;
+  lineTotal: string;
+  status: BeverageStatus;
+  selectedCustomizations: string[];
+}
+
+export interface ReportOrderDetail {
+  orderId: string;
+  businessDate: string;
+  dailyOrderNumber: number;
+  status: OrderStatus;
+  capturedOrderTotal: string;
+  reportableTotal: string;
+  items: ReportOrderItem[];
+  createdAt: string;
+  completedAt: string | null;
+  pickedUpAt: string | null;
+}
+
+export interface ReportOrdersResponse {
+  filters: ReportFilter;
+  orders: ReportOrderDetail[];
 }
 
 export interface ApiErrorResponse {

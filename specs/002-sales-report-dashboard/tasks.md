@@ -30,17 +30,17 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Define shared report request and response types from `contracts/reports.openapi.yaml` in `packages/shared/src/contracts/api.ts`
-- [ ] T006 Add report query validation schemas for date range, period, statuses, menu category, menu item, period key, and combination key in `apps/api/src/routes/validators.ts`
-- [ ] T007 Create report period, money, and line-total helper functions in `apps/api/src/domain/reportingService.ts`
-- [ ] T008 Create authenticated report route scaffolding for `/reports/sales` and `/reports/orders` in `apps/api/src/routes/reportRoutes.ts`
-- [ ] T009 Register report routes in the Express application in `apps/api/src/app.ts`
-- [ ] T010 Create the staff-web report API client methods and define the category/item filter option source by reusing `/menu/categories` or report response metadata in `apps/staff-web/src/services/reportsApi.ts`
-- [ ] T011 [P] Create reusable report filter controls for period, date range, statuses, category, and item options from the chosen filter option source in `apps/staff-web/src/components/ReportFilters.tsx`
-- [ ] T012 [P] Create a reusable sortable report table component with keyboard-accessible sort buttons in `apps/staff-web/src/components/SortableReportTable.tsx`
-- [ ] T013 [P] Create accessible report chart primitives for trend and top-N bar charts in `apps/staff-web/src/components/ReportChart.tsx`
-- [ ] T014 [P] Create report metric cells for total sales, order count, average order value, and top-selling item by quantity sold in `apps/staff-web/src/components/ReportMetricGrid.tsx`
-- [ ] T015 Add base report dashboard layout, chart, table, loading, empty, and error styles in `apps/staff-web/src/styles.css`
+- [X] T005 Define shared report request and response types from `contracts/reports.openapi.yaml` in `packages/shared/src/contracts/api.ts`
+- [X] T006 Add report query validation schemas for date range, period, statuses, menu category, menu item, period key, and combination key in `apps/api/src/routes/validators.ts`
+- [X] T007 Create report period, money, and line-total helper functions in `apps/api/src/domain/reportingService.ts`
+- [X] T008 Create authenticated report route scaffolding for `/reports/sales` and `/reports/orders` in `apps/api/src/routes/reportRoutes.ts`
+- [X] T009 Register report routes in the Express application in `apps/api/src/app.ts`
+- [X] T010 Create the staff-web report API client methods and define the category/item filter option source by reusing `/menu/categories` or report response metadata in `apps/staff-web/src/services/reportsApi.ts`
+- [X] T011 [P] Create reusable report filter controls for period, date range, statuses, category, and item options from the chosen filter option source in `apps/staff-web/src/components/ReportFilters.tsx`
+- [X] T012 [P] Create a reusable sortable report table component with keyboard-accessible sort buttons in `apps/staff-web/src/components/SortableReportTable.tsx`
+- [X] T013 [P] Create accessible report chart primitives for trend and top-N bar charts in `apps/staff-web/src/components/ReportChart.tsx`
+- [X] T014 [P] Create report metric cells for total sales, order count, average order value, and top-selling item by quantity sold in `apps/staff-web/src/components/ReportMetricGrid.tsx`
+- [X] T015 Add base report dashboard layout, chart, table, loading, empty, and error styles in `apps/staff-web/src/styles.css`
 
 **Checkpoint**: Shared contracts, route shell, API client, and reusable report UI primitives are ready.
 

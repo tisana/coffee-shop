@@ -3,6 +3,7 @@ import { z } from "zod";
 import { BEVERAGE_STATUSES, ORDER_STATUSES } from "@coffee-shop/shared/domain/status";
 
 const idSchema = z.string().uuid();
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const optionalTextSchema = z.string().trim().min(1).max(500).optional();
 const moneySchema = z
   .union([z.string(), z.number()])
@@ -111,6 +112,55 @@ export const historyQuerySchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
   pickupName: z.string().trim().min(1).max(120).optional()
 });
+
+const reportPeriodSchema = z.enum(["daily", "weekly", "monthly"]);
+const reportStatusesSchema = z
+  .union([z.string(), z.array(z.enum(ORDER_STATUSES))])
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value === "") {
+      return ["completed", "picked_up"] as Array<(typeof ORDER_STATUSES)[number]>;
+    }
+
+    if (Array.isArray(value)) {
+      return value;
+    }
+
+    return value.split(",").filter((status) => status.length > 0);
+  })
+  .pipe(z.array(z.enum(ORDER_STATUSES)).min(1));
+
+const reportBaseQueryShape = {
+  startDate: dateSchema.optional(),
+  endDate: dateSchema.optional(),
+  period: reportPeriodSchema.default("daily"),
+  statuses: reportStatusesSchema,
+  menuCategoryId: idSchema.optional(),
+  menuItemId: idSchema.optional()
+};
+
+function refineReportDateRange<T extends { startDate?: string | undefined; endDate?: string | undefined }>(
+  value: T,
+  context: z.RefinementCtx
+): void {
+    if (value.startDate && value.endDate && value.startDate > value.endDate) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endDate"],
+        message: "endDate must be on or after startDate"
+      });
+    }
+}
+
+export const reportSalesQuerySchema = z.object(reportBaseQueryShape).superRefine(refineReportDateRange);
+
+export const reportOrdersQuerySchema = z
+  .object({
+    ...reportBaseQueryShape,
+    periodKey: z.string().trim().min(1).max(80).optional(),
+    combinationKey: z.string().trim().min(1).max(500).optional()
+  })
+  .superRefine(refineReportDateRange);
 
 export const orderStatusSchema = z.enum(ORDER_STATUSES);
 export const beverageStatusSchema = z.enum(BEVERAGE_STATUSES);
