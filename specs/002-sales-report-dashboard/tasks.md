@@ -17,10 +17,10 @@
 
 **Purpose**: Prepare report-specific test fixtures and orient the existing app entry point before feature work begins.
 
-- [ ] T001 Review the current `#reports` placeholder and existing Reports nav entry in `apps/staff-web/src/App.tsx`
-- [ ] T002 [P] Add reusable API report test fixture helpers for completed, picked-up, fully cancelled, partially cancelled, and 90-day performance orders in `apps/api/tests/integration/reportTestFixtures.ts`
-- [ ] T003 [P] Add staff-web report mock data builders for sales periods, popularity rows, and supporting orders in `apps/staff-web/tests/e2e/reportTestData.ts`
-- [ ] T004 [P] Add staff-web unit test mock helpers for report responses in `apps/staff-web/src/test/reportTestData.ts`
+- [X] T001 Review the current `#reports` placeholder and existing Reports nav entry in `apps/staff-web/src/App.tsx`
+- [X] T002 [P] Add reusable API report test fixture helpers for completed, picked-up, fully cancelled, partially cancelled, and 90-day performance orders in `apps/api/tests/integration/reportTestFixtures.ts`
+- [X] T003 [P] Add staff-web report mock data builders for sales periods, popularity rows, and supporting orders in `apps/staff-web/tests/e2e/reportTestData.ts`
+- [X] T004 [P] Add staff-web unit test mock helpers for report responses in `apps/staff-web/src/test/reportTestData.ts`
 
 ---
 
