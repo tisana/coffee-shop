@@ -20,7 +20,7 @@
 **Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Testing**: [Name the test pyramid for this feature: broad unit/domain/component tests, targeted integration/API contract tests, and limited end-to-end flows for critical risk, or NEEDS CLARIFICATION]
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
 **Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
 **Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
@@ -31,7 +31,10 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+[Gates determined based on constitution file. The check MUST cover KISS/YAGNI
+simplicity, TDD with tests written before executable implementation, the
+feature's test-pyramid shape, and any complexity that requires a documented
+simpler alternative in Complexity Tracking.]
 
 ## Project Structure
 
@@ -97,6 +100,8 @@ directories captured above]
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
+> Also fill when the plan adds non-obvious abstraction, dependencies, storage,
+> workflows, or configuration that exceed the simplest current-story solution.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|

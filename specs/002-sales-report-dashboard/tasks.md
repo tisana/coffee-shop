@@ -3,7 +3,7 @@
 **Input**: Design documents from `/specs/002-sales-report-dashboard/`  
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/reports.openapi.yaml, quickstart.md
 
-**Tests**: Included because the quickstart, plan, and risk profile call for API contract tests, aggregation tests, and Playwright validation for report calculations, authorization, sorting, filtering, and graph/table parity.
+**Tests**: Required by the constitution and included because the quickstart, plan, and risk profile call for API contract tests, aggregation tests, component tests, and Playwright validation for report calculations, authorization, sorting, filtering, and graph/table parity. Write story tests first, confirm they fail for the expected reason, then implement.
 
 **Organization**: Tasks are grouped by user story so the daily/weekly/monthly sales summary can ship as the MVP before popularity analytics and drill-down filtering.
 
@@ -159,7 +159,8 @@
 
 ### Within Each User Story
 
-- Write story-specific tests before implementation.
+- Write story-specific tests before implementation and confirm new tests fail for the expected reason.
+- Keep the suite pyramid-shaped: broad domain/component coverage, targeted API contract coverage, and focused Playwright coverage for critical staff flows.
 - Implement shared/domain aggregation before route response mapping.
 - Implement route/API client behavior before UI loading.
 - Implement UI rendering before Playwright validation.
@@ -234,7 +235,8 @@ Task: "T038 [P] [US3] Add Playwright checks for status/category/item filtering, 
 ## Notes
 
 - [P] tasks use different files or independent test sections and can be run in parallel.
-- Tests should be written first for each story and should fail before implementation.
+- Tests MUST be written first for each story and fail for the expected reason before implementation.
+- Keep tests correct, fast enough, deterministic, readable, independent, behavior-focused, cheap to maintain, and targeted at real risk.
 - Keep sales calculations tied to order beverage snapshots, not mutable menu item names or current prices.
 - Keep the existing sidebar `Reports` entry as the only entry point.
 - Do not add export, scheduled reports, payment reconciliation, forecasting, or cross-location BI in this feature.
