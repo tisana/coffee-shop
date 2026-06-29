@@ -70,19 +70,19 @@
 
 ### Tests for User Story 1
 
-- [ ] T021 [P] [US1] Add API contract tests for `GET /reports/sales` authorization, default statuses, date validation, and daily/weekly/monthly period totals in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T022 [P] [US1] Add unit tests for business-date period grouping, partial periods, average order value, top-selling item tie-breaks, and cancelled-beverage exclusion in `apps/api/tests/unit/reportingService.test.ts`
-- [ ] T023 [P] [US1] Add staff-web component tests for `ReportsPage` loading, empty, error, and sales summary rendering in `apps/staff-web/src/pages/ReportsPage.test.tsx`
-- [ ] T024 [P] [US1] Add Playwright flow for opening the existing Reports sidebar link, switching daily, weekly, and monthly summaries, and asserting 10-second summary visibility in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
-- [ ] T025 [P] [US1] Add App shell unit coverage that `#reports` renders the Reports page instead of the planned placeholder in `apps/staff-web/src/App.test.tsx`
+- [X] T021 [P] [US1] Add API contract tests for `GET /reports/sales` authorization, default statuses, date validation, and daily/weekly/monthly period totals in `apps/api/tests/integration/reports.contract.test.ts`
+- [X] T022 [P] [US1] Add unit tests for business-date period grouping, partial periods, average order value, top-selling item tie-breaks, and cancelled-beverage exclusion in `apps/api/tests/unit/reportingService.test.ts`
+- [X] T023 [P] [US1] Add staff-web component tests for `ReportsPage` loading, empty, error, and sales summary rendering in `apps/staff-web/src/pages/ReportsPage.test.tsx`
+- [X] T024 [P] [US1] Add Playwright flow for opening the existing Reports sidebar link, switching daily, weekly, and monthly summaries, and asserting 10-second summary visibility in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [X] T025 [P] [US1] Add App shell unit coverage that `#reports` renders the Reports page instead of the planned placeholder in `apps/staff-web/src/App.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T026 [US1] Implement sales report filtering and period summary aggregation in `apps/api/src/domain/reportingService.ts`
-- [ ] T027 [US1] Implement `GET /reports/sales` response mapping for overall metrics and period rows in `apps/api/src/routes/reportRoutes.ts`
-- [ ] T028 [US1] Wire sales report query parameters and response typing in `apps/staff-web/src/services/reportsApi.ts`
-- [ ] T029 [US1] Create the `ReportsPage` sales summary screen with period/date filters, KPI cells, chart/table pair, loading state, empty state, and error state in `apps/staff-web/src/pages/ReportsPage.tsx`
-- [ ] T030 [US1] Replace the `#reports` placeholder with `ReportsPage` while preserving the existing sidebar Reports entry in `apps/staff-web/src/App.tsx`
+- [X] T026 [US1] Implement sales report filtering and period summary aggregation in `apps/api/src/domain/reportingService.ts`
+- [X] T027 [US1] Implement `GET /reports/sales` response mapping for overall metrics and period rows in `apps/api/src/routes/reportRoutes.ts`
+- [X] T028 [US1] Wire sales report query parameters and response typing in `apps/staff-web/src/services/reportsApi.ts`
+- [X] T029 [US1] Create the `ReportsPage` sales summary screen with period/date filters, KPI cells, chart/table pair, loading state, empty state, and error state in `apps/staff-web/src/pages/ReportsPage.tsx`
+- [X] T030 [US1] Replace the `#reports` placeholder with `ReportsPage` while preserving the existing sidebar Reports entry in `apps/staff-web/src/App.tsx`
 
 **Checkpoint**: User Story 1 is independently functional as the MVP sales summary dashboard.
 

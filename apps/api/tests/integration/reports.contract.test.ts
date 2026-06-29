@@ -1,5 +1,7 @@
 import request from "supertest";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { ReportSalesResponse } from "@coffee-shop/shared/contracts/api";
 
 const reportSession = vi.hoisted(() => ({
   token: "valid-report-session",
@@ -34,16 +36,54 @@ vi.mock("../../src/auth/sessions", async (importActual) => {
   };
 });
 
+vi.mock("../../src/domain/reportingService", async (importActual) => {
+  const actual = await importActual<typeof import("../../src/domain/reportingService")>();
+
+  return {
+    ...actual,
+    getSalesReport: vi.fn()
+  };
+});
+
 import { createApp } from "../../src/app";
+import { getSalesReport } from "../../src/domain/reportingService";
 
 const validMenuCategoryId = "1eb04d80-a0f4-4f9c-b936-cf25acbd6e85";
 const validMenuItemId = "5b6eb8c6-9790-4ea5-bb5a-43c839f5d7b1";
+
+function reportSalesResponse(overrides: Partial<ReportSalesResponse> = {}): ReportSalesResponse {
+  return {
+    filters: overrides.filters ?? {
+      startDate: "2026-06-01",
+      endDate: "2026-06-30",
+      period: "weekly",
+      statuses: ["completed", "picked_up"],
+      menuCategoryId: validMenuCategoryId,
+      menuItemId: validMenuItemId
+    },
+    generatedAt: overrides.generatedAt ?? "2026-06-30T10:00:00.000Z",
+    overall: overrides.overall ?? {
+      totalSales: "0.00",
+      orderCount: 0,
+      averageOrderValue: "0.00",
+      topSellingItemName: null,
+      topSellingItemQuantity: null
+    },
+    periods: overrides.periods ?? [],
+    popularItems: overrides.popularItems ?? [],
+    popularCombinations: overrides.popularCombinations ?? []
+  };
+}
 
 function authorizedGet(path: "/reports/sales" | "/reports/orders") {
   return request(createApp()).get(path).set("Cookie", [`staff_session=${reportSession.token}`]);
 }
 
 describe("reports API foundation contract", () => {
+  beforeEach(() => {
+    vi.mocked(getSalesReport).mockResolvedValue(reportSalesResponse());
+  });
+
   it("requires an authorized staff session for sales and supporting-order reports", async () => {
     const salesResponse = await request(createApp()).get("/reports/sales");
     const ordersResponse = await request(createApp()).get("/reports/orders");
@@ -70,10 +110,33 @@ describe("reports API foundation contract", () => {
       menuItemId: validMenuItemId
     });
 
-    expect(response.status).toBe(501);
-    expect(response.body).toEqual({
-      code: "NOT_IMPLEMENTED",
-      message: "This route is planned for a later implementation phase."
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      filters: {
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+        period: "weekly",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: validMenuCategoryId,
+        menuItemId: validMenuItemId
+      },
+      overall: {
+        totalSales: "0.00",
+        orderCount: 0,
+        averageOrderValue: "0.00",
+        topSellingItemName: null,
+        topSellingItemQuantity: null
+      },
+      popularItems: [],
+      popularCombinations: []
+    });
+    expect(getSalesReport).toHaveBeenCalledWith({
+      startDate: "2026-06-01",
+      endDate: "2026-06-30",
+      period: "weekly",
+      statuses: ["completed", "picked_up"],
+      menuCategoryId: validMenuCategoryId,
+      menuItemId: validMenuItemId
     });
   });
 
@@ -134,4 +197,209 @@ describe("reports API foundation contract", () => {
     expect(response.body.details.fieldErrors.period).toBeDefined();
     expect(response.body.details.fieldErrors.statuses).toBeDefined();
   });
+
+  it("returns default completed and picked-up sales totals from non-cancelled beverage snapshots", async () => {
+    vi.mocked(getSalesReport).mockResolvedValue(
+      reportSalesResponse({
+        filters: {
+          startDate: "2026-06-02",
+          endDate: "2026-06-09",
+          period: "daily",
+          statuses: ["completed", "picked_up"],
+          menuCategoryId: validMenuCategoryId,
+          menuItemId: null
+        },
+        overall: {
+          totalSales: "19.00",
+          orderCount: 3,
+          averageOrderValue: "6.33",
+          topSellingItemName: "Report Latte",
+          topSellingItemQuantity: 2
+        },
+        periods: [
+          {
+            key: "2026-06-02",
+            label: "2026-06-02",
+            startDate: "2026-06-02",
+            endDate: "2026-06-02",
+            partial: false,
+            totalSales: "9.00",
+            orderCount: 1,
+            averageOrderValue: "9.00",
+            topSellingItemName: "Report Latte",
+            topSellingItemQuantity: 2
+          },
+          {
+            key: "2026-06-03",
+            label: "2026-06-03",
+            startDate: "2026-06-03",
+            endDate: "2026-06-03",
+            partial: false,
+            totalSales: "5.00",
+            orderCount: 1,
+            averageOrderValue: "5.00",
+            topSellingItemName: "Report Cappuccino",
+            topSellingItemQuantity: 1
+          },
+          {
+            key: "2026-06-09",
+            label: "2026-06-09",
+            startDate: "2026-06-09",
+            endDate: "2026-06-09",
+            partial: false,
+            totalSales: "5.00",
+            orderCount: 1,
+            averageOrderValue: "5.00",
+            topSellingItemName: "Report Mocha",
+            topSellingItemQuantity: 1
+          }
+        ]
+      })
+    );
+
+    const response = await authorizedGet("/reports/sales").query({
+      startDate: "2026-06-02",
+      endDate: "2026-06-09",
+      period: "daily",
+      menuCategoryId: validMenuCategoryId
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.filters.statuses).toEqual(["completed", "picked_up"]);
+    expect(response.body.overall).toMatchObject({
+      totalSales: "19.00",
+      orderCount: 3,
+      averageOrderValue: "6.33",
+      topSellingItemName: "Report Latte",
+      topSellingItemQuantity: 2
+    });
+    expect(response.body.periods).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "2026-06-02",
+          totalSales: "9.00",
+          orderCount: 1,
+          averageOrderValue: "9.00",
+          topSellingItemName: "Report Latte",
+          topSellingItemQuantity: 2
+        }),
+        expect.objectContaining({
+          key: "2026-06-03",
+          totalSales: "5.00",
+          orderCount: 1
+        }),
+        expect.objectContaining({
+          key: "2026-06-09",
+          totalSales: "5.00",
+          orderCount: 1,
+          topSellingItemName: "Report Mocha"
+        })
+      ])
+    );
+  });
+
+  it("groups report sales by daily, weekly, and monthly periods", async () => {
+    vi.mocked(getSalesReport).mockImplementation(async (query) => {
+      if (query.period === "weekly") {
+        return reportSalesResponse({
+          periods: [
+            weeklyPeriod("2026-W23", "9.00", true),
+            weeklyPeriod("2026-W24", "5.00", false),
+            weeklyPeriod("2026-W25", "0.00", false),
+            weeklyPeriod("2026-W26", "0.00", true)
+          ]
+        });
+      }
+
+      if (query.period === "monthly") {
+        return reportSalesResponse({
+          periods: [
+            {
+              key: "2026-06",
+              label: "Jun 2026",
+              startDate: "2026-06-02",
+              endDate: "2026-06-30",
+              partial: true,
+              totalSales: "14.00",
+              orderCount: 2,
+              averageOrderValue: "7.00",
+              topSellingItemName: "Report Latte",
+              topSellingItemQuantity: 2
+            }
+          ]
+        });
+      }
+
+      return reportSalesResponse({
+        periods: [
+          dailyPeriod("2026-06-02", "9.00"),
+          dailyPeriod("2026-06-09", "5.00")
+        ]
+      });
+    });
+
+    const baseQuery = {
+      startDate: "2026-06-02",
+      endDate: "2026-06-30",
+      menuCategoryId: validMenuCategoryId
+    };
+    const dailyResponse = await authorizedGet("/reports/sales").query({ ...baseQuery, period: "daily" });
+    const weeklyResponse = await authorizedGet("/reports/sales").query({ ...baseQuery, period: "weekly" });
+    const monthlyResponse = await authorizedGet("/reports/sales").query({ ...baseQuery, period: "monthly" });
+
+    expect(dailyResponse.status).toBe(200);
+    expect(dailyResponse.body.periods).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "2026-06-02", totalSales: "9.00" }),
+        expect.objectContaining({ key: "2026-06-09", totalSales: "5.00" })
+      ])
+    );
+    expect(weeklyResponse.status).toBe(200);
+    expect(weeklyResponse.body.periods).toEqual([
+      expect.objectContaining({ key: "2026-W23", totalSales: "9.00", partial: true }),
+      expect.objectContaining({ key: "2026-W24", totalSales: "5.00", partial: false }),
+      expect.objectContaining({ key: "2026-W25", totalSales: "0.00", partial: false }),
+      expect.objectContaining({ key: "2026-W26", totalSales: "0.00", partial: true })
+    ]);
+    expect(monthlyResponse.status).toBe(200);
+    expect(monthlyResponse.body.periods).toEqual([
+      expect.objectContaining({
+        key: "2026-06",
+        totalSales: "14.00",
+        orderCount: 2,
+        averageOrderValue: "7.00",
+        partial: true
+      })
+    ]);
+  });
 });
+
+function dailyPeriod(key: string, totalSales: string) {
+  return {
+    key,
+    label: key,
+    startDate: key,
+    endDate: key,
+    partial: false,
+    totalSales,
+    orderCount: totalSales === "0.00" ? 0 : 1,
+    averageOrderValue: totalSales,
+    topSellingItemName: totalSales === "0.00" ? null : "Report Latte",
+    topSellingItemQuantity: totalSales === "0.00" ? null : 2
+  };
+}
+
+function weeklyPeriod(key: string, totalSales: string, partial: boolean) {
+  return {
+    key,
+    label: key,
+    startDate: "2026-06-02",
+    endDate: "2026-06-30",
+    partial,
+    totalSales,
+    orderCount: totalSales === "0.00" ? 0 : 1,
+    averageOrderValue: totalSales,
+    topSellingItemName: totalSales === "0.00" ? null : "Report Latte",
+    topSellingItemQuantity: totalSales === "0.00" ? null : 2
+  };
+}

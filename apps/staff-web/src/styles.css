@@ -990,6 +990,32 @@ nav a[aria-current="page"] {
   max-width: 1240px;
 }
 
+.report-dashboard-layout {
+  display: grid;
+  gap: 20px;
+  max-width: 1240px;
+  width: 100%;
+}
+
+.report-section {
+  display: grid;
+  gap: 16px;
+  border: 1px solid #ded8cf;
+  border-radius: 8px;
+  padding: 18px;
+  background: #fffdf9;
+}
+
+.report-section h3 {
+  margin: 0 0 4px;
+  color: #2f281e;
+}
+
+.report-section p {
+  margin: 0;
+  color: #60594d;
+}
+
 .history-filters {
   display: grid;
   grid-template-columns: minmax(140px, 210px) minmax(160px, 220px) minmax(220px, 1fr) auto;
@@ -1118,6 +1144,12 @@ nav a[aria-current="page"] {
 
 .report-table tr:last-child td {
   border-bottom: 0;
+}
+
+.report-cell-hint {
+  display: block;
+  color: #7a6e5d;
+  font-size: 12px;
 }
 
 .report-sort-button {

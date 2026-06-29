@@ -28,6 +28,10 @@ vi.mock("./pages/MenuMaintenancePage", () => ({
   MenuMaintenancePage: () => <section aria-label="Menu page" />
 }));
 
+vi.mock("./pages/ReportsPage", () => ({
+  ReportsPage: () => <section aria-label="Reports page" />
+}));
+
 vi.mock("./services/authApi", () => ({
   getCurrentSession: vi.fn(),
   logout: vi.fn()
@@ -62,4 +66,13 @@ test("staff shell shows the requested navigation order without an unused top nav
     "Settings"
   ]);
   expect(screen.queryByRole("button", { name: "Toggle navigation" })).not.toBeInTheDocument();
+});
+
+test("staff shell renders ReportsPage from the existing reports sidebar route", async () => {
+  window.location.hash = "#reports";
+
+  render(<App />);
+
+  expect(await screen.findByLabelText("Reports page")).toBeInTheDocument();
+  expect(screen.queryByText("Planned")).not.toBeInTheDocument();
 });

@@ -21,6 +21,7 @@ import { BrewQueuePage } from "./pages/BrewQueuePage";
 import { DailyActivityPage } from "./pages/DailyActivityPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuMaintenancePage } from "./pages/MenuMaintenancePage";
+import { ReportsPage } from "./pages/ReportsPage";
 import { ApiClientError } from "./services/apiClient";
 import { getCurrentSession, logout } from "./services/authApi";
 
@@ -140,6 +141,8 @@ export function App() {
             <DailyActivityPage />
           ) : activeView === "#menu" ? (
             <MenuMaintenancePage />
+          ) : activeView === "#reports" ? (
+            <ReportsPage />
           ) : (
             <section className="placeholder-panel">
               <p className="eyebrow">Planned</p>

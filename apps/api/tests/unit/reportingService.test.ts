@@ -1,12 +1,52 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  aggregateSalesReport,
   addMoney,
   buildReportPeriods,
   calculateBeverageLineTotal,
   compareReportDates,
   parseMoney
 } from "../../src/domain/reportingService";
+import type { Order } from "@coffee-shop/shared/domain/types";
+
+function reportOrder(overrides: Partial<Order>): Order {
+  const orderId = overrides.id ?? crypto.randomUUID();
+
+  return {
+    id: orderId,
+    businessDate: overrides.businessDate ?? "2026-06-02",
+    dailyOrderNumber: overrides.dailyOrderNumber ?? 1,
+    pickupName: overrides.pickupName ?? "Report Guest",
+    status: overrides.status ?? "completed",
+    createdByStaffId: overrides.createdByStaffId ?? "staff-1",
+    assignedBaristaId: overrides.assignedBaristaId ?? "staff-1",
+    total: overrides.total ?? "9.00",
+    createdAt: overrides.createdAt ?? `${overrides.businessDate ?? "2026-06-02"}T09:00:00.000Z`,
+    queuedAt: overrides.queuedAt ?? null,
+    inProgressAt: overrides.inProgressAt ?? null,
+    completedAt: overrides.completedAt ?? null,
+    pickedUpAt: overrides.pickedUpAt ?? null,
+    cancelledAt: overrides.cancelledAt ?? null,
+    beverages:
+      overrides.beverages ?? [
+        {
+          id: `${orderId}-bev-1`,
+          orderId,
+          sourceMenuItemId: "item-latte",
+          nameSnapshot: "Latte",
+          quantity: 2,
+          priceSnapshot: "4.50",
+          selectedCustomizationsSnapshot: [],
+          specialInstructions: null,
+          status: "completed",
+          completedAt: null,
+          cancelledAt: null,
+          cancellationReason: null
+        }
+      ]
+  };
+}
 
 describe("reporting service foundation helpers", () => {
   it("calculates money values with stable two-decimal output", () => {
@@ -90,5 +130,166 @@ describe("reporting service foundation helpers", () => {
         period: "daily"
       })
     ).toEqual([]);
+  });
+
+  it("aggregates sales totals, averages, and top-selling item tie-breaks from reportable beverage snapshots", () => {
+    const report = aggregateSalesReport({
+      filter: {
+        startDate: "2026-06-02",
+        endDate: "2026-06-02",
+        period: "daily",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: null
+      },
+      orders: [
+        reportOrder({
+          id: "order-1",
+          beverages: [
+            {
+              id: "bev-1",
+              orderId: "order-1",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 2,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        }),
+        reportOrder({
+          id: "order-2",
+          total: "12.00",
+          beverages: [
+            {
+              id: "bev-2",
+              orderId: "order-2",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 2,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "bev-3",
+              orderId: "order-2",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "cancelled",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: "Unavailable"
+            }
+          ]
+        })
+      ],
+      generatedAt: "2026-06-02T12:00:00.000Z"
+    });
+
+    expect(report.overall).toEqual({
+      totalSales: "21.00",
+      orderCount: 2,
+      averageOrderValue: "10.50",
+      topSellingItemName: "Mocha",
+      topSellingItemQuantity: 2
+    });
+    expect(report.periods[0]).toMatchObject({
+      key: "2026-06-02",
+      totalSales: "21.00",
+      orderCount: 2,
+      averageOrderValue: "10.50",
+      topSellingItemName: "Mocha",
+      topSellingItemQuantity: 2
+    });
+  });
+
+  it("groups sales by partial weekly and monthly business-date periods", () => {
+    const report = aggregateSalesReport({
+      filter: {
+        startDate: "2026-06-03",
+        endDate: "2026-07-02",
+        period: "monthly",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: null
+      },
+      orders: [
+        reportOrder({ id: "order-june", businessDate: "2026-06-03" }),
+        reportOrder({ id: "order-july", businessDate: "2026-07-02" })
+      ],
+      generatedAt: "2026-07-02T12:00:00.000Z"
+    });
+
+    expect(report.periods).toEqual([
+      expect.objectContaining({
+        key: "2026-06",
+        totalSales: "9.00",
+        orderCount: 1,
+        partial: true
+      }),
+      expect.objectContaining({
+        key: "2026-07",
+        totalSales: "9.00",
+        orderCount: 1,
+        partial: true
+      })
+    ]);
+  });
+
+  it("excludes cancelled beverages and zero-reportable orders from sales counts", () => {
+    const report = aggregateSalesReport({
+      filter: {
+        startDate: "2026-06-02",
+        endDate: "2026-06-02",
+        period: "daily",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: null
+      },
+      orders: [
+        reportOrder({
+          id: "order-cancelled-bev",
+          beverages: [
+            {
+              id: "bev-cancelled",
+              orderId: "order-cancelled-bev",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "cancelled",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: "Unavailable"
+            }
+          ]
+        })
+      ],
+      generatedAt: "2026-06-02T12:00:00.000Z"
+    });
+
+    expect(report.overall).toMatchObject({
+      totalSales: "0.00",
+      orderCount: 0,
+      averageOrderValue: "0.00",
+      topSellingItemName: null,
+      topSellingItemQuantity: null
+    });
   });
 });

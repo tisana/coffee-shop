@@ -1,4 +1,19 @@
-import type { ReportPeriodType } from "@coffee-shop/shared/contracts/api";
+import { and, asc, gte, inArray, lte, eq } from "drizzle-orm";
+
+import type {
+  OverallReportTotals,
+  ReportFilter,
+  ReportPeriodSummary,
+  ReportPeriodType,
+  ReportSalesQuery,
+  ReportSalesResponse
+} from "@coffee-shop/shared/contracts/api";
+import type { Order, OrderBeverage, OrderStatus } from "@coffee-shop/shared/domain/types";
+
+import { db } from "../storage/db";
+import { menuItems, orderBeverages, orders } from "../storage/schema";
+import { currentBusinessDate } from "./businessDate";
+import { mapOrder } from "./orderMapper";
 
 export interface ReportPeriod {
   key: string;
@@ -20,7 +35,15 @@ export interface BeverageLineTotalInput {
   quantity: number;
 }
 
+export interface SalesReportAggregationInput {
+  filter: ReportFilter;
+  orders: Order[];
+  generatedAt?: string;
+  matchingMenuItemIds?: ReadonlySet<string> | undefined;
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DEFAULT_REPORT_STATUSES: OrderStatus[] = ["completed", "picked_up"];
 const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   timeZone: "UTC"
@@ -56,6 +79,221 @@ export function buildReportPeriods(input: ReportPeriodInput): ReportPeriod[] {
   }
 
   return buildMonthlyPeriods(input.startDate, input.endDate);
+}
+
+export function normalizeReportFilter(query: ReportSalesQuery): ReportFilter {
+  const fallbackDate = query.startDate ?? query.endDate ?? currentBusinessDate();
+  const startDate = query.startDate ?? fallbackDate;
+  const endDate = query.endDate ?? fallbackDate;
+
+  return {
+    startDate,
+    endDate,
+    period: query.period ?? "daily",
+    statuses: query.statuses ?? DEFAULT_REPORT_STATUSES,
+    menuCategoryId: query.menuCategoryId ?? null,
+    menuItemId: query.menuItemId ?? null
+  };
+}
+
+export async function getSalesReport(query: ReportSalesQuery): Promise<ReportSalesResponse> {
+  const filter = normalizeReportFilter(query);
+  const matchingMenuItemIds = await resolveMatchingMenuItemIds(filter);
+  const reportOrders = await listReportOrders(filter);
+
+  return aggregateSalesReport({
+    filter,
+    orders: reportOrders,
+    generatedAt: new Date().toISOString(),
+    matchingMenuItemIds
+  });
+}
+
+export function aggregateSalesReport(input: SalesReportAggregationInput): ReportSalesResponse {
+  const periods = buildReportPeriods(input.filter).map((period) =>
+    summarizePeriod(
+      period,
+      input.orders,
+      input.filter,
+      input.matchingMenuItemIds
+    )
+  );
+  const overall = summarizeOrders(input.orders, input.filter, input.matchingMenuItemIds);
+
+  return {
+    filters: input.filter,
+    generatedAt: input.generatedAt ?? new Date().toISOString(),
+    overall,
+    periods,
+    popularItems: [],
+    popularCombinations: []
+  };
+}
+
+async function listReportOrders(filter: ReportFilter): Promise<Order[]> {
+  const orderRows = await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        gte(orders.businessDate, filter.startDate),
+        lte(orders.businessDate, filter.endDate),
+        inArray(orders.status, filter.statuses)
+      )
+    )
+    .orderBy(asc(orders.businessDate), asc(orders.dailyOrderNumber));
+
+  if (orderRows.length === 0) {
+    return [];
+  }
+
+  const beverageRows = await db
+    .select()
+    .from(orderBeverages)
+    .where(
+      inArray(
+        orderBeverages.orderId,
+        orderRows.map((order) => order.id)
+      )
+    );
+  const beveragesByOrderId = new Map<string, typeof beverageRows>();
+
+  for (const beverage of beverageRows) {
+    const existing = beveragesByOrderId.get(beverage.orderId) ?? [];
+    existing.push(beverage);
+    beveragesByOrderId.set(beverage.orderId, existing);
+  }
+
+  return orderRows.map((order) => mapOrder(order, beveragesByOrderId.get(order.id) ?? []));
+}
+
+async function resolveMatchingMenuItemIds(filter: ReportFilter): Promise<ReadonlySet<string> | undefined> {
+  if (filter.menuItemId) {
+    return new Set([filter.menuItemId]);
+  }
+
+  if (!filter.menuCategoryId) {
+    return undefined;
+  }
+
+  const rows = await db
+    .select({ id: menuItems.id })
+    .from(menuItems)
+    .where(eq(menuItems.categoryId, filter.menuCategoryId));
+
+  return new Set(rows.map((row) => row.id));
+}
+
+function summarizePeriod(
+  period: ReportPeriod,
+  ordersToSummarize: Order[],
+  filter: ReportFilter,
+  matchingMenuItemIds: ReadonlySet<string> | undefined
+): ReportPeriodSummary {
+  const periodOrders = ordersToSummarize.filter(
+    (order) => order.businessDate >= period.startDate && order.businessDate <= period.endDate
+  );
+  const summary = summarizeOrders(periodOrders, filter, matchingMenuItemIds);
+
+  return {
+    key: period.key,
+    label: period.label,
+    startDate: period.startDate,
+    endDate: period.endDate,
+    partial: period.partial,
+    ...summary
+  };
+}
+
+function summarizeOrders(
+  ordersToSummarize: Order[],
+  filter: ReportFilter,
+  matchingMenuItemIds: ReadonlySet<string> | undefined
+): OverallReportTotals {
+  let totalSalesCents = 0;
+  let orderCount = 0;
+  const itemTotals = new Map<string, { name: string; quantity: number; salesCents: number }>();
+
+  for (const order of ordersToSummarize) {
+    if (!filter.statuses.includes(order.status)) {
+      continue;
+    }
+
+    if (order.businessDate < filter.startDate || order.businessDate > filter.endDate) {
+      continue;
+    }
+
+    const reportableBeverages = order.beverages.filter((beverage) =>
+      isReportableBeverage(beverage, matchingMenuItemIds)
+    );
+    const orderSalesCents = reportableBeverages.reduce(
+      (sum, beverage) => sum + calculateBeverageLineTotalCents(beverage),
+      0
+    );
+
+    if (orderSalesCents === 0) {
+      continue;
+    }
+
+    totalSalesCents += orderSalesCents;
+    orderCount += 1;
+
+    for (const beverage of reportableBeverages) {
+      const lineSalesCents = calculateBeverageLineTotalCents(beverage);
+      const existing = itemTotals.get(beverage.nameSnapshot) ?? {
+        name: beverage.nameSnapshot,
+        quantity: 0,
+        salesCents: 0
+      };
+
+      existing.quantity += beverage.quantity;
+      existing.salesCents += lineSalesCents;
+      itemTotals.set(beverage.nameSnapshot, existing);
+    }
+  }
+
+  const topSellingItem = Array.from(itemTotals.values()).sort((left, right) => {
+    if (left.quantity !== right.quantity) {
+      return right.quantity - left.quantity;
+    }
+
+    if (left.salesCents !== right.salesCents) {
+      return right.salesCents - left.salesCents;
+    }
+
+    return left.name.localeCompare(right.name);
+  })[0];
+
+  return {
+    totalSales: formatMoneyCents(totalSalesCents),
+    orderCount,
+    averageOrderValue: formatMoneyCents(orderCount > 0 ? Math.round(totalSalesCents / orderCount) : 0),
+    topSellingItemName: topSellingItem?.name ?? null,
+    topSellingItemQuantity: topSellingItem?.quantity ?? null
+  };
+}
+
+function isReportableBeverage(
+  beverage: OrderBeverage,
+  matchingMenuItemIds: ReadonlySet<string> | undefined
+): boolean {
+  if (beverage.status === "cancelled") {
+    return false;
+  }
+
+  return matchingMenuItemIds === undefined || matchingMenuItemIds.has(beverage.sourceMenuItemId);
+}
+
+function calculateBeverageLineTotalCents(input: BeverageLineTotalInput): number {
+  return moneyToCents(input.priceSnapshot) * input.quantity;
+}
+
+function moneyToCents(value: string): number {
+  return Math.round(parseMoney(value) * 100);
+}
+
+function formatMoneyCents(value: number): string {
+  return (value / 100).toFixed(2);
 }
 
 function buildDailyPeriods(startDate: string, endDate: string): ReportPeriod[] {
