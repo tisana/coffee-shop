@@ -12,7 +12,9 @@ describe("reporting service foundation helpers", () => {
   it("calculates money values with stable two-decimal output", () => {
     expect(parseMoney("4.50")).toBe(4.5);
     expect(addMoney("4.50", "0.75")).toBe("5.25");
+    expect(addMoney("0.10", "0.20")).toBe("0.30");
     expect(calculateBeverageLineTotal({ priceSnapshot: "5.25", quantity: 2 })).toBe("10.50");
+    expect(calculateBeverageLineTotal({ priceSnapshot: "3.33", quantity: 3 })).toBe("9.99");
   });
 
   it("builds daily, weekly, and monthly report periods from business dates", () => {
@@ -78,5 +80,15 @@ describe("reporting service foundation helpers", () => {
     expect(compareReportDates("2026-06-01", "2026-06-02")).toBeLessThan(0);
     expect(compareReportDates("2026-06-02", "2026-06-02")).toBe(0);
     expect(compareReportDates("2026-06-03", "2026-06-02")).toBeGreaterThan(0);
+  });
+
+  it("returns no report periods when the selected business-date range is invalid", () => {
+    expect(
+      buildReportPeriods({
+        startDate: "2026-06-30",
+        endDate: "2026-06-01",
+        period: "daily"
+      })
+    ).toEqual([]);
   });
 });

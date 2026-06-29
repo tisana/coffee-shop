@@ -52,11 +52,11 @@
 
 **Context**: T005-T015 were completed before constitution v1.1.0 added mandatory TDD. These tasks now require behavior-focused baseline coverage before any remaining story implementation proceeds.
 
-- [ ] T016 [P] Add API contract tests for report route scaffolding, staff authorization, query validation, and planned responses for `/reports/sales` and `/reports/orders` in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T017 [P] Add unit tests for report period helpers, money formatting helpers, and line-total helpers in `apps/api/tests/unit/reportingService.test.ts`
-- [ ] T018 [P] Add staff-web component tests for `ReportFilters` rendering, accessible labels, and base period/date/status/category/item control changes in `apps/staff-web/src/components/ReportFilters.test.tsx`
-- [ ] T019 [P] Add staff-web component tests for `SortableReportTable` sorting and keyboard-accessible sort buttons in `apps/staff-web/src/components/SortableReportTable.test.tsx`
-- [ ] T020 [P] Add staff-web component tests for `ReportChart` and `ReportMetricGrid` empty/data rendering and accessibility basics in `apps/staff-web/src/components/ReportFoundationComponents.test.tsx`
+- [X] T016 [P] Add API contract tests for report route scaffolding, staff authorization, query validation, and planned responses for `/reports/sales` and `/reports/orders` in `apps/api/tests/integration/reports.contract.test.ts`
+- [X] T017 [P] Add unit tests for report period helpers, money formatting helpers, and line-total helpers in `apps/api/tests/unit/reportingService.test.ts`
+- [X] T018 [P] Add staff-web component tests for `ReportFilters` rendering, accessible labels, and base period/date/status/category/item control changes in `apps/staff-web/src/components/ReportFilters.test.tsx`
+- [X] T019 [P] Add staff-web component tests for `SortableReportTable` sorting and keyboard-accessible sort buttons in `apps/staff-web/src/components/SortableReportTable.test.tsx`
+- [X] T020 [P] Add staff-web component tests for `ReportChart` and `ReportMetricGrid` empty/data rendering and accessibility basics in `apps/staff-web/src/components/ReportFoundationComponents.test.tsx`
 
 **Checkpoint**: Existing foundation behavior has baseline tests before story implementation resumes.
 
