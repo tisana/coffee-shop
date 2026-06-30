@@ -7,14 +7,16 @@ import {
   emptyReportSalesResponse,
   popularCombinationReport,
   popularItemReport,
+  reportOrdersResponse,
   reportSalesResponse
 } from "../test/reportTestData";
 import { ApiClientError } from "../services/apiClient";
-import { getReportFilterOptions, getReportSales } from "../services/reportsApi";
+import { getReportFilterOptions, getReportOrders, getReportSales } from "../services/reportsApi";
 import { ReportsPage } from "./ReportsPage";
 
 vi.mock("../services/reportsApi", () => ({
   getReportFilterOptions: vi.fn(),
+  getReportOrders: vi.fn(),
   getReportSales: vi.fn()
 }));
 
@@ -46,6 +48,45 @@ const categoryResponse = {
 describe("ReportsPage", () => {
   beforeEach(() => {
     vi.mocked(getReportFilterOptions).mockResolvedValue(categoryResponse);
+    vi.mocked(getReportOrders).mockResolvedValue(
+      reportOrdersResponse({
+        orders: [
+          {
+            orderId: "supporting-order-1",
+            businessDate: "2026-06-25",
+            dailyOrderNumber: 42,
+            status: "picked_up",
+            capturedOrderTotal: "10.50",
+            reportableTotal: "10.50",
+            items: [
+              {
+                beverageId: "supporting-beverage-1",
+                sourceMenuItemId: "item-latte",
+                name: "Latte",
+                quantity: 1,
+                unitPrice: "4.50",
+                lineTotal: "4.50",
+                status: "completed",
+                selectedCustomizations: []
+              },
+              {
+                beverageId: "supporting-beverage-2",
+                sourceMenuItemId: "item-mocha",
+                name: "Mocha",
+                quantity: 1,
+                unitPrice: "6.00",
+                lineTotal: "6.00",
+                status: "completed",
+                selectedCustomizations: []
+              }
+            ],
+            createdAt: "2026-06-25T09:00:00.000Z",
+            completedAt: "2026-06-25T09:08:00.000Z",
+            pickedUpAt: "2026-06-25T09:12:00.000Z"
+          }
+        ]
+      })
+    );
     vi.mocked(getReportSales).mockResolvedValue(
       reportSalesResponse({
         overall: {
@@ -250,5 +291,68 @@ describe("ReportsPage", () => {
     expect(screen.getByRole("img", { name: "Popular combinations chart" })).toHaveTextContent(
       "Latte x1 + Mocha x1"
     );
+  });
+
+  it("loads supporting orders when summary, item, or combination rows are selected", async () => {
+    vi.mocked(getReportSales).mockResolvedValue(
+      reportSalesResponse({
+        periods: [
+          {
+            key: "2026-06-25",
+            label: "Jun 25",
+            startDate: "2026-06-25",
+            endDate: "2026-06-25",
+            partial: false,
+            totalSales: "10.50",
+            orderCount: 1,
+            averageOrderValue: "10.50",
+            topSellingItemName: "Latte",
+            topSellingItemQuantity: 1
+          }
+        ],
+        popularItems: [
+          popularItemReport({
+            sourceMenuItemId: "item-latte",
+            itemName: "Latte"
+          })
+        ],
+        popularCombinations: [
+          popularCombinationReport({
+            combinationKey: "Latte x1|Mocha x1",
+            combinationLabel: "Latte x1 + Mocha x1"
+          })
+        ]
+      })
+    );
+
+    render(<ReportsPage />);
+
+    const salesTable = await screen.findByRole("table", { name: "Sales summary table" });
+    fireEvent.click(within(salesTable).getByRole("row", { name: /Jun 25/ }));
+
+    await waitFor(() => {
+      expect(getReportOrders).toHaveBeenLastCalledWith(
+        expect.objectContaining({ periodKey: "2026-06-25" })
+      );
+    });
+    expect(await screen.findByRole("table", { name: "Supporting orders table" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "#42" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Latte, Mocha" })).toBeInTheDocument();
+
+    const itemTable = screen.getByRole("table", { name: "Popular items table" });
+    fireEvent.click(within(itemTable).getByRole("row", { name: /Latte/ }));
+    await waitFor(() => {
+      expect(getReportOrders).toHaveBeenLastCalledWith(
+        expect.objectContaining({ menuItemId: "item-latte" })
+      );
+    });
+
+    const combinationTable = screen.getByRole("table", { name: "Popular combinations table" });
+    fireEvent.click(within(combinationTable).getByRole("row", { name: /Latte x1 \+ Mocha x1/ }));
+    await waitFor(() => {
+      expect(getReportOrders).toHaveBeenLastCalledWith(
+        expect.objectContaining({ combinationKey: "Latte x1|Mocha x1" })
+      );
+    });
   });
 });

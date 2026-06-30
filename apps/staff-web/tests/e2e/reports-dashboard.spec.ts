@@ -4,12 +4,15 @@ import {
   fulfillReportApiRoute,
   popularCombinationReport,
   popularItemReport,
+  reportOrdersResponse,
+  supportingOrder,
   reportSalesResponse,
   reportPeriodSummary
 } from "./reportTestData";
 
 test("staff opens Reports and switches daily, weekly, and monthly sales summaries", async ({ page }) => {
   const reportRequests: string[] = [];
+  const orderRequests: string[] = [];
 
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
@@ -38,9 +41,62 @@ test("staff opens Reports and switches daily, weekly, and monthly sales summarie
                   active: true,
                   displayOrder: 1,
                   customizationGroups: []
+                },
+                {
+                  id: "item-mocha",
+                  categoryId: "category-coffee",
+                  name: "Mocha",
+                  description: "Chocolate espresso",
+                  imageUrl: null,
+                  price: "6.00",
+                  available: true,
+                  active: true,
+                  displayOrder: 2,
+                  customizationGroups: []
                 }
               ]
             }
+          ]
+        })
+      });
+      return;
+    }
+
+    if (path === "/reports/orders") {
+      orderRequests.push(url.search);
+      await fulfillReportApiRoute(route, {
+        orders: reportOrdersResponse({
+          orders: [
+            supportingOrder({
+              orderId: "supporting-order-1",
+              businessDate: "2026-06-25",
+              dailyOrderNumber: 42,
+              status: "picked_up",
+              capturedOrderTotal: "10.50",
+              reportableTotal: "10.50",
+              items: [
+                {
+                  beverageId: "supporting-bev-latte",
+                  sourceMenuItemId: "item-latte",
+                  name: "Latte",
+                  quantity: 1,
+                  unitPrice: "4.50",
+                  lineTotal: "4.50",
+                  status: "completed",
+                  selectedCustomizations: []
+                },
+                {
+                  beverageId: "supporting-bev-mocha",
+                  sourceMenuItemId: "item-mocha",
+                  name: "Mocha",
+                  quantity: 1,
+                  unitPrice: "6.00",
+                  lineTotal: "6.00",
+                  status: "completed",
+                  selectedCustomizations: []
+                }
+              ]
+            })
           ]
         })
       });
@@ -156,9 +212,34 @@ test("staff opens Reports and switches daily, weekly, and monthly sales summarie
   await expect(totalSalesMetric(page, "$128.00")).toBeVisible();
   await expect(page.getByRole("cell", { name: "Jun 2026" })).toBeVisible();
 
+  const filterStartedAt = Date.now();
+  await page.getByLabel("Start date").fill("2026-06-01");
+  await page.getByLabel("End date").fill("2026-06-30");
+  await page.getByRole("combobox", { name: "Item" }).selectOption("item-latte");
+  await expect(totalSalesMetric(page, "$128.00")).toBeVisible();
+  expect(Date.now() - filterStartedAt).toBeLessThan(2_000);
+
+  const salesTable = page.getByRole("table", { name: "Sales summary table" });
+  await salesTable.getByRole("button", { name: "Sort by Total sales" }).click();
+  await salesTable.getByRole("row", { name: /Jun 2026/ }).click();
+  await expect(page.getByRole("table", { name: "Supporting orders table" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "#42" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Latte, Mocha" })).toBeVisible();
+
+  await popularItemsTable.getByRole("button", { name: "Sort by Quantity sold" }).click();
+  await popularItemsTable.getByRole("row", { name: /Latte/ }).click();
+  await popularCombinationsTable.getByRole("button", { name: "Sort by Frequency" }).click();
+  await popularCombinationsTable.getByRole("row", { name: /Latte x1 \+ Mocha x1/ }).click();
+
   expect(reportRequests.some((request) => request.includes("period=daily"))).toBe(true);
   expect(reportRequests.some((request) => request.includes("period=weekly"))).toBe(true);
   expect(reportRequests.some((request) => request.includes("period=monthly"))).toBe(true);
+  expect(reportRequests.some((request) => request.includes("menuItemId=item-latte"))).toBe(true);
+  expect(orderRequests.some((request) => request.includes("periodKey=Jun+2026"))).toBe(true);
+  expect(orderRequests.some((request) => request.includes("menuItemId=item-latte"))).toBe(true);
+  expect(orderRequests.some((request) => request.includes("combinationKey=Latte+x1%7CMocha+x1"))).toBe(
+    true
+  );
   expect(Date.now() - startedAt).toBeLessThan(10_000);
 });
 

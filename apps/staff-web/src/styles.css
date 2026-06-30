@@ -1016,6 +1016,10 @@ nav a[aria-current="page"] {
   color: #60594d;
 }
 
+.report-clear-filters {
+  justify-self: start;
+}
+
 .history-filters {
   display: grid;
   grid-template-columns: minmax(140px, 210px) minmax(160px, 220px) minmax(220px, 1fr) auto;
@@ -1146,6 +1150,17 @@ nav a[aria-current="page"] {
   border-bottom: 0;
 }
 
+.report-table tbody tr[tabindex] {
+  cursor: pointer;
+}
+
+.report-table tbody tr[tabindex]:hover,
+.report-table tbody tr[tabindex]:focus-visible,
+.report-row-selected {
+  outline: none;
+  background: #eef5e9;
+}
+
 .report-cell-hint {
   display: block;
   color: #7a6e5d;
@@ -1177,6 +1192,10 @@ nav a[aria-current="page"] {
   color: #0d3c2a;
   background: transparent;
   text-decoration: underline;
+}
+
+.supporting-orders-section .report-table {
+  min-width: 820px;
 }
 
 .history-order {

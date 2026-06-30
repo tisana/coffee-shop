@@ -110,4 +110,37 @@ describe("ReportFilters", () => {
       menuItemId: "item-matcha"
     });
   });
+
+  it("emits category, item, and status changes used by report filtering", () => {
+    const onChange = vi.fn();
+
+    render(<ReportFilters value={baseFilter} categories={categories} onChange={onChange} />);
+
+    fireEvent.change(screen.getByLabelText("Category"), {
+      target: { value: "category-coffee" }
+    });
+    fireEvent.change(screen.getByLabelText("Item"), {
+      target: { value: "item-latte" }
+    });
+
+    const statusSelect = screen.getByLabelText("Status") as HTMLSelectElement;
+    for (const option of Array.from(statusSelect.options)) {
+      option.selected = option.value === "completed" || option.value === "cancelled";
+    }
+    fireEvent.change(statusSelect);
+
+    expect(onChange).toHaveBeenCalledWith({
+      ...baseFilter,
+      menuCategoryId: "category-coffee",
+      menuItemId: null
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...baseFilter,
+      menuItemId: "item-latte"
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...baseFilter,
+      statuses: ["completed", "cancelled"]
+    });
+  });
 });

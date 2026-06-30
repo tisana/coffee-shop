@@ -84,4 +84,24 @@ describe("SortableReportTable", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sort by Sales" }));
     expect(onSortChange).toHaveBeenCalledWith({ key: "sales", direction: "desc" });
   });
+
+  it("emits row selection and marks the selected report row", () => {
+    const onRowSelect = vi.fn();
+
+    render(
+      <SortableReportTable
+        ariaLabel="Sales summary"
+        columns={columns}
+        rows={rows}
+        selectedRowId="row-1"
+        onRowSelect={onRowSelect}
+      />
+    );
+
+    const row = screen.getByRole("row", { name: "2026-06-25 $18.25 Included" });
+
+    expect(row).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(row);
+    expect(onRowSelect).toHaveBeenCalledWith(rows[0]);
+  });
 });

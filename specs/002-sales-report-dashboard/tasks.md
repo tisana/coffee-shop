@@ -121,21 +121,21 @@
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] Add API contract tests for `GET /reports/orders` supporting order details, selected period filtering, selected item filtering, selected combination filtering, and authorization in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T041 [P] [US3] Add unit tests for supporting order captured totals, reportable totals, and filter matching in `apps/api/tests/unit/reportingService.test.ts`
-- [ ] T042 [P] [US3] Add staff-web component tests for `ReportFilters` status/category/item filter state changes in `apps/staff-web/src/components/ReportFilters.test.tsx`
-- [ ] T043 [P] [US3] Add staff-web component tests for sortable report table behavior with report row data in `apps/staff-web/src/components/SortableReportTable.test.tsx`
-- [ ] T044 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, table sorting, and 2-second filter update assertions in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [X] T040 [P] [US3] Add API contract tests for `GET /reports/orders` supporting order details, selected period filtering, selected item filtering, selected combination filtering, and authorization in `apps/api/tests/integration/reports.contract.test.ts`
+- [X] T041 [P] [US3] Add unit tests for supporting order captured totals, reportable totals, and filter matching in `apps/api/tests/unit/reportingService.test.ts`
+- [X] T042 [P] [US3] Add staff-web component tests for `ReportFilters` status/category/item filter state changes in `apps/staff-web/src/components/ReportFilters.test.tsx`
+- [X] T043 [P] [US3] Add staff-web component tests for sortable report table behavior with report row data in `apps/staff-web/src/components/SortableReportTable.test.tsx`
+- [X] T044 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, table sorting, and 2-second filter update assertions in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T045 [US3] Implement supporting order detail query and filter matching in `apps/api/src/domain/reportingService.ts`
-- [ ] T046 [US3] Implement `GET /reports/orders` for period, item, combination, status, category, and date filters in `apps/api/src/routes/reportRoutes.ts`
-- [ ] T047 [US3] Extend the report API client with supporting order detail loading in `apps/staff-web/src/services/reportsApi.ts`
-- [ ] T048 [US3] Implement filter submission, clear filters, and synchronized dashboard reload behavior in `apps/staff-web/src/pages/ReportsPage.tsx`
-- [ ] T049 [US3] Implement row selection from summary, popular item, and popular combination tables in `apps/staff-web/src/pages/ReportsPage.tsx`
-- [ ] T050 [US3] Create the supporting order detail table with sortable business date, daily order number, status, item, captured order total, and reportable sales total columns in `apps/staff-web/src/components/SupportingOrdersTable.tsx`
-- [ ] T051 [US3] Add responsive table overflow, selected-row state, and supporting-order detail styles in `apps/staff-web/src/styles.css`
+- [X] T045 [US3] Implement supporting order detail query and filter matching in `apps/api/src/domain/reportingService.ts`
+- [X] T046 [US3] Implement `GET /reports/orders` for period, item, combination, status, category, and date filters in `apps/api/src/routes/reportRoutes.ts`
+- [X] T047 [US3] Extend the report API client with supporting order detail loading in `apps/staff-web/src/services/reportsApi.ts`
+- [X] T048 [US3] Implement filter submission, clear filters, and synchronized dashboard reload behavior in `apps/staff-web/src/pages/ReportsPage.tsx`
+- [X] T049 [US3] Implement row selection from summary, popular item, and popular combination tables in `apps/staff-web/src/pages/ReportsPage.tsx`
+- [X] T050 [US3] Create the supporting order detail table with sortable business date, daily order number, status, item, captured order total, and reportable sales total columns in `apps/staff-web/src/components/SupportingOrdersTable.tsx`
+- [X] T051 [US3] Add responsive table overflow, selected-row state, and supporting-order detail styles in `apps/staff-web/src/styles.css`
 
 **Checkpoint**: All report tables are sortable and filterable, and drill-down details match the selected report data.
 

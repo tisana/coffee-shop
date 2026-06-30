@@ -5,6 +5,10 @@ import type {
   PopularCombinationReport,
   PopularItemReport,
   ReportFilter,
+  ReportOrderDetail,
+  ReportOrderItem,
+  ReportOrdersQuery,
+  ReportOrdersResponse,
   ReportPeriodSummary,
   ReportPeriodType,
   ReportSalesQuery,
@@ -43,6 +47,14 @@ export interface SalesReportAggregationInput {
   generatedAt?: string;
   matchingMenuItemIds?: ReadonlySet<string> | undefined;
   categoryNamesByMenuItemId?: ReadonlyMap<string, string | null> | undefined;
+}
+
+export interface ReportOrdersAggregationInput {
+  filter: ReportFilter;
+  orders: Order[];
+  matchingMenuItemIds?: ReadonlySet<string> | undefined;
+  periodKey?: string | undefined;
+  combinationKey?: string | undefined;
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -114,6 +126,20 @@ export async function getSalesReport(query: ReportSalesQuery): Promise<ReportSal
   });
 }
 
+export async function getReportOrders(query: ReportOrdersQuery): Promise<ReportOrdersResponse> {
+  const filter = normalizeReportFilter(query);
+  const matchingMenuItemIds = await resolveMatchingMenuItemIds(filter);
+  const reportOrders = await listReportOrders(filter);
+
+  return aggregateReportOrders({
+    filter,
+    orders: reportOrders,
+    matchingMenuItemIds,
+    periodKey: query.periodKey,
+    combinationKey: query.combinationKey
+  });
+}
+
 export function aggregateSalesReport(input: SalesReportAggregationInput): ReportSalesResponse {
   const periods = buildReportPeriods(input.filter).map((period) =>
     summarizePeriod(
@@ -141,6 +167,28 @@ export function aggregateSalesReport(input: SalesReportAggregationInput): Report
       input.filter,
       input.matchingMenuItemIds
     )
+  };
+}
+
+export function aggregateReportOrders(input: ReportOrdersAggregationInput): ReportOrdersResponse {
+  const selectedPeriod = input.periodKey
+    ? buildReportPeriods(input.filter).find((period) => period.key === input.periodKey)
+    : undefined;
+  const detailRows = matchingReportOrders(input.orders, input.filter)
+    .filter((order) => {
+      if (!selectedPeriod) {
+        return true;
+      }
+
+      return order.businessDate >= selectedPeriod.startDate && order.businessDate <= selectedPeriod.endDate;
+    })
+    .filter((order) => orderMatchesMenuFilter(order, input.matchingMenuItemIds))
+    .filter((order) => orderMatchesCombination(order, input.combinationKey))
+    .map((order) => toReportOrderDetail(order, input.matchingMenuItemIds, input.combinationKey));
+
+  return {
+    filters: input.filter,
+    orders: detailRows
   };
 }
 
@@ -453,6 +501,70 @@ function matchingReportOrders(ordersToFilter: Order[], filter: ReportFilter): Or
       order.businessDate >= filter.startDate &&
       order.businessDate <= filter.endDate
   );
+}
+
+function orderMatchesMenuFilter(
+  order: Order,
+  matchingMenuItemIds: ReadonlySet<string> | undefined
+): boolean {
+  return order.beverages.some((beverage) => isReportableBeverage(beverage, matchingMenuItemIds));
+}
+
+function orderMatchesCombination(order: Order, combinationKey: string | undefined): boolean {
+  return combinationKey === undefined || buildCombinationKey(order.beverages) === combinationKey;
+}
+
+function toReportOrderDetail(
+  order: Order,
+  matchingMenuItemIds: ReadonlySet<string> | undefined,
+  combinationKey: string | undefined
+): ReportOrderDetail {
+  const reportableBeverages =
+    combinationKey === undefined
+      ? order.beverages.filter((beverage) => isReportableBeverage(beverage, matchingMenuItemIds))
+      : order.beverages.filter((beverage) => beverage.status !== "cancelled");
+  const reportableTotalCents = reportableBeverages.reduce(
+    (sum, beverage) => sum + calculateBeverageLineTotalCents(beverage),
+    0
+  );
+
+  return {
+    orderId: order.id,
+    businessDate: order.businessDate,
+    dailyOrderNumber: order.dailyOrderNumber,
+    status: order.status,
+    capturedOrderTotal: order.total,
+    reportableTotal: formatMoneyCents(reportableTotalCents),
+    items: order.beverages.map(toReportOrderItem),
+    createdAt: order.createdAt,
+    completedAt: order.completedAt,
+    pickedUpAt: order.pickedUpAt
+  };
+}
+
+function toReportOrderItem(beverage: OrderBeverage): ReportOrderItem {
+  return {
+    beverageId: beverage.id,
+    sourceMenuItemId: beverage.sourceMenuItemId,
+    name: beverage.nameSnapshot,
+    quantity: beverage.quantity,
+    unitPrice: beverage.priceSnapshot,
+    lineTotal: calculateBeverageLineTotal(beverage),
+    status: beverage.status,
+    selectedCustomizations: beverage.selectedCustomizationsSnapshot.map((selection) => {
+      const choices = selection.choices.map((choice) => choice.choiceName).join(", ");
+
+      return `${selection.groupName}: ${choices}`;
+    })
+  };
+}
+
+function buildCombinationKey(beverages: OrderBeverage[]): string {
+  return beverages
+    .filter((beverage) => beverage.status !== "cancelled")
+    .map((beverage) => `${beverage.nameSnapshot} x${beverage.quantity}`)
+    .sort((left, right) => left.localeCompare(right))
+    .join("|");
 }
 
 function isReportableBeverage(

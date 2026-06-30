@@ -1,7 +1,7 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ReportSalesResponse } from "@coffee-shop/shared/contracts/api";
+import type { ReportOrdersResponse, ReportSalesResponse } from "@coffee-shop/shared/contracts/api";
 
 const reportSession = vi.hoisted(() => ({
   token: "valid-report-session",
@@ -41,12 +41,13 @@ vi.mock("../../src/domain/reportingService", async (importActual) => {
 
   return {
     ...actual,
-    getSalesReport: vi.fn()
+    getSalesReport: vi.fn(),
+    getReportOrders: vi.fn()
   };
 });
 
 import { createApp } from "../../src/app";
-import { getSalesReport } from "../../src/domain/reportingService";
+import { getReportOrders, getSalesReport } from "../../src/domain/reportingService";
 
 const validMenuCategoryId = "1eb04d80-a0f4-4f9c-b936-cf25acbd6e85";
 const validMenuItemId = "5b6eb8c6-9790-4ea5-bb5a-43c839f5d7b1";
@@ -75,6 +76,54 @@ function reportSalesResponse(overrides: Partial<ReportSalesResponse> = {}): Repo
   };
 }
 
+function reportOrdersResponse(overrides: Partial<ReportOrdersResponse> = {}): ReportOrdersResponse {
+  return {
+    filters: overrides.filters ?? {
+      startDate: "2026-06-01",
+      endDate: "2026-06-30",
+      period: "daily",
+      statuses: ["completed", "picked_up"],
+      menuCategoryId: validMenuCategoryId,
+      menuItemId: validMenuItemId
+    },
+    orders: overrides.orders ?? [
+      {
+        orderId: "order-report-1",
+        businessDate: "2026-06-14",
+        dailyOrderNumber: 12,
+        status: "picked_up",
+        capturedOrderTotal: "15.50",
+        reportableTotal: "10.50",
+        items: [
+          {
+            beverageId: "beverage-latte-1",
+            sourceMenuItemId: validMenuItemId,
+            name: "Report Latte",
+            quantity: 1,
+            unitPrice: "4.50",
+            lineTotal: "4.50",
+            status: "completed",
+            selectedCustomizations: ["Milk: Oat"]
+          },
+          {
+            beverageId: "beverage-mocha-1",
+            sourceMenuItemId: "6d8d0033-54ad-46b0-89bc-ac295b8af013",
+            name: "Report Mocha",
+            quantity: 1,
+            unitPrice: "6.00",
+            lineTotal: "6.00",
+            status: "completed",
+            selectedCustomizations: []
+          }
+        ],
+        createdAt: "2026-06-14T09:00:00.000Z",
+        completedAt: "2026-06-14T09:10:00.000Z",
+        pickedUpAt: "2026-06-14T09:15:00.000Z"
+      }
+    ]
+  };
+}
+
 function authorizedGet(path: "/reports/sales" | "/reports/orders") {
   return request(createApp()).get(path).set("Cookie", [`staff_session=${reportSession.token}`]);
 }
@@ -82,6 +131,7 @@ function authorizedGet(path: "/reports/sales" | "/reports/orders") {
 describe("reports API foundation contract", () => {
   beforeEach(() => {
     vi.mocked(getSalesReport).mockResolvedValue(reportSalesResponse());
+    vi.mocked(getReportOrders).mockResolvedValue(reportOrdersResponse());
   });
 
   it("requires an authorized staff session for sales and supporting-order reports", async () => {
@@ -140,7 +190,20 @@ describe("reports API foundation contract", () => {
     });
   });
 
-  it("validates drill-down query parameters before planned supporting-order responses", async () => {
+  it("returns supporting orders for selected period, item, and combination filters", async () => {
+    vi.mocked(getReportOrders).mockResolvedValue(
+      reportOrdersResponse({
+        filters: {
+          startDate: "2026-06-01",
+          endDate: "2026-06-30",
+          period: "daily",
+          statuses: ["completed"],
+          menuCategoryId: validMenuCategoryId,
+          menuItemId: validMenuItemId
+        }
+      })
+    );
+
     const response = await authorizedGet("/reports/orders").query({
       startDate: "2026-06-01",
       endDate: "2026-06-30",
@@ -152,10 +215,48 @@ describe("reports API foundation contract", () => {
       menuItemId: validMenuItemId
     });
 
-    expect(response.status).toBe(501);
-    expect(response.body).toEqual({
-      code: "NOT_IMPLEMENTED",
-      message: "This route is planned for a later implementation phase."
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      filters: {
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+        period: "daily",
+        statuses: ["completed"],
+        menuCategoryId: validMenuCategoryId,
+        menuItemId: validMenuItemId
+      },
+      orders: [
+        {
+          orderId: "order-report-1",
+          businessDate: "2026-06-14",
+          dailyOrderNumber: 12,
+          status: "picked_up",
+          capturedOrderTotal: "15.50",
+          reportableTotal: "10.50",
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              beverageId: "beverage-latte-1",
+              sourceMenuItemId: validMenuItemId,
+              name: "Report Latte",
+              quantity: 1,
+              unitPrice: "4.50",
+              lineTotal: "4.50",
+              status: "completed",
+              selectedCustomizations: ["Milk: Oat"]
+            })
+          ])
+        }
+      ]
+    });
+    expect(getReportOrders).toHaveBeenCalledWith({
+      startDate: "2026-06-01",
+      endDate: "2026-06-30",
+      period: "daily",
+      statuses: ["completed"],
+      periodKey: "2026-06-14",
+      combinationKey: "latte:1|mocha:1",
+      menuCategoryId: validMenuCategoryId,
+      menuItemId: validMenuItemId
     });
   });
 

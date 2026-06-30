@@ -20,6 +20,8 @@ interface SortableReportTableProps<TRow extends { id: string }> {
   rows: TRow[];
   sort?: SortState;
   onSortChange?: (sort: SortState) => void;
+  selectedRowId?: string | null;
+  onRowSelect?: (row: TRow) => void;
 }
 
 export function SortableReportTable<TRow extends { id: string }>({
@@ -27,7 +29,9 @@ export function SortableReportTable<TRow extends { id: string }>({
   columns,
   rows,
   sort,
-  onSortChange
+  onSortChange,
+  selectedRowId,
+  onRowSelect
 }: SortableReportTableProps<TRow>) {
   function nextSort(column: SortableReportColumn<TRow>): SortState {
     if (sort?.key === column.key) {
@@ -68,7 +72,23 @@ export function SortableReportTable<TRow extends { id: string }>({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id}>
+            <tr
+              key={row.id}
+              className={selectedRowId === row.id ? "report-row-selected" : undefined}
+              aria-selected={selectedRowId === row.id ? "true" : undefined}
+              tabIndex={onRowSelect ? 0 : undefined}
+              onClick={onRowSelect ? () => onRowSelect(row) : undefined}
+              onKeyDown={
+                onRowSelect
+                  ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onRowSelect(row);
+                      }
+                    }
+                  : undefined
+              }
+            >
               {columns.map((column) => (
                 <td key={column.key}>{column.render(row)}</td>
               ))}

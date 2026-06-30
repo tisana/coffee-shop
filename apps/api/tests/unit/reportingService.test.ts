@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   aggregateSalesReport,
+  aggregateReportOrders,
   addMoney,
   buildReportPeriods,
   calculateBeverageLineTotal,
@@ -557,5 +558,201 @@ describe("reporting service foundation helpers", () => {
         salesAmount: "10.00"
       }
     ]);
+  });
+
+  it("builds supporting order details with captured totals and non-cancelled reportable totals", () => {
+    const report = aggregateReportOrders({
+      filter: {
+        startDate: "2026-06-02",
+        endDate: "2026-06-02",
+        period: "daily",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: null
+      },
+      orders: [
+        reportOrder({
+          id: "detail-order-1",
+          dailyOrderNumber: 18,
+          status: "picked_up",
+          total: "15.50",
+          completedAt: "2026-06-02T09:10:00.000Z",
+          pickedUpAt: "2026-06-02T09:20:00.000Z",
+          beverages: [
+            {
+              id: "detail-bev-1",
+              orderId: "detail-order-1",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [
+                {
+                  groupName: "Milk",
+                  choices: [{ choiceName: "Oat", priceAdjustment: "0.75" }]
+                }
+              ],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "detail-bev-2",
+              orderId: "detail-order-1",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 1,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "detail-bev-3",
+              orderId: "detail-order-1",
+              sourceMenuItemId: "item-cold-brew",
+              nameSnapshot: "Cold Brew",
+              quantity: 1,
+              priceSnapshot: "5.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "cancelled",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: "Unavailable"
+            }
+          ]
+        })
+      ]
+    });
+
+    expect(report.orders).toEqual([
+      {
+        orderId: "detail-order-1",
+        businessDate: "2026-06-02",
+        dailyOrderNumber: 18,
+        status: "picked_up",
+        capturedOrderTotal: "15.50",
+        reportableTotal: "10.50",
+        items: [
+          {
+            beverageId: "detail-bev-1",
+            sourceMenuItemId: "item-latte",
+            name: "Latte",
+            quantity: 1,
+            unitPrice: "4.50",
+            lineTotal: "4.50",
+            status: "completed",
+            selectedCustomizations: ["Milk: Oat"]
+          },
+          {
+            beverageId: "detail-bev-2",
+            sourceMenuItemId: "item-mocha",
+            name: "Mocha",
+            quantity: 1,
+            unitPrice: "6.00",
+            lineTotal: "6.00",
+            status: "completed",
+            selectedCustomizations: []
+          },
+          {
+            beverageId: "detail-bev-3",
+            sourceMenuItemId: "item-cold-brew",
+            name: "Cold Brew",
+            quantity: 1,
+            unitPrice: "5.00",
+            lineTotal: "5.00",
+            status: "cancelled",
+            selectedCustomizations: []
+          }
+        ],
+        createdAt: "2026-06-02T09:00:00.000Z",
+        completedAt: "2026-06-02T09:10:00.000Z",
+        pickedUpAt: "2026-06-02T09:20:00.000Z"
+      }
+    ]);
+  });
+
+  it("filters supporting order details by selected period, item, and combination", () => {
+    const report = aggregateReportOrders({
+      filter: {
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+        period: "weekly",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: "item-latte"
+      },
+      matchingMenuItemIds: new Set(["item-latte"]),
+      periodKey: "2026-W23",
+      combinationKey: "Latte x1|Mocha x1",
+      orders: [
+        reportOrder({
+          id: "matching-order",
+          businessDate: "2026-06-03",
+          beverages: [
+            {
+              id: "matching-latte",
+              orderId: "matching-order",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "matching-mocha",
+              orderId: "matching-order",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 1,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        }),
+        reportOrder({
+          id: "wrong-period",
+          businessDate: "2026-06-15"
+        }),
+        reportOrder({
+          id: "wrong-combination",
+          businessDate: "2026-06-04",
+          beverages: [
+            {
+              id: "wrong-combo-latte",
+              orderId: "wrong-combination",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 2,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        })
+      ]
+    });
+
+    expect(report.orders.map((order) => order.orderId)).toEqual(["matching-order"]);
   });
 });

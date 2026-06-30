@@ -5,6 +5,7 @@ import type {
   PopularCombinationReport,
   PopularItemReport,
   ReportFilter,
+  ReportOrdersQuery,
   ReportPeriodSummary
 } from "@coffee-shop/shared/contracts/api";
 
@@ -15,8 +16,9 @@ import {
   SortableReportTable,
   type SortState
 } from "../components/SortableReportTable";
+import { SupportingOrdersTable } from "../components/SupportingOrdersTable";
 import { ApiClientError } from "../services/apiClient";
-import { getReportFilterOptions, getReportSales } from "../services/reportsApi";
+import { getReportFilterOptions, getReportOrders, getReportSales } from "../services/reportsApi";
 
 interface SalesSummaryRow extends ReportPeriodSummary {
   id: string;
@@ -30,25 +32,26 @@ interface PopularCombinationRow extends PopularCombinationReport {
   id: string;
 }
 
+interface DrilldownSelection {
+  id: string;
+  label: string;
+  query: Partial<ReportOrdersQuery>;
+}
+
 const defaultStatuses: ReportFilter["statuses"] = ["completed", "picked_up"];
 
 export function ReportsPage() {
-  const [filter, setFilter] = useState<ReportFilter>(() => {
-    const today = currentDate();
-
-    return {
-      startDate: today,
-      endDate: today,
-      period: "daily",
-      statuses: defaultStatuses,
-      menuCategoryId: null,
-      menuItemId: null
-    };
-  });
+  const [filter, setFilter] = useState<ReportFilter>(() => createDefaultFilter());
   const [categories, setCategories] = useState<ReportFilterCategoryOption[]>([]);
   const [salesReport, setSalesReport] = useState<Awaited<ReturnType<typeof getReportSales>> | null>(null);
+  const [supportingOrders, setSupportingOrders] = useState<Awaited<ReturnType<typeof getReportOrders>> | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [selectedDrilldown, setSelectedDrilldown] = useState<DrilldownSelection | null>(null);
   const [sort, setSort] = useState<SortState>({ key: "period", direction: "asc" });
   const [popularItemSort, setPopularItemSort] = useState<SortState>({
     key: "rank",
@@ -56,6 +59,10 @@ export function ReportsPage() {
   });
   const [popularCombinationSort, setPopularCombinationSort] = useState<SortState>({
     key: "rank",
+    direction: "asc"
+  });
+  const [supportingOrderSort, setSupportingOrderSort] = useState<SortState>({
+    key: "businessDate",
     direction: "asc"
   });
 
@@ -84,6 +91,9 @@ export function ReportsPage() {
 
     setLoading(true);
     setError(null);
+    setSelectedDrilldown(null);
+    setSupportingOrders(null);
+    setOrdersError(null);
 
     getReportSales(toReportSalesQuery(filter))
       .then((response) => {
@@ -107,6 +117,44 @@ export function ReportsPage() {
       active = false;
     };
   }, [filter]);
+
+  useEffect(() => {
+    if (!selectedDrilldown) {
+      return;
+    }
+
+    let active = true;
+
+    setOrdersLoading(true);
+    setOrdersError(null);
+
+    getReportOrders({
+      ...toReportSalesQuery(filter),
+      ...selectedDrilldown.query
+    })
+      .then((response) => {
+        if (active) {
+          setSupportingOrders(response);
+        }
+      })
+      .catch((caught) => {
+        if (active) {
+          setSupportingOrders(null);
+          setOrdersError(
+            caught instanceof ApiClientError ? caught.message : "Unable to load supporting orders."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setOrdersLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [filter, selectedDrilldown]);
 
   const rows = useMemo<SalesSummaryRow[]>(() => {
     const reportRows =
@@ -148,6 +196,9 @@ export function ReportsPage() {
       </header>
 
       <ReportFilters value={filter} categories={categories} onChange={setFilter} />
+      <button type="button" className="secondary-button report-clear-filters" onClick={handleClearFilters}>
+        Clear filters
+      </button>
 
       {error ? <p className="form-error">{error}</p> : null}
       {loading ? <p className="empty-state">Loading sales report.</p> : null}
@@ -233,6 +284,14 @@ export function ReportsPage() {
               rows={rows}
               sort={sort}
               onSortChange={setSort}
+              selectedRowId={selectedDrilldown?.id ?? null}
+              onRowSelect={(row) =>
+                setSelectedDrilldown({
+                  id: row.id,
+                  label: row.label,
+                  query: { periodKey: row.key }
+                })
+              }
             />
           </section>
 
@@ -293,6 +352,14 @@ export function ReportsPage() {
               rows={popularItemRows}
               sort={popularItemSort}
               onSortChange={setPopularItemSort}
+              selectedRowId={selectedDrilldown?.id ?? null}
+              onRowSelect={(row) =>
+                setSelectedDrilldown({
+                  id: row.id,
+                  label: row.itemName,
+                  query: { menuItemId: row.sourceMenuItemId }
+                })
+              }
             />
           </section>
 
@@ -347,12 +414,46 @@ export function ReportsPage() {
               rows={popularCombinationRows}
               sort={popularCombinationSort}
               onSortChange={setPopularCombinationSort}
+              selectedRowId={selectedDrilldown?.id ?? null}
+              onRowSelect={(row) =>
+                setSelectedDrilldown({
+                  id: row.id,
+                  label: row.combinationLabel,
+                  query: { combinationKey: row.combinationKey }
+                })
+              }
             />
           </section>
+
+          {selectedDrilldown ? (
+            <section className="report-section supporting-orders-section" aria-label="Supporting orders">
+              <div>
+                <h3>Supporting orders</h3>
+                <p>{selectedDrilldown.label}</p>
+              </div>
+
+              {ordersError ? <p className="form-error">{ordersError}</p> : null}
+              {ordersLoading ? <p className="empty-state">Loading supporting orders.</p> : null}
+              {supportingOrders ? (
+                <SupportingOrdersTable
+                  orders={supportingOrders.orders}
+                  sort={supportingOrderSort}
+                  onSortChange={setSupportingOrderSort}
+                />
+              ) : null}
+            </section>
+          ) : null}
         </>
       ) : null}
     </section>
   );
+
+  function handleClearFilters() {
+    setFilter(createDefaultFilter());
+    setSelectedDrilldown(null);
+    setSupportingOrders(null);
+    setOrdersError(null);
+  }
 }
 
 function toReportFilterOptions(response: MenuCategoriesResponse): ReportFilterCategoryOption[] {
@@ -374,6 +475,19 @@ function toReportSalesQuery(filter: ReportFilter) {
     statuses: filter.statuses,
     ...(filter.menuCategoryId ? { menuCategoryId: filter.menuCategoryId } : {}),
     ...(filter.menuItemId ? { menuItemId: filter.menuItemId } : {})
+  };
+}
+
+function createDefaultFilter(): ReportFilter {
+  const today = currentDate();
+
+  return {
+    startDate: today,
+    endDate: today,
+    period: "daily",
+    statuses: defaultStatuses,
+    menuCategoryId: null,
+    menuItemId: null
   };
 }
 
