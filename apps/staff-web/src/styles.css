@@ -1152,6 +1152,17 @@ nav a[aria-current="page"] {
   font-size: 12px;
 }
 
+.report-rank {
+  display: inline-grid;
+  min-width: 34px;
+  place-items: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #174e38;
+  background: #e8efe8;
+  font-weight: 800;
+}
+
 .report-sort-button {
   display: inline-flex;
   align-items: center;

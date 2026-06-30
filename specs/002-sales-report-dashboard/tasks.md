@@ -96,18 +96,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T031 [P] [US2] Add API contract tests for popular item ranking by quantity sold, order count, sales amount, and tie handling in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T032 [P] [US2] Add API contract tests for popular order combination ranking by frequency, sales amount, and cancelled beverage exclusion in `apps/api/tests/integration/reports.contract.test.ts`
-- [ ] T033 [P] [US2] Add unit tests for item and combination aggregation from purchased beverage snapshots in `apps/api/tests/unit/reportingService.test.ts`
-- [ ] T034 [P] [US2] Add Playwright checks for popular item and popular combination charts and tables, including 30-second top-10 discovery assertions, in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [X] T031 [P] [US2] Add API contract tests for popular item ranking by quantity sold, order count, sales amount, and tie handling in `apps/api/tests/integration/reports.contract.test.ts`
+- [X] T032 [P] [US2] Add API contract tests for popular order combination ranking by frequency, sales amount, and cancelled beverage exclusion in `apps/api/tests/integration/reports.contract.test.ts`
+- [X] T033 [P] [US2] Add unit tests for item and combination aggregation from purchased beverage snapshots in `apps/api/tests/unit/reportingService.test.ts`
+- [X] T034 [P] [US2] Add Playwright checks for popular item and popular combination charts and tables, including 30-second top-10 discovery assertions, in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T035 [US2] Extend report aggregation to calculate popular item rows from non-cancelled beverage snapshots in `apps/api/src/domain/reportingService.ts`
-- [ ] T036 [US2] Extend report aggregation to calculate popular order combination rows from non-cancelled beverage snapshots in `apps/api/src/domain/reportingService.ts`
-- [ ] T037 [US2] Include popular item and popular combination rows in `GET /reports/sales` in `apps/api/src/routes/reportRoutes.ts`
-- [ ] T038 [US2] Render popular item chart/table and popular combination chart/table sections in `apps/staff-web/src/pages/ReportsPage.tsx`
-- [ ] T039 [US2] Add popularity-specific chart labels, rank styling, and tie-value treatment in `apps/staff-web/src/styles.css`
+- [X] T035 [US2] Extend report aggregation to calculate popular item rows from non-cancelled beverage snapshots in `apps/api/src/domain/reportingService.ts`
+- [X] T036 [US2] Extend report aggregation to calculate popular order combination rows from non-cancelled beverage snapshots in `apps/api/src/domain/reportingService.ts`
+- [X] T037 [US2] Include popular item and popular combination rows in `GET /reports/sales` in `apps/api/src/routes/reportRoutes.ts`
+- [X] T038 [US2] Render popular item chart/table and popular combination chart/table sections in `apps/staff-web/src/pages/ReportsPage.tsx`
+- [X] T039 [US2] Add popularity-specific chart labels, rank styling, and tie-value treatment in `apps/staff-web/src/styles.css`
 
 **Checkpoint**: User Stories 1 and 2 both work independently with matching chart/table data.
 

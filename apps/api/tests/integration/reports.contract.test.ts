@@ -372,6 +372,128 @@ describe("reports API foundation contract", () => {
       })
     ]);
   });
+
+  it("returns popular item rankings by quantity sold, sales amount, order count, and deterministic ties", async () => {
+    vi.mocked(getSalesReport).mockResolvedValue(
+      reportSalesResponse({
+        popularItems: [
+          {
+            rank: 1,
+            sourceMenuItemId: "item-latte",
+            itemName: "Report Latte",
+            categoryName: "Coffee",
+            quantitySold: 6,
+            orderCount: 3,
+            salesAmount: "27.00"
+          },
+          {
+            rank: 2,
+            sourceMenuItemId: "item-mocha",
+            itemName: "Report Mocha",
+            categoryName: "Coffee",
+            quantitySold: 4,
+            orderCount: 2,
+            salesAmount: "24.00"
+          },
+          {
+            rank: 3,
+            sourceMenuItemId: "item-cold-brew",
+            itemName: "Cold Brew",
+            categoryName: "Coffee",
+            quantitySold: 4,
+            orderCount: 4,
+            salesAmount: "20.00"
+          }
+        ]
+      })
+    );
+
+    const response = await authorizedGet("/reports/sales").query({
+      startDate: "2026-06-01",
+      endDate: "2026-06-30"
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.popularItems).toEqual([
+      {
+        rank: 1,
+        sourceMenuItemId: "item-latte",
+        itemName: "Report Latte",
+        categoryName: "Coffee",
+        quantitySold: 6,
+        orderCount: 3,
+        salesAmount: "27.00"
+      },
+      {
+        rank: 2,
+        sourceMenuItemId: "item-mocha",
+        itemName: "Report Mocha",
+        categoryName: "Coffee",
+        quantitySold: 4,
+        orderCount: 2,
+        salesAmount: "24.00"
+      },
+      {
+        rank: 3,
+        sourceMenuItemId: "item-cold-brew",
+        itemName: "Cold Brew",
+        categoryName: "Coffee",
+        quantitySold: 4,
+        orderCount: 4,
+        salesAmount: "20.00"
+      }
+    ]);
+  });
+
+  it("returns popular order combination rankings by frequency and sales while excluding cancelled beverages", async () => {
+    vi.mocked(getSalesReport).mockResolvedValue(
+      reportSalesResponse({
+        popularCombinations: [
+          {
+            rank: 1,
+            combinationKey: "Report Latte x1|Report Mocha x1",
+            combinationLabel: "Report Latte x1 + Report Mocha x1",
+            orderFrequency: 3,
+            itemCount: 2,
+            salesAmount: "31.50"
+          },
+          {
+            rank: 2,
+            combinationKey: "Cold Brew x2",
+            combinationLabel: "Cold Brew x2",
+            orderFrequency: 2,
+            itemCount: 2,
+            salesAmount: "20.00"
+          }
+        ]
+      })
+    );
+
+    const response = await authorizedGet("/reports/sales").query({
+      startDate: "2026-06-01",
+      endDate: "2026-06-30"
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.popularCombinations).toEqual([
+      {
+        rank: 1,
+        combinationKey: "Report Latte x1|Report Mocha x1",
+        combinationLabel: "Report Latte x1 + Report Mocha x1",
+        orderFrequency: 3,
+        itemCount: 2,
+        salesAmount: "31.50"
+      },
+      {
+        rank: 2,
+        combinationKey: "Cold Brew x2",
+        combinationLabel: "Cold Brew x2",
+        orderFrequency: 2,
+        itemCount: 2,
+        salesAmount: "20.00"
+      }
+    ]);
+  });
 });
 
 function dailyPeriod(key: string, totalSales: string) {

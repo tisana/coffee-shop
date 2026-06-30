@@ -3,7 +3,12 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { reportSalesResponse, emptyReportSalesResponse } from "../test/reportTestData";
+import {
+  emptyReportSalesResponse,
+  popularCombinationReport,
+  popularItemReport,
+  reportSalesResponse
+} from "../test/reportTestData";
 import { ApiClientError } from "../services/apiClient";
 import { getReportFilterOptions, getReportSales } from "../services/reportsApi";
 import { ReportsPage } from "./ReportsPage";
@@ -173,5 +178,77 @@ describe("ReportsPage", () => {
     expect(sortedRows[2]).toHaveTextContent("Jun 25");
     expect(screen.getByRole("img", { name: "Sales by period chart" })).toHaveTextContent("Jun 25");
     expect(screen.getByRole("img", { name: "Sales by period chart" })).toHaveTextContent("Jun 26");
+  });
+
+  it("renders popular item and order combination charts with matching sortable tables", async () => {
+    vi.mocked(getReportSales).mockResolvedValue(
+      reportSalesResponse({
+        popularItems: [
+          popularItemReport({
+            rank: 1,
+            sourceMenuItemId: "item-latte",
+            itemName: "Latte",
+            categoryName: "Coffee",
+            quantitySold: 6,
+            orderCount: 3,
+            salesAmount: "27.00"
+          }),
+          popularItemReport({
+            rank: 2,
+            sourceMenuItemId: "item-mocha",
+            itemName: "Mocha",
+            categoryName: "Coffee",
+            quantitySold: 4,
+            orderCount: 2,
+            salesAmount: "24.00"
+          })
+        ],
+        popularCombinations: [
+          popularCombinationReport({
+            rank: 1,
+            combinationKey: "Latte x1|Mocha x1",
+            combinationLabel: "Latte x1 + Mocha x1",
+            orderFrequency: 3,
+            itemCount: 2,
+            salesAmount: "31.50"
+          }),
+          popularCombinationReport({
+            rank: 2,
+            combinationKey: "Cold Brew x2",
+            combinationLabel: "Cold Brew x2",
+            orderFrequency: 2,
+            itemCount: 2,
+            salesAmount: "20.00"
+          })
+        ]
+      })
+    );
+
+    render(<ReportsPage />);
+
+    expect(await screen.findByRole("img", { name: "Popular items chart" })).toHaveTextContent("Latte");
+    expect(screen.getByRole("img", { name: "Popular combinations chart" })).toHaveTextContent(
+      "Latte x1 + Mocha x1"
+    );
+
+    const itemTable = screen.getByRole("table", { name: "Popular items table" });
+    expect(within(itemTable).getByRole("cell", { name: "Latte" })).toBeInTheDocument();
+    expect(within(itemTable).getByRole("cell", { name: "6" })).toBeInTheDocument();
+
+    const combinationTable = screen.getByRole("table", { name: "Popular combinations table" });
+    expect(
+      within(combinationTable).getByRole("cell", { name: "Latte x1 + Mocha x1" })
+    ).toBeInTheDocument();
+    expect(within(combinationTable).getByRole("cell", { name: "3" })).toBeInTheDocument();
+
+    fireEvent.click(within(itemTable).getByRole("button", { name: "Sort by Sales amount" }));
+    fireEvent.click(within(combinationTable).getByRole("button", { name: "Sort by Frequency" }));
+
+    expect(within(itemTable).getAllByRole("row")[1]).toHaveTextContent("Mocha");
+    expect(within(combinationTable).getAllByRole("row")[1]).toHaveTextContent("Cold Brew x2");
+    expect(screen.getByRole("img", { name: "Popular items chart" })).toHaveTextContent("Latte");
+    expect(screen.getByRole("img", { name: "Popular combinations chart" })).toHaveTextContent(
+      "Latte x1 + Mocha x1"
+    );
   });
 });

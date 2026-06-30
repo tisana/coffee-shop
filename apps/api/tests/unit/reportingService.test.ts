@@ -292,4 +292,270 @@ describe("reporting service foundation helpers", () => {
       topSellingItemQuantity: null
     });
   });
+
+  it("aggregates popular item rows from non-cancelled purchased beverage snapshots", () => {
+    const report = aggregateSalesReport({
+      filter: {
+        startDate: "2026-06-02",
+        endDate: "2026-06-02",
+        period: "daily",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: null
+      },
+      orders: [
+        reportOrder({
+          id: "popular-order-1",
+          beverages: [
+            {
+              id: "popular-bev-1",
+              orderId: "popular-order-1",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 2,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "popular-bev-2",
+              orderId: "popular-order-1",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 1,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        }),
+        reportOrder({
+          id: "popular-order-2",
+          status: "picked_up",
+          beverages: [
+            {
+              id: "popular-bev-3",
+              orderId: "popular-order-2",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 2,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "popular-bev-4",
+              orderId: "popular-order-2",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "cancelled",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: "Unavailable"
+            }
+          ]
+        }),
+        reportOrder({
+          id: "popular-order-3",
+          beverages: [
+            {
+              id: "popular-bev-5",
+              orderId: "popular-order-3",
+              sourceMenuItemId: "item-cold-brew",
+              nameSnapshot: "Cold Brew",
+              quantity: 3,
+              priceSnapshot: "5.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        })
+      ],
+      generatedAt: "2026-06-02T12:00:00.000Z"
+    });
+
+    expect(report.popularItems).toEqual([
+      {
+        rank: 1,
+        sourceMenuItemId: "item-mocha",
+        itemName: "Mocha",
+        categoryName: null,
+        quantitySold: 3,
+        orderCount: 2,
+        salesAmount: "18.00"
+      },
+      {
+        rank: 2,
+        sourceMenuItemId: "item-cold-brew",
+        itemName: "Cold Brew",
+        categoryName: null,
+        quantitySold: 3,
+        orderCount: 1,
+        salesAmount: "15.00"
+      },
+      {
+        rank: 3,
+        sourceMenuItemId: "item-latte",
+        itemName: "Latte",
+        categoryName: null,
+        quantitySold: 2,
+        orderCount: 1,
+        salesAmount: "9.00"
+      }
+    ]);
+  });
+
+  it("aggregates popular order combinations by frequency and sales without cancelled beverages", () => {
+    const report = aggregateSalesReport({
+      filter: {
+        startDate: "2026-06-02",
+        endDate: "2026-06-02",
+        period: "daily",
+        statuses: ["completed", "picked_up"],
+        menuCategoryId: null,
+        menuItemId: null
+      },
+      orders: [
+        reportOrder({
+          id: "combo-order-1",
+          beverages: [
+            {
+              id: "combo-bev-1",
+              orderId: "combo-order-1",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "combo-bev-2",
+              orderId: "combo-order-1",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 1,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        }),
+        reportOrder({
+          id: "combo-order-2",
+          beverages: [
+            {
+              id: "combo-bev-3",
+              orderId: "combo-order-2",
+              sourceMenuItemId: "item-mocha",
+              nameSnapshot: "Mocha",
+              quantity: 1,
+              priceSnapshot: "6.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "combo-bev-4",
+              orderId: "combo-order-2",
+              sourceMenuItemId: "item-latte",
+              nameSnapshot: "Latte",
+              quantity: 1,
+              priceSnapshot: "4.50",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            },
+            {
+              id: "combo-bev-5",
+              orderId: "combo-order-2",
+              sourceMenuItemId: "item-cold-brew",
+              nameSnapshot: "Cold Brew",
+              quantity: 1,
+              priceSnapshot: "5.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "cancelled",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: "Unavailable"
+            }
+          ]
+        }),
+        reportOrder({
+          id: "combo-order-3",
+          beverages: [
+            {
+              id: "combo-bev-6",
+              orderId: "combo-order-3",
+              sourceMenuItemId: "item-cold-brew",
+              nameSnapshot: "Cold Brew",
+              quantity: 2,
+              priceSnapshot: "5.00",
+              selectedCustomizationsSnapshot: [],
+              specialInstructions: null,
+              status: "completed",
+              completedAt: null,
+              cancelledAt: null,
+              cancellationReason: null
+            }
+          ]
+        })
+      ],
+      generatedAt: "2026-06-02T12:00:00.000Z"
+    });
+
+    expect(report.popularCombinations).toEqual([
+      {
+        rank: 1,
+        combinationKey: "Latte x1|Mocha x1",
+        combinationLabel: "Latte x1 + Mocha x1",
+        orderFrequency: 2,
+        itemCount: 2,
+        salesAmount: "21.00"
+      },
+      {
+        rank: 2,
+        combinationKey: "Cold Brew x2",
+        combinationLabel: "Cold Brew x2",
+        orderFrequency: 1,
+        itemCount: 2,
+        salesAmount: "10.00"
+      }
+    ]);
+  });
 });

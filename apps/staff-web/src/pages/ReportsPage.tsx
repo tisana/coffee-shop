@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import type {
   MenuCategoriesResponse,
+  PopularCombinationReport,
+  PopularItemReport,
   ReportFilter,
   ReportPeriodSummary
 } from "@coffee-shop/shared/contracts/api";
@@ -17,6 +19,14 @@ import { ApiClientError } from "../services/apiClient";
 import { getReportFilterOptions, getReportSales } from "../services/reportsApi";
 
 interface SalesSummaryRow extends ReportPeriodSummary {
+  id: string;
+}
+
+interface PopularItemRow extends PopularItemReport {
+  id: string;
+}
+
+interface PopularCombinationRow extends PopularCombinationReport {
   id: string;
 }
 
@@ -40,6 +50,14 @@ export function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sort, setSort] = useState<SortState>({ key: "period", direction: "asc" });
+  const [popularItemSort, setPopularItemSort] = useState<SortState>({
+    key: "rank",
+    direction: "asc"
+  });
+  const [popularCombinationSort, setPopularCombinationSort] = useState<SortState>({
+    key: "rank",
+    direction: "asc"
+  });
 
   useEffect(() => {
     let active = true;
@@ -99,6 +117,26 @@ export function ReportsPage() {
 
     return sortRows(reportRows, sort);
   }, [salesReport, sort]);
+
+  const popularItemRows = useMemo<PopularItemRow[]>(() => {
+    const reportRows =
+      salesReport?.popularItems.map((item) => ({
+        ...item,
+        id: `${item.rank}-${item.sourceMenuItemId}-${item.itemName}`
+      })) ?? [];
+
+    return sortPopularItemRows(reportRows, popularItemSort);
+  }, [popularItemSort, salesReport]);
+
+  const popularCombinationRows = useMemo<PopularCombinationRow[]>(() => {
+    const reportRows =
+      salesReport?.popularCombinations.map((combination) => ({
+        ...combination,
+        id: `${combination.rank}-${combination.combinationKey}`
+      })) ?? [];
+
+    return sortPopularCombinationRows(reportRows, popularCombinationSort);
+  }, [popularCombinationSort, salesReport]);
 
   return (
     <section className="report-dashboard-layout" aria-label="Reports">
@@ -197,6 +235,120 @@ export function ReportsPage() {
               onSortChange={setSort}
             />
           </section>
+
+          <section className="report-section" aria-label="Popular items">
+            <div>
+              <h3>Popular items</h3>
+              <p>Top menu items ranked by quantity sold for the active filters</p>
+            </div>
+
+            <ReportChart
+              ariaLabel="Popular items chart"
+              bars={salesReport.popularItems.map((item) => ({
+                label: item.itemName,
+                value: item.quantitySold
+              }))}
+            />
+
+            <SortableReportTable
+              ariaLabel="Popular items table"
+              columns={[
+                {
+                  key: "rank",
+                  header: "Rank",
+                  sortable: true,
+                  render: (row) => <span className="report-rank">#{row.rank}</span>
+                },
+                {
+                  key: "itemName",
+                  header: "Item",
+                  sortable: true,
+                  render: (row) => row.itemName
+                },
+                {
+                  key: "categoryName",
+                  header: "Category",
+                  sortable: true,
+                  render: (row) => row.categoryName ?? "Uncategorized"
+                },
+                {
+                  key: "quantitySold",
+                  header: "Quantity sold",
+                  sortable: true,
+                  render: (row) => row.quantitySold
+                },
+                {
+                  key: "orderCount",
+                  header: "Orders",
+                  sortable: true,
+                  render: (row) => row.orderCount
+                },
+                {
+                  key: "salesAmount",
+                  header: "Sales amount",
+                  sortable: true,
+                  render: (row) => `$${row.salesAmount}`
+                }
+              ]}
+              rows={popularItemRows}
+              sort={popularItemSort}
+              onSortChange={setPopularItemSort}
+            />
+          </section>
+
+          <section className="report-section" aria-label="Popular combinations">
+            <div>
+              <h3>Popular combinations</h3>
+              <p>Repeated order combinations ranked by frequency for the active filters</p>
+            </div>
+
+            <ReportChart
+              ariaLabel="Popular combinations chart"
+              bars={salesReport.popularCombinations.map((combination) => ({
+                label: combination.combinationLabel,
+                value: combination.orderFrequency
+              }))}
+            />
+
+            <SortableReportTable
+              ariaLabel="Popular combinations table"
+              columns={[
+                {
+                  key: "rank",
+                  header: "Rank",
+                  sortable: true,
+                  render: (row) => <span className="report-rank">#{row.rank}</span>
+                },
+                {
+                  key: "combinationLabel",
+                  header: "Combination",
+                  sortable: true,
+                  render: (row) => row.combinationLabel
+                },
+                {
+                  key: "orderFrequency",
+                  header: "Frequency",
+                  sortable: true,
+                  render: (row) => row.orderFrequency
+                },
+                {
+                  key: "itemCount",
+                  header: "Items",
+                  sortable: true,
+                  render: (row) => row.itemCount
+                },
+                {
+                  key: "salesAmount",
+                  header: "Sales amount",
+                  sortable: true,
+                  render: (row) => `$${row.salesAmount}`
+                }
+              ]}
+              rows={popularCombinationRows}
+              sort={popularCombinationSort}
+              onSortChange={setPopularCombinationSort}
+            />
+          </section>
         </>
       ) : null}
     </section>
@@ -249,6 +401,57 @@ function compareRowValue(left: SalesSummaryRow, right: SalesSummaryRow, key: str
   }
 
   return left.key.localeCompare(right.key);
+}
+
+function sortPopularItemRows(rows: PopularItemRow[], sort: SortState): PopularItemRow[] {
+  return [...rows].sort((left, right) => {
+    const direction = sort.direction === "asc" ? 1 : -1;
+
+    return comparePopularItemValue(left, right, sort.key) * direction;
+  });
+}
+
+function comparePopularItemValue(left: PopularItemRow, right: PopularItemRow, key: string): number {
+  if (key === "rank" || key === "quantitySold" || key === "orderCount") {
+    return Number(left[key]) - Number(right[key]);
+  }
+
+  if (key === "salesAmount") {
+    return Number(left.salesAmount) - Number(right.salesAmount);
+  }
+
+  if (key === "categoryName") {
+    return (left.categoryName ?? "").localeCompare(right.categoryName ?? "");
+  }
+
+  return left.itemName.localeCompare(right.itemName);
+}
+
+function sortPopularCombinationRows(
+  rows: PopularCombinationRow[],
+  sort: SortState
+): PopularCombinationRow[] {
+  return [...rows].sort((left, right) => {
+    const direction = sort.direction === "asc" ? 1 : -1;
+
+    return comparePopularCombinationValue(left, right, sort.key) * direction;
+  });
+}
+
+function comparePopularCombinationValue(
+  left: PopularCombinationRow,
+  right: PopularCombinationRow,
+  key: string
+): number {
+  if (key === "rank" || key === "orderFrequency" || key === "itemCount") {
+    return Number(left[key]) - Number(right[key]);
+  }
+
+  if (key === "salesAmount") {
+    return Number(left.salesAmount) - Number(right.salesAmount);
+  }
+
+  return left.combinationLabel.localeCompare(right.combinationLabel);
 }
 
 function currentDate(): string {

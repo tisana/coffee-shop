@@ -2,6 +2,8 @@ import { and, asc, gte, inArray, lte, eq } from "drizzle-orm";
 
 import type {
   OverallReportTotals,
+  PopularCombinationReport,
+  PopularItemReport,
   ReportFilter,
   ReportPeriodSummary,
   ReportPeriodType,
@@ -11,7 +13,7 @@ import type {
 import type { Order, OrderBeverage, OrderStatus } from "@coffee-shop/shared/domain/types";
 
 import { db } from "../storage/db";
-import { menuItems, orderBeverages, orders } from "../storage/schema";
+import { menuCategories, menuItems, orderBeverages, orders } from "../storage/schema";
 import { currentBusinessDate } from "./businessDate";
 import { mapOrder } from "./orderMapper";
 
@@ -40,6 +42,7 @@ export interface SalesReportAggregationInput {
   orders: Order[];
   generatedAt?: string;
   matchingMenuItemIds?: ReadonlySet<string> | undefined;
+  categoryNamesByMenuItemId?: ReadonlyMap<string, string | null> | undefined;
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -100,12 +103,14 @@ export async function getSalesReport(query: ReportSalesQuery): Promise<ReportSal
   const filter = normalizeReportFilter(query);
   const matchingMenuItemIds = await resolveMatchingMenuItemIds(filter);
   const reportOrders = await listReportOrders(filter);
+  const categoryNamesByMenuItemId = await listCategoryNamesByMenuItemId(reportOrders);
 
   return aggregateSalesReport({
     filter,
     orders: reportOrders,
     generatedAt: new Date().toISOString(),
-    matchingMenuItemIds
+    matchingMenuItemIds,
+    categoryNamesByMenuItemId
   });
 }
 
@@ -125,8 +130,17 @@ export function aggregateSalesReport(input: SalesReportAggregationInput): Report
     generatedAt: input.generatedAt ?? new Date().toISOString(),
     overall,
     periods,
-    popularItems: [],
-    popularCombinations: []
+    popularItems: summarizePopularItems(
+      input.orders,
+      input.filter,
+      input.matchingMenuItemIds,
+      input.categoryNamesByMenuItemId
+    ),
+    popularCombinations: summarizePopularCombinations(
+      input.orders,
+      input.filter,
+      input.matchingMenuItemIds
+    )
   };
 }
 
@@ -182,6 +196,33 @@ async function resolveMatchingMenuItemIds(filter: ReportFilter): Promise<Readonl
     .where(eq(menuItems.categoryId, filter.menuCategoryId));
 
   return new Set(rows.map((row) => row.id));
+}
+
+async function listCategoryNamesByMenuItemId(
+  reportOrders: Order[]
+): Promise<ReadonlyMap<string, string | null>> {
+  const sourceMenuItemIds = new Set<string>();
+
+  for (const order of reportOrders) {
+    for (const beverage of order.beverages) {
+      sourceMenuItemIds.add(beverage.sourceMenuItemId);
+    }
+  }
+
+  if (sourceMenuItemIds.size === 0) {
+    return new Map();
+  }
+
+  const rows = await db
+    .select({
+      menuItemId: menuItems.id,
+      categoryName: menuCategories.name
+    })
+    .from(menuItems)
+    .leftJoin(menuCategories, eq(menuItems.categoryId, menuCategories.id))
+    .where(inArray(menuItems.id, Array.from(sourceMenuItemIds)));
+
+  return new Map(rows.map((row) => [row.menuItemId, row.categoryName]));
 }
 
 function summarizePeriod(
@@ -271,6 +312,147 @@ function summarizeOrders(
     topSellingItemName: topSellingItem?.name ?? null,
     topSellingItemQuantity: topSellingItem?.quantity ?? null
   };
+}
+
+function summarizePopularItems(
+  ordersToSummarize: Order[],
+  filter: ReportFilter,
+  matchingMenuItemIds: ReadonlySet<string> | undefined,
+  categoryNamesByMenuItemId: ReadonlyMap<string, string | null> | undefined
+): PopularItemReport[] {
+  const itemTotals = new Map<
+    string,
+    {
+      sourceMenuItemId: string;
+      itemName: string;
+      categoryName: string | null;
+      quantitySold: number;
+      orderIds: Set<string>;
+      salesCents: number;
+    }
+  >();
+
+  for (const order of matchingReportOrders(ordersToSummarize, filter)) {
+    for (const beverage of order.beverages.filter((item) =>
+      isReportableBeverage(item, matchingMenuItemIds)
+    )) {
+      const key = `${beverage.sourceMenuItemId}\u0000${beverage.nameSnapshot}`;
+      const existing = itemTotals.get(key) ?? {
+        sourceMenuItemId: beverage.sourceMenuItemId,
+        itemName: beverage.nameSnapshot,
+        categoryName: categoryNamesByMenuItemId?.get(beverage.sourceMenuItemId) ?? null,
+        quantitySold: 0,
+        orderIds: new Set<string>(),
+        salesCents: 0
+      };
+
+      existing.quantitySold += beverage.quantity;
+      existing.orderIds.add(order.id);
+      existing.salesCents += calculateBeverageLineTotalCents(beverage);
+      itemTotals.set(key, existing);
+    }
+  }
+
+  return Array.from(itemTotals.values())
+    .sort((left, right) => {
+      if (left.quantitySold !== right.quantitySold) {
+        return right.quantitySold - left.quantitySold;
+      }
+
+      if (left.salesCents !== right.salesCents) {
+        return right.salesCents - left.salesCents;
+      }
+
+      return left.itemName.localeCompare(right.itemName);
+    })
+    .slice(0, 10)
+    .map((item, index) => ({
+      rank: index + 1,
+      sourceMenuItemId: item.sourceMenuItemId,
+      itemName: item.itemName,
+      categoryName: item.categoryName,
+      quantitySold: item.quantitySold,
+      orderCount: item.orderIds.size,
+      salesAmount: formatMoneyCents(item.salesCents)
+    }));
+}
+
+function summarizePopularCombinations(
+  ordersToSummarize: Order[],
+  filter: ReportFilter,
+  matchingMenuItemIds: ReadonlySet<string> | undefined
+): PopularCombinationReport[] {
+  const combinationTotals = new Map<
+    string,
+    {
+      combinationKey: string;
+      combinationLabel: string;
+      orderFrequency: number;
+      itemCount: number;
+      salesCents: number;
+    }
+  >();
+
+  for (const order of matchingReportOrders(ordersToSummarize, filter)) {
+    const reportableBeverages = order.beverages.filter((beverage) =>
+      isReportableBeverage(beverage, matchingMenuItemIds)
+    );
+
+    if (reportableBeverages.length === 0) {
+      continue;
+    }
+
+    const parts = reportableBeverages
+      .map((beverage) => ({
+        label: `${beverage.nameSnapshot} x${beverage.quantity}`,
+        quantity: beverage.quantity,
+        salesCents: calculateBeverageLineTotalCents(beverage)
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+    const combinationKey = parts.map((part) => part.label).join("|");
+    const existing = combinationTotals.get(combinationKey) ?? {
+      combinationKey,
+      combinationLabel: parts.map((part) => part.label).join(" + "),
+      orderFrequency: 0,
+      itemCount: parts.reduce((total, part) => total + part.quantity, 0),
+      salesCents: 0
+    };
+
+    existing.orderFrequency += 1;
+    existing.salesCents += parts.reduce((total, part) => total + part.salesCents, 0);
+    combinationTotals.set(combinationKey, existing);
+  }
+
+  return Array.from(combinationTotals.values())
+    .sort((left, right) => {
+      if (left.orderFrequency !== right.orderFrequency) {
+        return right.orderFrequency - left.orderFrequency;
+      }
+
+      if (left.salesCents !== right.salesCents) {
+        return right.salesCents - left.salesCents;
+      }
+
+      return left.combinationLabel.localeCompare(right.combinationLabel);
+    })
+    .slice(0, 10)
+    .map((combination, index) => ({
+      rank: index + 1,
+      combinationKey: combination.combinationKey,
+      combinationLabel: combination.combinationLabel,
+      orderFrequency: combination.orderFrequency,
+      itemCount: combination.itemCount,
+      salesAmount: formatMoneyCents(combination.salesCents)
+    }));
+}
+
+function matchingReportOrders(ordersToFilter: Order[], filter: ReportFilter): Order[] {
+  return ordersToFilter.filter(
+    (order) =>
+      filter.statuses.includes(order.status) &&
+      order.businessDate >= filter.startDate &&
+      order.businessDate <= filter.endDate
+  );
 }
 
 function isReportableBeverage(

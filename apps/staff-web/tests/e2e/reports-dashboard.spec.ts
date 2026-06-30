@@ -2,6 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 import {
   fulfillReportApiRoute,
+  popularCombinationReport,
+  popularItemReport,
   reportSalesResponse,
   reportPeriodSummary
 } from "./reportTestData";
@@ -71,8 +73,44 @@ test("staff opens Reports and switches daily, weekly, and monthly sales summarie
               topSellingItemQuantity: 4
             })
           ],
-          popularItems: [],
-          popularCombinations: []
+          popularItems: [
+            popularItemReport({
+              rank: 1,
+              sourceMenuItemId: "item-latte",
+              itemName: "Latte",
+              categoryName: "Coffee",
+              quantitySold: 8,
+              orderCount: 6,
+              salesAmount: "36.00"
+            }),
+            popularItemReport({
+              rank: 2,
+              sourceMenuItemId: "item-mocha",
+              itemName: "Mocha",
+              categoryName: "Coffee",
+              quantitySold: 5,
+              orderCount: 4,
+              salesAmount: "30.00"
+            })
+          ],
+          popularCombinations: [
+            popularCombinationReport({
+              rank: 1,
+              combinationKey: "Latte x1|Mocha x1",
+              combinationLabel: "Latte x1 + Mocha x1",
+              orderFrequency: 4,
+              itemCount: 2,
+              salesAmount: "42.00"
+            }),
+            popularCombinationReport({
+              rank: 2,
+              combinationKey: "Cold Brew x2",
+              combinationLabel: "Cold Brew x2",
+              orderFrequency: 2,
+              itemCount: 2,
+              salesAmount: "20.00"
+            })
+          ]
         })
       });
       return;
@@ -96,6 +134,19 @@ test("staff opens Reports and switches daily, weekly, and monthly sales summarie
   await expect(totalSalesMetric(page, "$18.25")).toBeVisible();
   await expect(page.getByRole("img", { name: "Sales by period chart" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Sales summary table" })).toBeVisible();
+
+  const popularityStartedAt = Date.now();
+  const popularItemsTable = page.getByRole("table", { name: "Popular items table" });
+  const popularCombinationsTable = page.getByRole("table", { name: "Popular combinations table" });
+  await expect(page.getByRole("img", { name: "Popular items chart" })).toBeVisible();
+  await expect(popularItemsTable).toBeVisible();
+  await expect(popularItemsTable.getByRole("cell", { name: "Latte" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Popular combinations chart" })).toBeVisible();
+  await expect(popularCombinationsTable).toBeVisible();
+  await expect(
+    popularCombinationsTable.getByRole("cell", { name: "Latte x1 + Mocha x1" })
+  ).toBeVisible();
+  expect(Date.now() - popularityStartedAt).toBeLessThan(30_000);
 
   await page.getByRole("combobox", { name: "Period" }).selectOption("weekly");
   await expect(totalSalesMetric(page, "$64.00")).toBeVisible();
