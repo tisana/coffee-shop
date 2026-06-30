@@ -35,9 +35,11 @@ export function ReportFilters({ value, categories, onChange }: ReportFiltersProp
         Period
         <select
           value={value.period}
-          onChange={(event) =>
-            onChange({ ...value, period: event.target.value as ReportPeriodType })
-          }
+          onChange={(event) => {
+            const period = event.target.value as ReportPeriodType;
+
+            onChange({ ...value, period, ...dateRangeForPeriod(period) });
+          }}
         >
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
@@ -125,4 +127,38 @@ export function ReportFilters({ value, categories, onChange }: ReportFiltersProp
       </label>
     </form>
   );
+}
+
+function dateRangeForPeriod(period: ReportPeriodType): Pick<ReportFilter, "startDate" | "endDate"> {
+  const today = new Date();
+
+  if (period === "daily") {
+    const currentDate = toInputDate(today);
+
+    return { startDate: currentDate, endDate: currentDate };
+  }
+
+  if (period === "weekly") {
+    const weekStart = addDays(today, -today.getDay());
+    const weekEnd = addDays(weekStart, 6);
+
+    return { startDate: toInputDate(weekStart), endDate: toInputDate(weekEnd) };
+  }
+
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  return { startDate: toInputDate(monthStart), endDate: toInputDate(monthEnd) };
+}
+
+function addDays(value: Date, days: number): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate() + days);
+}
+
+function toInputDate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }

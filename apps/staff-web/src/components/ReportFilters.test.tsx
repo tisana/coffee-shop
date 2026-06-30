@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ReportFilter } from "@coffee-shop/shared/contracts/api";
 
@@ -33,6 +33,10 @@ const categories: ReportFilterCategoryOption[] = [
 ];
 
 describe("ReportFilters", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders accessible controls for the base report filters", () => {
     render(<ReportFilters value={baseFilter} categories={categories} onChange={vi.fn()} />);
 
@@ -45,12 +49,42 @@ describe("ReportFilters", () => {
     expect(screen.getByLabelText("Item")).toHaveDisplayValue("All items");
   });
 
-  it("emits period, date, and status changes without dropping existing filters", () => {
+  it("resets date range to the current daily, weekly, and monthly bounds when period changes", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-30T12:00:00.000Z"));
     const onChange = vi.fn();
 
     render(<ReportFilters value={baseFilter} categories={categories} onChange={onChange} />);
 
+    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "daily" } });
+    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "weekly" } });
     fireEvent.change(screen.getByLabelText("Period"), { target: { value: "monthly" } });
+
+    expect(onChange).toHaveBeenCalledWith({
+      ...baseFilter,
+      period: "daily",
+      startDate: "2026-06-30",
+      endDate: "2026-06-30"
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...baseFilter,
+      period: "weekly",
+      startDate: "2026-06-28",
+      endDate: "2026-07-04"
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...baseFilter,
+      period: "monthly",
+      startDate: "2026-06-01",
+      endDate: "2026-06-30"
+    });
+  });
+
+  it("emits date and status changes without dropping existing filters", () => {
+    const onChange = vi.fn();
+
+    render(<ReportFilters value={baseFilter} categories={categories} onChange={onChange} />);
+
     fireEvent.change(screen.getByLabelText("Start date"), { target: { value: "2026-06-10" } });
     fireEvent.change(screen.getByLabelText("End date"), { target: { value: "2026-06-20" } });
 
@@ -60,7 +94,6 @@ describe("ReportFilters", () => {
     }
     fireEvent.change(statusSelect);
 
-    expect(onChange).toHaveBeenCalledWith({ ...baseFilter, period: "monthly" });
     expect(onChange).toHaveBeenCalledWith({ ...baseFilter, startDate: "2026-06-10" });
     expect(onChange).toHaveBeenCalledWith({ ...baseFilter, endDate: "2026-06-20" });
     expect(onChange).toHaveBeenCalledWith({ ...baseFilter, statuses: ["cancelled"] });
