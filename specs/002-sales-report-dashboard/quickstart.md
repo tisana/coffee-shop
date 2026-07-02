@@ -39,6 +39,8 @@ The staff web app runs at `http://localhost:5173`. The seeded staff login defaul
 Expected outcomes:
 
 - Every graph has a matching table with the same filtered result set.
+- The sales summary graph is a line chart that makes sales trend direction visible across the selected periods.
+- Popular item and popular combination graphs use ranked bar charts for top-N comparison.
 - Completed and picked-up orders count by default.
 - Fully cancelled orders are excluded by default and visible only when status filters include cancelled.
 - Cancelled beverages inside otherwise completed or picked-up orders do not inflate sales totals.
@@ -79,6 +81,8 @@ The Playwright flow should confirm:
 
 - The existing `Reports` sidebar link opens `/#reports`.
 - Daily, weekly, and monthly controls update the dashboard.
+- The sales summary renders as a line chart and updates with the same data shown in the sales summary table.
+- Popular item and popular combination sections render ranked bar charts and update with the same data shown in their tables.
 - Filters update every graph and table.
 - Table sorting works for sales summaries, popular items, popular combinations, and supporting orders.
 - Timed validation confirms 10-second initial summary visibility, 30-second top-10 discovery, and 2-second filter updates over 90 days of reportable order history.

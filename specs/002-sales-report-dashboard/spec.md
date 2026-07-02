@@ -19,7 +19,7 @@ As an authorized shop staff user reviewing business performance, I need a report
 
 1. **Given** the shop has completed sales for a business day, **When** staff open the daily report for that day, **Then** they see total sales, order count, average order value, and the top-selling item by quantity sold in both a graph and a table.
 2. **Given** the shop has completed sales across multiple business days in a week, **When** staff open the weekly report, **Then** they see the week's total sales and daily contribution in both a graph and a table.
-3. **Given** the shop has completed sales across multiple weeks in a month, **When** staff open the monthly report, **Then** they see the month's total sales and weekly or daily trend in both a graph and a table.
+3. **Given** the shop has completed sales across multiple months in the selected date range, **When** staff open the monthly report, **Then** they see monthly sales totals as a line chart and a matching table, with one chart point per calendar month.
 4. **Given** staff switch between daily, weekly, and monthly views, **When** the selected date range remains valid for the new view, **Then** the dashboard updates the graph and table to the selected period without losing the applied filters.
 
 ---
@@ -79,6 +79,7 @@ As a staff user investigating sales, I need every report table to be sortable an
 - **FR-008**: Orders or beverages cancelled before fulfillment MUST not inflate default sales totals.
 - **FR-009**: Staff MUST be able to include or exclude order statuses through report filters.
 - **FR-010**: Every sales summary visualization MUST provide both a graph and a table that represent the same filtered result set.
+- **FR-010A**: Sales summary graphs MUST use a line chart to show trend direction across the selected period buckets.
 - **FR-011**: Sales summary tables MUST be sortable by period, total sales amount, order count, average order value, and top-selling item name.
 - **FR-012**: Sales summary tables MUST be filterable by date range, period type, order status, menu category, and menu item.
 - **FR-013**: System MUST provide popular item analytics for the selected filters.
@@ -86,6 +87,7 @@ As a staff user investigating sales, I need every report table to be sortable an
 - **FR-015**: System MUST provide popular order combination analytics for the selected filters.
 - **FR-016**: Popular order combination analytics MUST rank repeated item combinations by order frequency and sales amount.
 - **FR-017**: Every popularity visualization MUST provide both a graph and a table that represent the same filtered result set.
+- **FR-017A**: Popular item and popular order combination graphs MUST use ranked bar charts to compare top-N values.
 - **FR-018**: Popularity tables MUST be sortable by rank, item or combination name, quantity sold, order count, sales amount, and menu category when available.
 - **FR-019**: Popularity tables MUST be filterable by date range, period type, menu category, menu item, and order status.
 - **FR-020**: Staff MUST be able to view the order details supporting a sales summary or popularity result.
@@ -110,7 +112,7 @@ As a staff user investigating sales, I need every report table to be sortable an
 ### Measurable Outcomes
 
 - **SC-001**: Staff can view daily, weekly, and monthly sales summaries for a selected date range in under 10 seconds.
-- **SC-002**: 100% of report sections that visualize sales or popularity include both a graph and a matching sortable, filterable table.
+- **SC-002**: 100% of report sections that visualize sales or popularity include both the required chart type and a matching sortable, filterable table.
 - **SC-003**: Staff can identify the top 10 menu items by quantity sold for a selected date range in under 30 seconds.
 - **SC-004**: Staff can identify the top 10 order combinations by order frequency for a selected date range in under 30 seconds.
 - **SC-005**: Sales totals match the sum of included supporting order reportable sales totals derived from non-cancelled beverage snapshots in 100% of acceptance test datasets.
@@ -128,4 +130,5 @@ As a staff user investigating sales, I need every report table to be sortable an
 - The shop business date defines daily reporting boundaries.
 - Weeks start on Monday and end on Sunday.
 - Monthly summaries use calendar months.
+- The selected report period controls chart buckets: daily reports chart business-day buckets, weekly reports chart Monday-through-Sunday week buckets, and monthly reports chart calendar-month buckets. Monthly trend analysis requires a selected date range spanning multiple months.
 - Historical reports use the purchased details captured on each order, even if menu items are renamed, retired, or repriced later.

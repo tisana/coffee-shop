@@ -50,13 +50,25 @@
 - Return all supporting orders in the aggregate response. Rejected because it makes every filter request heavier than needed.
 - Add separate endpoints for daily, weekly, monthly, popular items, and combinations. Rejected because shared filters would be duplicated across endpoints and UI refreshes would require more calls.
 
-## Decision: Use app-native accessible SVG/CSS charts for the first increment
+## Decision: Use Recharts for report dashboard charts
 
-**Rationale**: The required visuals are period trend charts and top-N popularity bars. Small purpose-built chart components can be keyboard-labelled, paired with tables, styled consistently with the existing staff UI, and avoid adding a dependency before the dashboard needs advanced charting.
+**Rationale**: Stakeholder feedback now requires more visual variety, and the sales summary should be a line chart so staff can scan trend direction across daily, weekly, and monthly buckets. Recharts is the best fit for this codebase because it is built as composable React components, provides `LineChart` and `BarChart` from the same package, supports responsive SVG charts, includes chart accessibility support, and its current package metadata advertises React 19 peer compatibility. This keeps charting implementation inside the existing staff-web React layer without changing report API contracts or adding a generalized BI framework.
+
+Use Recharts behind the existing `ReportChart` boundary:
+- Sales summary: line chart with period labels on the x-axis and total sales on the y-axis.
+- Popular items: ranked bar chart by quantity sold, with sales amount and order count remaining visible in the paired table.
+- Popular combinations: ranked bar chart by order frequency, with item count and sales amount remaining visible in the paired table.
+- Accessibility: keep the sortable/filterable table as the authoritative accessible data view for every chart, and give chart containers clear labels/descriptions.
+
+**Evidence reviewed**:
+- Recharts official docs describe it as a composable React charting library and list line, bar, responsive, tooltip, axis, and accessibility-related APIs.
+- npm package metadata for `recharts@3.9.1` lists MIT licensing and React/React DOM 19-compatible peer dependency ranges.
 
 **Alternatives considered**:
-- Add a charting library immediately. Rejected for this phase because the chart needs are simple and every visualization must already have a table fallback.
-- Render charts on the server. Rejected because the dashboard is interactive and filter-driven inside the staff web app.
+- Keep app-native SVG/CSS chart primitives. Rejected because the current single-purpose bar primitive cannot satisfy the requested sales trend line without building a custom charting layer for axes, points, tooltips, responsive sizing, and multiple visual types.
+- Nivo. Viable and polished, with line and bar packages plus SVG/canvas options, but it would add separate chart packages and a more opinionated charting system than this compact staff dashboard needs.
+- visx. Viable for a custom chart design system and React 19-compatible in v4, but it is intentionally lower-level. It would require more custom scale, axis, tooltip, and layout work than Recharts for the same current dashboard needs.
+- Apache ECharts with `echarts-for-react`. Very capable and strong for large-scale interactive visualization, but it is a broader option-driven charting platform than needed for this single-shop report dashboard and would add more integration surface area.
 
 ## Decision: Server filters, client table sorting
 

@@ -154,5 +154,7 @@ Represents the complete aggregate payload shown in the dashboard.
 
 **Rules**
 - All charts and tables on the dashboard read from this same result.
+- The sales summary chart presents period rows as a line chart so trend direction is visible across the selected range.
+- Popular item and popular combination charts present ranked rows as bar charts so staff can compare top-N values quickly.
 - Empty result sets return zero totals and empty arrays rather than errors.
 - Loading and error states belong to the UI and must not change report calculations.

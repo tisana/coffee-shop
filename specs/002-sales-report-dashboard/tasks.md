@@ -3,7 +3,7 @@
 **Input**: Design documents from `/specs/002-sales-report-dashboard/`  
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/reports.openapi.yaml, quickstart.md
 
-**Tests**: Required by the constitution and included because the quickstart, plan, and risk profile call for API contract tests, aggregation tests, component tests, and Playwright validation for report calculations, authorization, sorting, filtering, and graph/table parity. T016-T020 backfill baseline tests for foundation tasks completed before constitution v1.1.0 added mandatory TDD; run them before any remaining story implementation. For all new behavior, write story tests first, confirm they fail for the expected reason, then implement.
+**Tests**: Required by the constitution and included because the quickstart, plan, and risk profile call for API contract tests, aggregation tests, component tests, and Playwright validation for report calculations, authorization, sorting, filtering, graph/table parity, and chart type rendering. T016-T020 backfill baseline tests for foundation tasks completed before constitution v1.1.0 added mandatory TDD; run them before any remaining story implementation. For all new behavior, write story tests first, confirm they fail for the expected reason, then implement.
 
 **Organization**: Tasks are grouped by user story so the daily/weekly/monthly sales summary can ship as the MVP before popularity analytics and drill-down filtering.
 
@@ -141,19 +141,42 @@
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: Visualization Refinement (Chart Library Update)
 
-**Purpose**: Final verification, documentation alignment, and maintainability checks across all stories.
+**Purpose**: Align the completed report dashboard with the updated plan decision to use Recharts, render sales summary as a line chart, and keep popularity visuals as ranked bar charts.
 
-- [ ] T052 [P] Update API README with report endpoint validation commands in `apps/api/README.md`
-- [ ] T053 [P] Update staff-web README with the Reports menu validation flow and focused Playwright command in `apps/staff-web/README.md`
-- [ ] T054 [P] Update quickstart evidence notes after implementation in `specs/002-sales-report-dashboard/quickstart.md`
-- [ ] T055 Run TypeScript typecheck for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T056 Run unit and integration tests for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T057 Run the focused reports Playwright flow and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T058 Run the production build and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T059 Run report performance validation for 10-second initial load, 30-second top-10 discovery, and 2-second filter updates over 90 days of orders and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T060 Run a manual BI-question usability review for today's sales, this week's sales, this month's sales, and most popular item, then record evidence in `specs/002-sales-report-dashboard/quickstart.md`
+### Tests for Visualization Refinement
+
+- [ ] T052 [P] Add staff-web component tests for `ReportChart` sales line chart rendering, ranked bar chart rendering, empty state, and accessible chart labels in `apps/staff-web/src/components/ReportFoundationComponents.test.tsx`
+- [ ] T053 [P] Add staff-web component tests that `ReportsPage` renders the sales summary with the line chart variant and popular item/combination sections with bar chart variants in `apps/staff-web/src/pages/ReportsPage.test.tsx`
+- [ ] T054 [P] Add Playwright checks for the sales summary line chart, ranked popularity bar charts, and graph/table parity after filter changes in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+
+### Implementation for Visualization Refinement
+
+- [ ] T055 Add Recharts to the staff-web workspace dependencies in `apps/staff-web/package.json` and `package-lock.json`
+- [ ] T056 Replace the app-native report bar primitive with Recharts-backed line and bar chart variants behind the existing boundary in `apps/staff-web/src/components/ReportChart.tsx`
+- [ ] T057 Update `ReportsPage` to render the sales summary as a line chart and popular item/combination sections as ranked bar charts in `apps/staff-web/src/pages/ReportsPage.tsx`
+- [ ] T058 Update responsive chart sizing, axis/tooltip affordances, and chart accessibility styles in `apps/staff-web/src/styles.css`
+- [ ] T059 Run focused staff-web component tests for `ReportChart` and `ReportsPage` chart rendering, then record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T060 Run the focused reports Playwright chart checks, then record results in `specs/002-sales-report-dashboard/tasks.md`
+
+**Checkpoint**: Sales summary uses a line chart, popularity sections use ranked bar charts, and each chart still has a matching sortable/filterable table.
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
+
+**Purpose**: Final verification, documentation alignment, and maintainability checks across all stories and the visualization refinement.
+
+- [ ] T061 [P] Update API README with report endpoint validation commands in `apps/api/README.md`
+- [ ] T062 [P] Update staff-web README with the Reports menu validation flow and focused Playwright command in `apps/staff-web/README.md`
+- [ ] T063 [P] Update quickstart evidence notes after implementation in `specs/002-sales-report-dashboard/quickstart.md`
+- [ ] T064 Run TypeScript typecheck for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T065 Run unit and integration tests for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T066 Run the focused reports Playwright flow and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T067 Run the production build and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T068 Run report performance validation for 10-second initial load, 30-second top-10 discovery, and 2-second filter updates over 90 days of orders and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [ ] T069 Run a manual BI-question usability review for today's sales, this week's sales, this month's sales, and most popular item, then record evidence in `specs/002-sales-report-dashboard/quickstart.md`
 
 ---
 
@@ -167,7 +190,8 @@
 - **User Story 1 (Phase 3)**: Depends on Constitution Remediation; delivers the MVP.
 - **User Story 2 (Phase 4)**: Depends on Constitution Remediation and can use the same `/reports/sales` surface from US1; implement after US1 for simplest integration.
 - **User Story 3 (Phase 5)**: Depends on Constitution Remediation and is most useful after US1/US2 provide rows to filter, sort, and drill into.
-- **Polish (Phase 6)**: Depends on the desired stories being complete.
+- **Visualization Refinement (Phase 6)**: Depends on US1, US2, and US3 because it replaces the completed dashboard chart layer without changing API aggregation.
+- **Polish (Phase 7)**: Depends on the desired stories and visualization refinement being complete.
 
 ### User Story Dependencies
 
@@ -192,8 +216,9 @@
 - T016, T017, T018, T019, and T020 can run in parallel before story implementation resumes.
 - Test tasks inside each user story can run in parallel because they target different test files or independent sections of existing test files.
 - US2 backend aggregation tasks can proceed while US1 UI polish continues after the shared contract is stable.
-- Documentation polish tasks T052, T053, and T054 can run in parallel.
-- Final validation tasks T055 through T060 should run after the implemented report flow is available.
+- Visualization test tasks T052, T053, and T054 can run in parallel because they target component, page, and Playwright coverage separately.
+- Documentation polish tasks T061, T062, and T063 can run in parallel.
+- Final validation tasks T064 through T069 should run after the implemented report flow and Recharts visualization refinement are available.
 
 ---
 
@@ -225,6 +250,14 @@ Task: "T043 [P] [US3] Add staff-web component tests for sortable report table be
 Task: "T044 [P] [US3] Add Playwright checks for status/category/item filtering, clearing filters, row selection, supporting order details, table sorting, and 2-second filter update assertions in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
 ```
 
+## Parallel Example: Visualization Refinement
+
+```text
+Task: "T052 [P] Add staff-web component tests for ReportChart sales line chart rendering, ranked bar chart rendering, empty state, and accessible chart labels in apps/staff-web/src/components/ReportFoundationComponents.test.tsx"
+Task: "T053 [P] Add staff-web component tests that ReportsPage renders the sales summary with the line chart variant and popular item/combination sections with bar chart variants in apps/staff-web/src/pages/ReportsPage.test.tsx"
+Task: "T054 [P] Add Playwright checks for the sales summary line chart, ranked popularity bar charts, and graph/table parity after filter changes in apps/staff-web/tests/e2e/reports-dashboard.spec.ts"
+```
+
 ---
 
 ## Implementation Strategy
@@ -243,7 +276,8 @@ Task: "T044 [P] [US3] Add Playwright checks for status/category/item filtering, 
 1. Add US1 sales summaries and validate independently.
 2. Add US2 popular item and combination analytics and validate independently.
 3. Add US3 full filtering, sorting, and supporting order drill-down and validate independently.
-4. Run Phase 6 verification before marking the feature complete.
+4. Add Phase 6 Recharts visualization refinement and validate chart/table parity independently.
+5. Run Phase 7 verification before marking the feature complete.
 
 ### Parallel Team Strategy
 
@@ -251,6 +285,7 @@ Task: "T044 [P] [US3] Add Playwright checks for status/category/item filtering, 
 2. One developer builds reusable staff-web report components.
 3. One developer writes API aggregation tests and Playwright flows.
 4. After the foundation is stable, split by story: US1 sales summaries, US2 popularity, US3 filters/sorting/drill-down.
+5. After story completion, split the visualization refinement across chart component tests, page tests, Playwright coverage, and the Recharts-backed `ReportChart` implementation.
 
 ---
 
@@ -262,4 +297,5 @@ Task: "T044 [P] [US3] Add Playwright checks for status/category/item filtering, 
 - Keep tests correct, fast enough, deterministic, readable, independent, behavior-focused, cheap to maintain, and targeted at real risk.
 - Keep sales calculations tied to order beverage snapshots, not mutable menu item names or current prices.
 - Keep the existing sidebar `Reports` entry as the only entry point.
+- Keep Recharts usage isolated behind `ReportChart` so dashboard page logic remains focused on report data and drill-down behavior.
 - Do not add export, scheduled reports, payment reconciliation, forecasting, or cross-location BI in this feature.
