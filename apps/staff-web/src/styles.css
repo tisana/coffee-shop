@@ -1070,6 +1070,17 @@ nav a[aria-current="page"] {
   min-height: 96px;
 }
 
+.supporting-order-filters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(118px, 1fr));
+  gap: 12px;
+  align-items: end;
+  border: 1px solid #ded8cf;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fff;
+}
+
 .report-metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(140px, 1fr));
@@ -1617,6 +1628,7 @@ nav a[aria-current="page"] {
   .menu-item-fields-grid,
   .history-filters,
   .report-filters,
+  .supporting-order-filters,
   .report-metric-grid,
   .choice-editor-row {
     grid-template-columns: 1fr;

@@ -314,3 +314,7 @@ Task: "T054 [P] Add Playwright checks for the sales summary line chart, ranked p
 - Keep the existing sidebar `Reports` entry as the only entry point.
 - Keep Recharts usage isolated behind `ReportChart` so dashboard page logic remains focused on report data and drill-down behavior.
 - Do not add export, scheduled reports, payment reconciliation, forecasting, or cross-location BI in this feature.
+
+## Phase 8: Convergence
+
+- [X] T070 Add supporting-order table filters for business date, daily order number, status, item text, captured order total, and reportable sales total in `apps/staff-web/src/components/SupportingOrdersTable.tsx` and `apps/staff-web/src/pages/ReportsPage.tsx` per FR-022 / US3-AC3 (partial)

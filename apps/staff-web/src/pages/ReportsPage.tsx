@@ -506,6 +506,7 @@ export function ReportsPage() {
               ) : null}
               {supportingOrders ? (
                 <SupportingOrdersTable
+                  key={selectedDrilldown.id}
                   orders={supportingOrders.orders}
                   sort={supportingOrderSort}
                   onSortChange={setSupportingOrderSort}
