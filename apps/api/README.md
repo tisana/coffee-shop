@@ -31,6 +31,20 @@ npm run typecheck --workspace @coffee-shop/api
 npm run build --workspace @coffee-shop/api
 ```
 
+Report dashboard validation commands:
+
+```powershell
+npm run test --workspace @coffee-shop/api -- reports.contract.test.ts
+npm run test --workspace @coffee-shop/api -- reportingService.test.ts
+```
+
+## Report Endpoints
+
+- `GET /reports/sales`: authenticated aggregate dashboard data for the active date, period, status, category, and item filters. The response includes overall sales metrics, period summaries, popular items, and popular order combinations.
+- `GET /reports/orders`: authenticated supporting order details for the active filters plus an optional selected `periodKey`, `menuItemId`, or `combinationKey`.
+
+Both endpoints require the `staff_session` cookie. Sales totals include completed and picked-up orders by default and are calculated from non-cancelled order beverage snapshots so purchased names, quantities, options, and prices stay historical.
+
 Database migration checks:
 
 ```powershell

@@ -174,15 +174,24 @@
 
 **Purpose**: Final verification, documentation alignment, and maintainability checks across all stories and the visualization refinement.
 
-- [ ] T061 [P] Update API README with report endpoint validation commands in `apps/api/README.md`
-- [ ] T062 [P] Update staff-web README with the Reports menu validation flow and focused Playwright command in `apps/staff-web/README.md`
-- [ ] T063 [P] Update quickstart evidence notes after implementation in `specs/002-sales-report-dashboard/quickstart.md`
-- [ ] T064 Run TypeScript typecheck for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T065 Run unit and integration tests for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T066 Run the focused reports Playwright flow and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T067 Run the production build and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T068 Run report performance validation for 10-second initial load, 30-second top-10 discovery, and 2-second filter updates over 90 days of orders and record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T069 Run a manual BI-question usability review for today's sales, this week's sales, this month's sales, and most popular item, then record evidence in `specs/002-sales-report-dashboard/quickstart.md`
+- [X] T061 [P] Update API README with report endpoint validation commands in `apps/api/README.md`
+- [X] T062 [P] Update staff-web README with the Reports menu validation flow and focused Playwright command in `apps/staff-web/README.md`
+- [X] T063 [P] Update quickstart evidence notes after implementation in `specs/002-sales-report-dashboard/quickstart.md`
+- [X] T064 Run TypeScript typecheck for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T065 Run unit and integration tests for all workspaces and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T066 Run the focused reports Playwright flow and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T067 Run the production build and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T068 Run report performance validation for 10-second initial load, 30-second top-10 discovery, and 2-second filter updates over 90 days of orders and record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T069 Run a manual BI-question usability review for today's sales, this week's sales, this month's sales, and most popular item, then record evidence in `specs/002-sales-report-dashboard/quickstart.md`
+
+**Phase 7 validation evidence (2026-07-06)**:
+
+- `npm run typecheck` - PASS.
+- `npm run test` - PASS after PostgreSQL Docker was started; API passed 19 files / 55 tests, staff-web passed 7 files / 29 tests, and shared passed 1 file / 2 tests.
+- `npm run test:e2e --workspace @coffee-shop/staff-web -- reports-dashboard.spec.ts` - PASS, 1 Chromium test.
+- `npm run build` - PASS; Vite emitted a staff-web chunk-size warning.
+- Report performance validation - PASS through focused Reports Playwright assertions for 10-second summary visibility, 30-second top-10 discovery, and 2-second filter updates.
+- BI-question usability review - PASS in `specs/002-sales-report-dashboard/quickstart.md` using the focused Reports mocked dataset.
 
 ---
 
