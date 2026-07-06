@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -8,16 +14,20 @@ import {
   popularCombinationReport,
   popularItemReport,
   reportOrdersResponse,
-  reportSalesResponse
+  reportSalesResponse,
 } from "../test/reportTestData";
 import { ApiClientError } from "../services/apiClient";
-import { getReportFilterOptions, getReportOrders, getReportSales } from "../services/reportsApi";
+import {
+  getReportFilterOptions,
+  getReportOrders,
+  getReportSales,
+} from "../services/reportsApi";
 import { ReportsPage } from "./ReportsPage";
 
 vi.mock("../services/reportsApi", () => ({
   getReportFilterOptions: vi.fn(),
   getReportOrders: vi.fn(),
-  getReportSales: vi.fn()
+  getReportSales: vi.fn(),
 }));
 
 const categoryResponse = {
@@ -38,11 +48,11 @@ const categoryResponse = {
           available: true,
           active: true,
           displayOrder: 1,
-          customizationGroups: []
-        }
-      ]
-    }
-  ]
+          customizationGroups: [],
+        },
+      ],
+    },
+  ],
 };
 
 describe("ReportsPage", () => {
@@ -67,7 +77,7 @@ describe("ReportsPage", () => {
                 unitPrice: "4.50",
                 lineTotal: "4.50",
                 status: "completed",
-                selectedCustomizations: []
+                selectedCustomizations: [],
               },
               {
                 beverageId: "supporting-beverage-2",
@@ -77,15 +87,15 @@ describe("ReportsPage", () => {
                 unitPrice: "6.00",
                 lineTotal: "6.00",
                 status: "completed",
-                selectedCustomizations: []
-              }
+                selectedCustomizations: [],
+              },
             ],
             createdAt: "2026-06-25T09:00:00.000Z",
             completedAt: "2026-06-25T09:08:00.000Z",
-            pickedUpAt: "2026-06-25T09:12:00.000Z"
-          }
-        ]
-      })
+            pickedUpAt: "2026-06-25T09:12:00.000Z",
+          },
+        ],
+      }),
     );
     vi.mocked(getReportSales).mockResolvedValue(
       reportSalesResponse({
@@ -94,7 +104,7 @@ describe("ReportsPage", () => {
           orderCount: 6,
           averageOrderValue: "7.00",
           topSellingItemName: "Latte",
-          topSellingItemQuantity: 4
+          topSellingItemQuantity: 4,
         },
         periods: [
           {
@@ -107,12 +117,12 @@ describe("ReportsPage", () => {
             orderCount: 6,
             averageOrderValue: "7.00",
             topSellingItemName: "Latte",
-            topSellingItemQuantity: 4
-          }
+            topSellingItemQuantity: 4,
+          },
         ],
         popularItems: [],
-        popularCombinations: []
-      })
+        popularCombinations: [],
+      }),
     );
   });
 
@@ -122,8 +132,12 @@ describe("ReportsPage", () => {
     expect(screen.getByText("Loading sales report.")).toBeInTheDocument();
     expect(await screen.findAllByText("$42.00")).toHaveLength(2);
     expect(screen.getByText("6 orders")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Sales by period chart" })).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: "Sales summary table" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Sales by period chart" }),
+    ).toHaveAttribute("data-chart-variant", "line");
+    expect(
+      screen.getByRole("table", { name: "Sales summary table" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Latte").length).toBeGreaterThanOrEqual(2);
   });
 
@@ -135,36 +149,44 @@ describe("ReportsPage", () => {
         period: "daily",
         statuses: ["completed", "picked_up"],
         menuCategoryId: null,
-        menuItemId: null
-      })
+        menuItemId: null,
+      }),
     );
 
     render(<ReportsPage />);
 
-    expect(await screen.findByText("No sales match those filters.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("No sales match those filters."),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("$0.00").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByRole("table", { name: "Sales summary table" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("table", { name: "Sales summary table" }),
+    ).toBeInTheDocument();
   });
 
   it("shows report load errors", async () => {
     vi.mocked(getReportSales).mockRejectedValue(
-      new ApiClientError(500, "Unable to load report data.")
+      new ApiClientError(500, "Unable to load report data."),
     );
 
     render(<ReportsPage />);
 
-    expect(await screen.findByText("Unable to load report data.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Unable to load report data."),
+    ).toBeInTheDocument();
   });
 
   it("reloads sales summary when the period filter changes", async () => {
     render(<ReportsPage />);
 
     await screen.findByRole("table", { name: "Sales summary table" });
-    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "weekly" } });
+    fireEvent.change(screen.getByLabelText("Period"), {
+      target: { value: "weekly" },
+    });
 
     await waitFor(() => {
       expect(getReportSales).toHaveBeenLastCalledWith(
-        expect.objectContaining({ period: "weekly" })
+        expect.objectContaining({ period: "weekly" }),
       );
     });
   });
@@ -183,7 +205,7 @@ describe("ReportsPage", () => {
             orderCount: 1,
             averageOrderValue: "10.00",
             topSellingItemName: "Latte",
-            topSellingItemQuantity: 1
+            topSellingItemQuantity: 1,
           },
           {
             key: "2026-06-26",
@@ -195,30 +217,40 @@ describe("ReportsPage", () => {
             orderCount: 3,
             averageOrderValue: "10.00",
             topSellingItemName: "Mocha",
-            topSellingItemQuantity: 3
-          }
+            topSellingItemQuantity: 3,
+          },
         ],
         popularItems: [],
-        popularCombinations: []
-      })
+        popularCombinations: [],
+      }),
     );
 
     render(<ReportsPage />);
 
-    const table = await screen.findByRole("table", { name: "Sales summary table" });
-    fireEvent.click(within(table).getByRole("button", { name: "Sort by Total sales" }));
+    const table = await screen.findByRole("table", {
+      name: "Sales summary table",
+    });
+    fireEvent.click(
+      within(table).getByRole("button", { name: "Sort by Total sales" }),
+    );
 
     const rows = within(table).getAllByRole("row");
     expect(rows[1]).toHaveTextContent("Jun 25");
     expect(rows[2]).toHaveTextContent("Jun 26");
 
-    fireEvent.click(within(table).getByRole("button", { name: "Sort by Total sales" }));
+    fireEvent.click(
+      within(table).getByRole("button", { name: "Sort by Total sales" }),
+    );
 
     const sortedRows = within(table).getAllByRole("row");
     expect(sortedRows[1]).toHaveTextContent("Jun 26");
     expect(sortedRows[2]).toHaveTextContent("Jun 25");
-    expect(screen.getByRole("img", { name: "Sales by period chart" })).toHaveTextContent("Jun 25");
-    expect(screen.getByRole("img", { name: "Sales by period chart" })).toHaveTextContent("Jun 26");
+    const salesChart = screen.getByRole("img", {
+      name: "Sales by period chart",
+    });
+    expect(salesChart).toHaveAttribute("data-chart-variant", "line");
+    expect(salesChart).toHaveTextContent("Jun 25");
+    expect(salesChart).toHaveTextContent("Jun 26");
   });
 
   it("renders popular item and order combination charts with matching sortable tables", async () => {
@@ -232,7 +264,7 @@ describe("ReportsPage", () => {
             categoryName: "Coffee",
             quantitySold: 6,
             orderCount: 3,
-            salesAmount: "27.00"
+            salesAmount: "27.00",
           }),
           popularItemReport({
             rank: 2,
@@ -241,8 +273,8 @@ describe("ReportsPage", () => {
             categoryName: "Coffee",
             quantitySold: 4,
             orderCount: 2,
-            salesAmount: "24.00"
-          })
+            salesAmount: "24.00",
+          }),
         ],
         popularCombinations: [
           popularCombinationReport({
@@ -251,7 +283,7 @@ describe("ReportsPage", () => {
             combinationLabel: "Latte x1 + Mocha x1",
             orderFrequency: 3,
             itemCount: 2,
-            salesAmount: "31.50"
+            salesAmount: "31.50",
           }),
           popularCombinationReport({
             rank: 2,
@@ -259,38 +291,65 @@ describe("ReportsPage", () => {
             combinationLabel: "Cold Brew x2",
             orderFrequency: 2,
             itemCount: 2,
-            salesAmount: "20.00"
-          })
-        ]
-      })
+            salesAmount: "20.00",
+          }),
+        ],
+      }),
     );
 
     render(<ReportsPage />);
 
-    expect(await screen.findByRole("img", { name: "Popular items chart" })).toHaveTextContent("Latte");
-    expect(screen.getByRole("img", { name: "Popular combinations chart" })).toHaveTextContent(
-      "Latte x1 + Mocha x1"
+    const popularItemsChart = await screen.findByRole("img", {
+      name: "Popular items chart",
+    });
+    const popularCombinationsChart = screen.getByRole("img", {
+      name: "Popular combinations chart",
+    });
+    expect(popularItemsChart).toHaveAttribute("data-chart-variant", "bar");
+    expect(popularItemsChart).toHaveTextContent("Latte");
+    expect(popularCombinationsChart).toHaveAttribute(
+      "data-chart-variant",
+      "bar",
     );
+    expect(popularCombinationsChart).toHaveTextContent("Latte x1 + Mocha x1");
 
-    const itemTable = screen.getByRole("table", { name: "Popular items table" });
-    expect(within(itemTable).getByRole("cell", { name: "Latte" })).toBeInTheDocument();
-    expect(within(itemTable).getByRole("cell", { name: "6" })).toBeInTheDocument();
-
-    const combinationTable = screen.getByRole("table", { name: "Popular combinations table" });
+    const itemTable = screen.getByRole("table", {
+      name: "Popular items table",
+    });
     expect(
-      within(combinationTable).getByRole("cell", { name: "Latte x1 + Mocha x1" })
+      within(itemTable).getByRole("cell", { name: "Latte" }),
     ).toBeInTheDocument();
-    expect(within(combinationTable).getByRole("cell", { name: "3" })).toBeInTheDocument();
+    expect(
+      within(itemTable).getByRole("cell", { name: "6" }),
+    ).toBeInTheDocument();
 
-    fireEvent.click(within(itemTable).getByRole("button", { name: "Sort by Sales amount" }));
-    fireEvent.click(within(combinationTable).getByRole("button", { name: "Sort by Frequency" }));
+    const combinationTable = screen.getByRole("table", {
+      name: "Popular combinations table",
+    });
+    expect(
+      within(combinationTable).getByRole("cell", {
+        name: "Latte x1 + Mocha x1",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(combinationTable).getByRole("cell", { name: "3" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      within(itemTable).getByRole("button", { name: "Sort by Sales amount" }),
+    );
+    fireEvent.click(
+      within(combinationTable).getByRole("button", {
+        name: "Sort by Frequency",
+      }),
+    );
 
     expect(within(itemTable).getAllByRole("row")[1]).toHaveTextContent("Mocha");
-    expect(within(combinationTable).getAllByRole("row")[1]).toHaveTextContent("Cold Brew x2");
-    expect(screen.getByRole("img", { name: "Popular items chart" })).toHaveTextContent("Latte");
-    expect(screen.getByRole("img", { name: "Popular combinations chart" })).toHaveTextContent(
-      "Latte x1 + Mocha x1"
+    expect(within(combinationTable).getAllByRole("row")[1]).toHaveTextContent(
+      "Cold Brew x2",
     );
+    expect(popularItemsChart).toHaveTextContent("Latte");
+    expect(popularCombinationsChart).toHaveTextContent("Latte x1 + Mocha x1");
   });
 
   it("loads supporting orders when summary, item, or combination rows are selected", async () => {
@@ -307,51 +366,65 @@ describe("ReportsPage", () => {
             orderCount: 1,
             averageOrderValue: "10.50",
             topSellingItemName: "Latte",
-            topSellingItemQuantity: 1
-          }
+            topSellingItemQuantity: 1,
+          },
         ],
         popularItems: [
           popularItemReport({
             sourceMenuItemId: "item-latte",
-            itemName: "Latte"
-          })
+            itemName: "Latte",
+          }),
         ],
         popularCombinations: [
           popularCombinationReport({
             combinationKey: "Latte x1|Mocha x1",
-            combinationLabel: "Latte x1 + Mocha x1"
-          })
-        ]
-      })
+            combinationLabel: "Latte x1 + Mocha x1",
+          }),
+        ],
+      }),
     );
 
     render(<ReportsPage />);
 
-    const salesTable = await screen.findByRole("table", { name: "Sales summary table" });
+    const salesTable = await screen.findByRole("table", {
+      name: "Sales summary table",
+    });
     fireEvent.click(within(salesTable).getByRole("row", { name: /Jun 25/ }));
 
     await waitFor(() => {
       expect(getReportOrders).toHaveBeenLastCalledWith(
-        expect.objectContaining({ periodKey: "2026-06-25" })
+        expect.objectContaining({ periodKey: "2026-06-25" }),
       );
     });
-    expect(await screen.findByRole("table", { name: "Supporting orders table" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("table", { name: "Supporting orders table" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "#42" })).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "Latte, Mocha" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "Latte, Mocha" }),
+    ).toBeInTheDocument();
 
-    const itemTable = screen.getByRole("table", { name: "Popular items table" });
+    const itemTable = screen.getByRole("table", {
+      name: "Popular items table",
+    });
     fireEvent.click(within(itemTable).getByRole("row", { name: /Latte/ }));
     await waitFor(() => {
       expect(getReportOrders).toHaveBeenLastCalledWith(
-        expect.objectContaining({ menuItemId: "item-latte" })
+        expect.objectContaining({ menuItemId: "item-latte" }),
       );
     });
 
-    const combinationTable = screen.getByRole("table", { name: "Popular combinations table" });
-    fireEvent.click(within(combinationTable).getByRole("row", { name: /Latte x1 \+ Mocha x1/ }));
+    const combinationTable = screen.getByRole("table", {
+      name: "Popular combinations table",
+    });
+    fireEvent.click(
+      within(combinationTable).getByRole("row", {
+        name: /Latte x1 \+ Mocha x1/,
+      }),
+    );
     await waitFor(() => {
       expect(getReportOrders).toHaveBeenLastCalledWith(
-        expect.objectContaining({ combinationKey: "Latte x1|Mocha x1" })
+        expect.objectContaining({ combinationKey: "Latte x1|Mocha x1" }),
       );
     });
   });

@@ -6,19 +6,26 @@ import type {
   PopularItemReport,
   ReportFilter,
   ReportOrdersQuery,
-  ReportPeriodSummary
+  ReportPeriodSummary,
 } from "@coffee-shop/shared/contracts/api";
 
 import { ReportChart } from "../components/ReportChart";
-import { ReportFilters, type ReportFilterCategoryOption } from "../components/ReportFilters";
+import {
+  ReportFilters,
+  type ReportFilterCategoryOption,
+} from "../components/ReportFilters";
 import { ReportMetricGrid } from "../components/ReportMetricGrid";
 import {
   SortableReportTable,
-  type SortState
+  type SortState,
 } from "../components/SortableReportTable";
 import { SupportingOrdersTable } from "../components/SupportingOrdersTable";
 import { ApiClientError } from "../services/apiClient";
-import { getReportFilterOptions, getReportOrders, getReportSales } from "../services/reportsApi";
+import {
+  getReportFilterOptions,
+  getReportOrders,
+  getReportSales,
+} from "../services/reportsApi";
 
 interface SalesSummaryRow extends ReportPeriodSummary {
   id: string;
@@ -41,29 +48,40 @@ interface DrilldownSelection {
 const defaultStatuses: ReportFilter["statuses"] = ["completed", "picked_up"];
 
 export function ReportsPage() {
-  const [filter, setFilter] = useState<ReportFilter>(() => createDefaultFilter());
-  const [categories, setCategories] = useState<ReportFilterCategoryOption[]>([]);
-  const [salesReport, setSalesReport] = useState<Awaited<ReturnType<typeof getReportSales>> | null>(null);
-  const [supportingOrders, setSupportingOrders] = useState<Awaited<ReturnType<typeof getReportOrders>> | null>(
-    null
+  const [filter, setFilter] = useState<ReportFilter>(() =>
+    createDefaultFilter(),
   );
+  const [categories, setCategories] = useState<ReportFilterCategoryOption[]>(
+    [],
+  );
+  const [salesReport, setSalesReport] = useState<Awaited<
+    ReturnType<typeof getReportSales>
+  > | null>(null);
+  const [supportingOrders, setSupportingOrders] = useState<Awaited<
+    ReturnType<typeof getReportOrders>
+  > | null>(null);
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
-  const [selectedDrilldown, setSelectedDrilldown] = useState<DrilldownSelection | null>(null);
-  const [sort, setSort] = useState<SortState>({ key: "period", direction: "asc" });
+  const [selectedDrilldown, setSelectedDrilldown] =
+    useState<DrilldownSelection | null>(null);
+  const [sort, setSort] = useState<SortState>({
+    key: "period",
+    direction: "asc",
+  });
   const [popularItemSort, setPopularItemSort] = useState<SortState>({
     key: "rank",
-    direction: "asc"
+    direction: "asc",
   });
-  const [popularCombinationSort, setPopularCombinationSort] = useState<SortState>({
-    key: "rank",
-    direction: "asc"
-  });
+  const [popularCombinationSort, setPopularCombinationSort] =
+    useState<SortState>({
+      key: "rank",
+      direction: "asc",
+    });
   const [supportingOrderSort, setSupportingOrderSort] = useState<SortState>({
     key: "businessDate",
-    direction: "asc"
+    direction: "asc",
   });
 
   useEffect(() => {
@@ -77,7 +95,11 @@ export function ReportsPage() {
       })
       .catch((caught) => {
         if (active) {
-          setError(caught instanceof ApiClientError ? caught.message : "Unable to load report filters.");
+          setError(
+            caught instanceof ApiClientError
+              ? caught.message
+              : "Unable to load report filters.",
+          );
         }
       });
 
@@ -104,7 +126,11 @@ export function ReportsPage() {
       .catch((caught) => {
         if (active) {
           setSalesReport(null);
-          setError(caught instanceof ApiClientError ? caught.message : "Unable to load sales report.");
+          setError(
+            caught instanceof ApiClientError
+              ? caught.message
+              : "Unable to load sales report.",
+          );
         }
       })
       .finally(() => {
@@ -130,7 +156,7 @@ export function ReportsPage() {
 
     getReportOrders({
       ...toReportSalesQuery(filter),
-      ...selectedDrilldown.query
+      ...selectedDrilldown.query,
     })
       .then((response) => {
         if (active) {
@@ -141,7 +167,9 @@ export function ReportsPage() {
         if (active) {
           setSupportingOrders(null);
           setOrdersError(
-            caught instanceof ApiClientError ? caught.message : "Unable to load supporting orders."
+            caught instanceof ApiClientError
+              ? caught.message
+              : "Unable to load supporting orders.",
           );
         }
       })
@@ -160,7 +188,7 @@ export function ReportsPage() {
     const reportRows =
       salesReport?.periods.map((period) => ({
         ...period,
-        id: period.key
+        id: period.key,
       })) ?? [];
 
     return sortRows(reportRows, sort);
@@ -170,7 +198,7 @@ export function ReportsPage() {
     const reportRows =
       salesReport?.popularItems.map((item) => ({
         ...item,
-        id: `${item.rank}-${item.sourceMenuItemId}-${item.itemName}`
+        id: `${item.rank}-${item.sourceMenuItemId}-${item.itemName}`,
       })) ?? [];
 
     return sortPopularItemRows(reportRows, popularItemSort);
@@ -180,7 +208,7 @@ export function ReportsPage() {
     const reportRows =
       salesReport?.popularCombinations.map((combination) => ({
         ...combination,
-        id: `${combination.rank}-${combination.combinationKey}`
+        id: `${combination.rank}-${combination.combinationKey}`,
       })) ?? [];
 
     return sortPopularCombinationRows(reportRows, popularCombinationSort);
@@ -191,12 +219,23 @@ export function ReportsPage() {
       <header className="counter-header">
         <div>
           <h2>Reports</h2>
-          <p>Review daily, weekly, and monthly sales from completed and picked-up orders</p>
+          <p>
+            Review daily, weekly, and monthly sales from completed and picked-up
+            orders
+          </p>
         </div>
       </header>
 
-      <ReportFilters value={filter} categories={categories} onChange={setFilter} />
-      <button type="button" className="secondary-button report-clear-filters" onClick={handleClearFilters}>
+      <ReportFilters
+        value={filter}
+        categories={categories}
+        onChange={setFilter}
+      />
+      <button
+        type="button"
+        className="secondary-button report-clear-filters"
+        onClick={handleClearFilters}
+      >
         Clear filters
       </button>
 
@@ -211,17 +250,26 @@ export function ReportsPage() {
 
           <ReportMetricGrid
             metrics={[
-              { label: "Total sales", value: `$${salesReport.overall.totalSales}` },
-              { label: "Order count", value: `${salesReport.overall.orderCount} orders` },
-              { label: "Average order value", value: `$${salesReport.overall.averageOrderValue}` },
+              {
+                label: "Total sales",
+                value: `$${salesReport.overall.totalSales}`,
+              },
+              {
+                label: "Order count",
+                value: `${salesReport.overall.orderCount} orders`,
+              },
+              {
+                label: "Average order value",
+                value: `$${salesReport.overall.averageOrderValue}`,
+              },
               {
                 label: "Top item",
                 value: salesReport.overall.topSellingItemName ?? "None",
                 hint:
                   salesReport.overall.topSellingItemQuantity === null
                     ? undefined
-                    : `${salesReport.overall.topSellingItemQuantity} sold`
-              }
+                    : `${salesReport.overall.topSellingItemQuantity} sold`,
+              },
             ]}
           />
 
@@ -229,17 +277,19 @@ export function ReportsPage() {
             <div>
               <h3>Sales summary</h3>
               <p>
-                {salesReport.filters.startDate} to {salesReport.filters.endDate}, grouped by{" "}
-                {salesReport.filters.period}
+                {salesReport.filters.startDate} to {salesReport.filters.endDate}
+                , grouped by {salesReport.filters.period}
               </p>
             </div>
 
             <ReportChart
               ariaLabel="Sales by period chart"
-              bars={salesReport.periods.map((period) => ({
+              variant="line"
+              data={salesReport.periods.map((period) => ({
                 label: period.label,
-                value: Number(period.totalSales)
+                value: Number(period.totalSales),
               }))}
+              valueLabel="Sales"
             />
 
             <SortableReportTable
@@ -252,34 +302,36 @@ export function ReportsPage() {
                   render: (row) => (
                     <>
                       {row.label}
-                      {row.partial ? <small className="report-cell-hint"> Partial</small> : null}
+                      {row.partial ? (
+                        <small className="report-cell-hint"> Partial</small>
+                      ) : null}
                     </>
-                  )
+                  ),
                 },
                 {
                   key: "totalSales",
                   header: "Total sales",
                   sortable: true,
-                  render: (row) => `$${row.totalSales}`
+                  render: (row) => `$${row.totalSales}`,
                 },
                 {
                   key: "orderCount",
                   header: "Orders",
                   sortable: true,
-                  render: (row) => row.orderCount
+                  render: (row) => row.orderCount,
                 },
                 {
                   key: "averageOrderValue",
                   header: "Average order value",
                   sortable: true,
-                  render: (row) => `$${row.averageOrderValue}`
+                  render: (row) => `$${row.averageOrderValue}`,
                 },
                 {
                   key: "topSellingItemName",
                   header: "Top item",
                   sortable: true,
-                  render: (row) => row.topSellingItemName ?? "None"
-                }
+                  render: (row) => row.topSellingItemName ?? "None",
+                },
               ]}
               rows={rows}
               sort={sort}
@@ -289,7 +341,7 @@ export function ReportsPage() {
                 setSelectedDrilldown({
                   id: row.id,
                   label: row.label,
-                  query: { periodKey: row.key }
+                  query: { periodKey: row.key },
                 })
               }
             />
@@ -298,15 +350,19 @@ export function ReportsPage() {
           <section className="report-section" aria-label="Popular items">
             <div>
               <h3>Popular items</h3>
-              <p>Top menu items ranked by quantity sold for the active filters</p>
+              <p>
+                Top menu items ranked by quantity sold for the active filters
+              </p>
             </div>
 
             <ReportChart
               ariaLabel="Popular items chart"
-              bars={salesReport.popularItems.map((item) => ({
+              variant="bar"
+              data={salesReport.popularItems.map((item) => ({
                 label: item.itemName,
-                value: item.quantitySold
+                value: item.quantitySold,
               }))}
+              valueLabel="Quantity sold"
             />
 
             <SortableReportTable
@@ -316,38 +372,40 @@ export function ReportsPage() {
                   key: "rank",
                   header: "Rank",
                   sortable: true,
-                  render: (row) => <span className="report-rank">#{row.rank}</span>
+                  render: (row) => (
+                    <span className="report-rank">#{row.rank}</span>
+                  ),
                 },
                 {
                   key: "itemName",
                   header: "Item",
                   sortable: true,
-                  render: (row) => row.itemName
+                  render: (row) => row.itemName,
                 },
                 {
                   key: "categoryName",
                   header: "Category",
                   sortable: true,
-                  render: (row) => row.categoryName ?? "Uncategorized"
+                  render: (row) => row.categoryName ?? "Uncategorized",
                 },
                 {
                   key: "quantitySold",
                   header: "Quantity sold",
                   sortable: true,
-                  render: (row) => row.quantitySold
+                  render: (row) => row.quantitySold,
                 },
                 {
                   key: "orderCount",
                   header: "Orders",
                   sortable: true,
-                  render: (row) => row.orderCount
+                  render: (row) => row.orderCount,
                 },
                 {
                   key: "salesAmount",
                   header: "Sales amount",
                   sortable: true,
-                  render: (row) => `$${row.salesAmount}`
-                }
+                  render: (row) => `$${row.salesAmount}`,
+                },
               ]}
               rows={popularItemRows}
               sort={popularItemSort}
@@ -357,7 +415,7 @@ export function ReportsPage() {
                 setSelectedDrilldown({
                   id: row.id,
                   label: row.itemName,
-                  query: { menuItemId: row.sourceMenuItemId }
+                  query: { menuItemId: row.sourceMenuItemId },
                 })
               }
             />
@@ -366,15 +424,20 @@ export function ReportsPage() {
           <section className="report-section" aria-label="Popular combinations">
             <div>
               <h3>Popular combinations</h3>
-              <p>Repeated order combinations ranked by frequency for the active filters</p>
+              <p>
+                Repeated order combinations ranked by frequency for the active
+                filters
+              </p>
             </div>
 
             <ReportChart
               ariaLabel="Popular combinations chart"
-              bars={salesReport.popularCombinations.map((combination) => ({
+              variant="bar"
+              data={salesReport.popularCombinations.map((combination) => ({
                 label: combination.combinationLabel,
-                value: combination.orderFrequency
+                value: combination.orderFrequency,
               }))}
+              valueLabel="Order frequency"
             />
 
             <SortableReportTable
@@ -384,32 +447,34 @@ export function ReportsPage() {
                   key: "rank",
                   header: "Rank",
                   sortable: true,
-                  render: (row) => <span className="report-rank">#{row.rank}</span>
+                  render: (row) => (
+                    <span className="report-rank">#{row.rank}</span>
+                  ),
                 },
                 {
                   key: "combinationLabel",
                   header: "Combination",
                   sortable: true,
-                  render: (row) => row.combinationLabel
+                  render: (row) => row.combinationLabel,
                 },
                 {
                   key: "orderFrequency",
                   header: "Frequency",
                   sortable: true,
-                  render: (row) => row.orderFrequency
+                  render: (row) => row.orderFrequency,
                 },
                 {
                   key: "itemCount",
                   header: "Items",
                   sortable: true,
-                  render: (row) => row.itemCount
+                  render: (row) => row.itemCount,
                 },
                 {
                   key: "salesAmount",
                   header: "Sales amount",
                   sortable: true,
-                  render: (row) => `$${row.salesAmount}`
-                }
+                  render: (row) => `$${row.salesAmount}`,
+                },
               ]}
               rows={popularCombinationRows}
               sort={popularCombinationSort}
@@ -419,21 +484,26 @@ export function ReportsPage() {
                 setSelectedDrilldown({
                   id: row.id,
                   label: row.combinationLabel,
-                  query: { combinationKey: row.combinationKey }
+                  query: { combinationKey: row.combinationKey },
                 })
               }
             />
           </section>
 
           {selectedDrilldown ? (
-            <section className="report-section supporting-orders-section" aria-label="Supporting orders">
+            <section
+              className="report-section supporting-orders-section"
+              aria-label="Supporting orders"
+            >
               <div>
                 <h3>Supporting orders</h3>
                 <p>{selectedDrilldown.label}</p>
               </div>
 
               {ordersError ? <p className="form-error">{ordersError}</p> : null}
-              {ordersLoading ? <p className="empty-state">Loading supporting orders.</p> : null}
+              {ordersLoading ? (
+                <p className="empty-state">Loading supporting orders.</p>
+              ) : null}
               {supportingOrders ? (
                 <SupportingOrdersTable
                   orders={supportingOrders.orders}
@@ -456,14 +526,16 @@ export function ReportsPage() {
   }
 }
 
-function toReportFilterOptions(response: MenuCategoriesResponse): ReportFilterCategoryOption[] {
+function toReportFilterOptions(
+  response: MenuCategoriesResponse,
+): ReportFilterCategoryOption[] {
   return response.categories.map((category) => ({
     id: category.id,
     name: category.name,
     items: category.menuItems.map((item) => ({
       id: item.id,
-      name: item.name
-    }))
+      name: item.name,
+    })),
   }));
 }
 
@@ -474,7 +546,7 @@ function toReportSalesQuery(filter: ReportFilter) {
     period: filter.period,
     statuses: filter.statuses,
     ...(filter.menuCategoryId ? { menuCategoryId: filter.menuCategoryId } : {}),
-    ...(filter.menuItemId ? { menuItemId: filter.menuItemId } : {})
+    ...(filter.menuItemId ? { menuItemId: filter.menuItemId } : {}),
   };
 }
 
@@ -487,7 +559,7 @@ function createDefaultFilter(): ReportFilter {
     period: "daily",
     statuses: defaultStatuses,
     menuCategoryId: null,
-    menuItemId: null
+    menuItemId: null,
   };
 }
 
@@ -501,7 +573,11 @@ function sortRows(rows: SalesSummaryRow[], sort: SortState): SalesSummaryRow[] {
   return sortedRows;
 }
 
-function compareRowValue(left: SalesSummaryRow, right: SalesSummaryRow, key: string): number {
+function compareRowValue(
+  left: SalesSummaryRow,
+  right: SalesSummaryRow,
+  key: string,
+): number {
   if (key === "totalSales" || key === "averageOrderValue") {
     return Number(left[key]) - Number(right[key]);
   }
@@ -511,13 +587,18 @@ function compareRowValue(left: SalesSummaryRow, right: SalesSummaryRow, key: str
   }
 
   if (key === "topSellingItemName") {
-    return (left.topSellingItemName ?? "").localeCompare(right.topSellingItemName ?? "");
+    return (left.topSellingItemName ?? "").localeCompare(
+      right.topSellingItemName ?? "",
+    );
   }
 
   return left.key.localeCompare(right.key);
 }
 
-function sortPopularItemRows(rows: PopularItemRow[], sort: SortState): PopularItemRow[] {
+function sortPopularItemRows(
+  rows: PopularItemRow[],
+  sort: SortState,
+): PopularItemRow[] {
   return [...rows].sort((left, right) => {
     const direction = sort.direction === "asc" ? 1 : -1;
 
@@ -525,7 +606,11 @@ function sortPopularItemRows(rows: PopularItemRow[], sort: SortState): PopularIt
   });
 }
 
-function comparePopularItemValue(left: PopularItemRow, right: PopularItemRow, key: string): number {
+function comparePopularItemValue(
+  left: PopularItemRow,
+  right: PopularItemRow,
+  key: string,
+): number {
   if (key === "rank" || key === "quantitySold" || key === "orderCount") {
     return Number(left[key]) - Number(right[key]);
   }
@@ -543,7 +628,7 @@ function comparePopularItemValue(left: PopularItemRow, right: PopularItemRow, ke
 
 function sortPopularCombinationRows(
   rows: PopularCombinationRow[],
-  sort: SortState
+  sort: SortState,
 ): PopularCombinationRow[] {
   return [...rows].sort((left, right) => {
     const direction = sort.direction === "asc" ? 1 : -1;
@@ -555,7 +640,7 @@ function sortPopularCombinationRows(
 function comparePopularCombinationValue(
   left: PopularCombinationRow,
   right: PopularCombinationRow,
-  key: string
+  key: string,
 ): number {
   if (key === "rank" || key === "orderFrequency" || key === "itemCount") {
     return Number(left[key]) - Number(right[key]);

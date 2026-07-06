@@ -147,18 +147,24 @@
 
 ### Tests for Visualization Refinement
 
-- [ ] T052 [P] Add staff-web component tests for `ReportChart` sales line chart rendering, ranked bar chart rendering, empty state, and accessible chart labels in `apps/staff-web/src/components/ReportFoundationComponents.test.tsx`
-- [ ] T053 [P] Add staff-web component tests that `ReportsPage` renders the sales summary with the line chart variant and popular item/combination sections with bar chart variants in `apps/staff-web/src/pages/ReportsPage.test.tsx`
-- [ ] T054 [P] Add Playwright checks for the sales summary line chart, ranked popularity bar charts, and graph/table parity after filter changes in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
+- [X] T052 [P] Add staff-web component tests for `ReportChart` sales line chart rendering, ranked bar chart rendering, empty state, and accessible chart labels in `apps/staff-web/src/components/ReportFoundationComponents.test.tsx`
+- [X] T053 [P] Add staff-web component tests that `ReportsPage` renders the sales summary with the line chart variant and popular item/combination sections with bar chart variants in `apps/staff-web/src/pages/ReportsPage.test.tsx`
+- [X] T054 [P] Add Playwright checks for the sales summary line chart, ranked popularity bar charts, and graph/table parity after filter changes in `apps/staff-web/tests/e2e/reports-dashboard.spec.ts`
 
 ### Implementation for Visualization Refinement
 
-- [ ] T055 Add Recharts to the staff-web workspace dependencies in `apps/staff-web/package.json` and `package-lock.json`
-- [ ] T056 Replace the app-native report bar primitive with Recharts-backed line and bar chart variants behind the existing boundary in `apps/staff-web/src/components/ReportChart.tsx`
-- [ ] T057 Update `ReportsPage` to render the sales summary as a line chart and popular item/combination sections as ranked bar charts in `apps/staff-web/src/pages/ReportsPage.tsx`
-- [ ] T058 Update responsive chart sizing, axis/tooltip affordances, and chart accessibility styles in `apps/staff-web/src/styles.css`
-- [ ] T059 Run focused staff-web component tests for `ReportChart` and `ReportsPage` chart rendering, then record results in `specs/002-sales-report-dashboard/tasks.md`
-- [ ] T060 Run the focused reports Playwright chart checks, then record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T055 Add Recharts to the staff-web workspace dependencies in `apps/staff-web/package.json` and `package-lock.json`
+- [X] T056 Replace the app-native report bar primitive with Recharts-backed line and bar chart variants behind the existing boundary in `apps/staff-web/src/components/ReportChart.tsx`
+- [X] T057 Update `ReportsPage` to render the sales summary as a line chart and popular item/combination sections as ranked bar charts in `apps/staff-web/src/pages/ReportsPage.tsx`
+- [X] T058 Update responsive chart sizing, axis/tooltip affordances, and chart accessibility styles in `apps/staff-web/src/styles.css`
+- [X] T059 Run focused staff-web component tests for `ReportChart` and `ReportsPage` chart rendering, then record results in `specs/002-sales-report-dashboard/tasks.md`
+- [X] T060 Run the focused reports Playwright chart checks, then record results in `specs/002-sales-report-dashboard/tasks.md`
+
+**Phase 6 validation evidence (2026-07-02)**:
+
+- `npm run typecheck --workspace @coffee-shop/staff-web` - PASS.
+- `npm run test --workspace @coffee-shop/staff-web -- ReportFoundationComponents.test.tsx ReportsPage.test.tsx ReportComponents.test.tsx` - PASS, 3 files / 14 tests.
+- `npm run test:e2e --workspace @coffee-shop/staff-web -- reports-dashboard.spec.ts` - PASS, 1 Chromium test.
 
 **Checkpoint**: Sales summary uses a line chart, popularity sections use ranked bar charts, and each chart still has a matching sortable/filterable table.
 

@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ReportFilter } from "@coffee-shop/shared/contracts/api";
 
@@ -16,11 +16,17 @@ const filter: ReportFilter = {
   period: "daily",
   statuses: ["completed", "picked_up"],
   menuCategoryId: null,
-  menuItemId: null
+  menuItemId: null,
 };
 
 describe("report UI foundation components", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders report filter controls and emits normalized values", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-30T12:00:00.000Z"));
     const onChange = vi.fn();
 
     render(
@@ -30,21 +36,30 @@ describe("report UI foundation components", () => {
           {
             id: "category-1",
             name: "Coffee",
-            items: [{ id: "item-1", name: "Latte" }]
-          }
+            items: [{ id: "item-1", name: "Latte" }],
+          },
         ]}
         onChange={onChange}
-      />
+      />,
     );
 
-    fireEvent.change(screen.getByLabelText("Period"), { target: { value: "weekly" } });
-    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "category-1" } });
+    fireEvent.change(screen.getByLabelText("Period"), {
+      target: { value: "weekly" },
+    });
+    fireEvent.change(screen.getByLabelText("Category"), {
+      target: { value: "category-1" },
+    });
 
-    expect(onChange).toHaveBeenCalledWith({ ...filter, period: "weekly" });
+    expect(onChange).toHaveBeenCalledWith({
+      ...filter,
+      period: "weekly",
+      startDate: "2026-06-28",
+      endDate: "2026-07-04",
+    });
     expect(onChange).toHaveBeenCalledWith({
       ...filter,
       menuCategoryId: "category-1",
-      menuItemId: null
+      menuItemId: null,
     });
   });
 
@@ -55,20 +70,35 @@ describe("report UI foundation components", () => {
       <SortableReportTable
         ariaLabel="Sales summary"
         columns={[
-          { key: "period", header: "Period", sortable: true, render: (row) => row.period },
-          { key: "sales", header: "Sales", sortable: true, render: (row) => row.sales }
+          {
+            key: "period",
+            header: "Period",
+            sortable: true,
+            render: (row) => row.period,
+          },
+          {
+            key: "sales",
+            header: "Sales",
+            sortable: true,
+            render: (row) => row.sales,
+          },
         ]}
         rows={[{ id: "row-1", period: "Jun 25", sales: "$18.25" }]}
         sort={{ key: "period", direction: "asc" }}
         onSortChange={onSortChange}
-      />
+      />,
     );
 
     const table = screen.getByRole("table", { name: "Sales summary" });
-    fireEvent.click(within(table).getByRole("button", { name: "Sort by Sales" }));
+    fireEvent.click(
+      within(table).getByRole("button", { name: "Sort by Sales" }),
+    );
 
     expect(within(table).getByText("Jun 25")).toBeInTheDocument();
-    expect(onSortChange).toHaveBeenCalledWith({ key: "sales", direction: "asc" satisfies SortDirection });
+    expect(onSortChange).toHaveBeenCalledWith({
+      key: "sales",
+      direction: "asc" satisfies SortDirection,
+    });
   });
 
   it("renders chart and metric primitives with accessible labels", () => {
@@ -77,21 +107,25 @@ describe("report UI foundation components", () => {
         <ReportMetricGrid
           metrics={[
             { label: "Total sales", value: "$18.25" },
-            { label: "Orders", value: "3" }
+            { label: "Orders", value: "3" },
           ]}
         />
         <ReportChart
           ariaLabel="Daily sales chart"
-          bars={[
+          variant="line"
+          data={[
             { label: "Mon", value: 10 },
-            { label: "Tue", value: 20 }
+            { label: "Tue", value: 20 },
           ]}
+          valueLabel="Sales"
         />
-      </>
+      </>,
     );
 
     expect(screen.getByText("Total sales")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Daily sales chart" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Daily sales chart" }),
+    ).toHaveAttribute("data-chart-variant", "line");
     expect(screen.getByText("Tue")).toBeInTheDocument();
   });
 });
