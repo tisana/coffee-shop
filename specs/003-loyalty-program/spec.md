@@ -1,0 +1,142 @@
+# Feature Specification: Loyalty Program
+
+**Feature Branch**: `003-loyalty-program`  
+**Created**: 2026-07-07  
+**Status**: Draft  
+**Input**: User description: "I want to have royalty program so I can retain customer and let them come back to the shop again. Loyalty program would need customer to register their name and phone number as primary identity. Phone number can be edit and change later but it must be unique per customer. Email address will be optional. Reward should be configurable such as rating how much amount customer need to buy to earn 1 point. Eg. $10 to 1 point. Or it can be per beverage. Redeem point must be configurable as well. Eg. 10 point can redeem 1 beverage, 5 point can get a size upgrade. Point expiration is another configurable needed."
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Register and identify loyalty customers (Priority: P1)
+
+Authorized staff can register a customer for the loyalty program using the customer's name and phone number, then find the customer again on later visits so orders can be associated with the same loyalty account.
+
+**Why this priority**: The shop cannot retain returning customers or award points until customers have a reliable loyalty identity.
+
+**Independent Test**: Can be fully tested by registering a customer with name and phone, searching for the customer on a later visit, and confirming duplicate phone numbers are rejected while optional email remains optional.
+
+**Acceptance Scenarios**:
+
+1. **Given** no loyalty customer exists for a phone number, **When** staff register a customer with a name and that phone number, **Then** the customer becomes available for future loyalty lookup.
+2. **Given** a loyalty customer already uses a phone number, **When** staff try to register another customer with the same phone number, **Then** the system prevents the duplicate and explains that the phone number is already registered.
+3. **Given** a registered loyalty customer, **When** staff update the customer's phone number to a new unused phone number, **Then** the customer remains the same loyalty account and future lookup uses the new phone number.
+4. **Given** a registered loyalty customer, **When** staff update the customer's phone number to one already used by another customer, **Then** the system rejects the change and keeps the original phone number.
+
+---
+
+### User Story 2 - Award points from eligible purchases (Priority: P2)
+
+Authorized staff can attach a registered loyalty customer to an eligible shop order so the customer earns points according to the active earning configuration, either by purchase amount or by beverages purchased.
+
+**Why this priority**: Earning points is the core reason customers return and the shop needs the rule to be configurable as the program changes.
+
+**Independent Test**: Can be fully tested by configuring an earning rule, attaching a loyalty customer to an order, completing the order, and confirming the correct points are added only for eligible non-cancelled purchases.
+
+**Acceptance Scenarios**:
+
+1. **Given** earning is configured as "10.00 purchase amount earns 1 point", **When** a loyalty customer completes an eligible 25.00 order, **Then** the customer earns 2 points and the remaining 5.00 does not create a partial point.
+2. **Given** earning is configured as "1 beverage earns 1 point", **When** a loyalty customer completes an eligible order with 3 non-cancelled beverages, **Then** the customer earns 3 points.
+3. **Given** a loyalty customer is attached to an order that is fully cancelled, **When** staff review the customer's loyalty balance, **Then** no points from that order are included.
+4. **Given** an order contains cancelled and non-cancelled beverages, **When** points are awarded, **Then** only non-cancelled eligible beverages and eligible sales amounts contribute points.
+
+---
+
+### User Story 3 - Redeem configurable rewards (Priority: P3)
+
+Authorized staff can configure reward options and redeem a customer's available points for benefits such as a free beverage or size upgrade during a shop order.
+
+**Why this priority**: Redemption turns the point balance into a customer-facing reason to revisit the shop.
+
+**Independent Test**: Can be fully tested by configuring reward options, giving a customer enough points, redeeming a reward during an order, and confirming the points are deducted only when the customer has enough unexpired points.
+
+**Acceptance Scenarios**:
+
+1. **Given** a reward is configured as "10 points redeem 1 beverage" and a customer has 12 available points, **When** staff redeem that reward, **Then** the order shows the free beverage reward and the customer has 2 available points remaining.
+2. **Given** a reward is configured as "5 points redeem a size upgrade" and a customer has 4 available points, **When** staff attempt the redemption, **Then** the system prevents the redemption and shows the points needed.
+3. **Given** a reward was redeemed on an order that is later cancelled before pickup, **When** staff review the customer's balance, **Then** the redeemed points are returned to the customer.
+
+---
+
+### User Story 4 - Configure and enforce point expiration (Priority: P4)
+
+Authorized staff can configure whether points expire and, when expiration is enabled, customers can only redeem points that are still valid.
+
+**Why this priority**: Expiration is important for program cost control, but customer registration, earning, and redemption can deliver value first.
+
+**Independent Test**: Can be fully tested by enabling an expiration period, awarding points on different dates, and confirming expired points are excluded from redemption while remaining visible in customer history.
+
+**Acceptance Scenarios**:
+
+1. **Given** point expiration is disabled, **When** a customer earns points, **Then** those points remain available until redeemed or adjusted.
+2. **Given** point expiration is configured as 90 days from earning, **When** a customer has points older than 90 days, **Then** those points are no longer redeemable.
+3. **Given** a customer has both expired and available points, **When** staff view the loyalty account, **Then** the account clearly separates available, redeemed, and expired points.
+
+---
+
+### Edge Cases
+
+- Phone numbers entered with spaces, punctuation, or common local formatting differences still must not allow duplicate customer identity.
+- Customers may not have an email address; email must not block registration or lookup.
+- Updating a customer's name or email must not create a new loyalty identity or lose point history.
+- If the active earning rule changes, past point ledger entries keep their original earned amounts while future eligible orders use the new rule.
+- If a reward option changes or is retired, past redemptions remain visible in customer history while future redemptions use only currently available reward options.
+- If points expire after staff open a customer profile but before redemption is completed, redemption must use the latest available balance.
+- Staff need a clear explanation when a customer cannot earn points, cannot redeem a reward, or has no available points.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: System MUST allow authorized staff to create a loyalty customer with customer name and phone number as required information.
+- **FR-002**: System MUST allow authorized staff to optionally store an email address for a loyalty customer.
+- **FR-003**: System MUST enforce phone number uniqueness across loyalty customers after normalizing common formatting differences.
+- **FR-004**: System MUST allow authorized staff to edit a loyalty customer's name, phone number, and email address while preserving the same loyalty account and point history.
+- **FR-005**: System MUST prevent phone number updates that would duplicate another loyalty customer's phone number.
+- **FR-006**: System MUST allow authorized staff to find an existing loyalty customer by phone number and by customer name.
+- **FR-007**: System MUST allow authorized staff to associate a loyalty customer with an eligible shop order.
+- **FR-008**: System MUST allow authorized staff to configure the active point earning rule as either purchase-amount based or beverage-count based.
+- **FR-009**: System MUST award whole points according to the active earning rule when an associated order becomes eligible for points.
+- **FR-010**: System MUST exclude fully cancelled orders and cancelled beverages from point earning.
+- **FR-011**: System MUST preserve a customer-visible point history showing earned, redeemed, returned, expired, and adjusted point changes with the reason for each change.
+- **FR-012**: System MUST allow authorized staff to configure redeemable reward options, including the reward name, point cost, customer benefit, and whether the reward is currently available.
+- **FR-013**: System MUST prevent redemption when the customer does not have enough available unexpired points.
+- **FR-014**: System MUST deduct points when a reward is redeemed and show the redeemed reward on the associated order.
+- **FR-015**: System MUST return redeemed points when the associated order or reward benefit is cancelled before the customer receives it.
+- **FR-016**: System MUST allow authorized staff to configure point expiration as disabled or as a duration from the date points are earned.
+- **FR-017**: System MUST exclude expired points from the customer's available redeemable balance.
+- **FR-018**: System MUST show available, redeemed, expired, returned, and lifetime earned point totals for a loyalty customer.
+- **FR-019**: System MUST keep historical earning and redemption records understandable after customer information, earning rules, reward options, or expiration settings change.
+- **FR-020**: System MUST keep loyalty actions available only to authorized staff users.
+
+### Key Entities *(include if feature involves data)*
+
+- **Loyalty Customer**: A registered customer identity for the program. Key attributes include customer name, unique phone number, optional email address, enrollment date, current status, and point summary.
+- **Earning Rule**: The active configuration that determines how eligible purchases earn points. Key attributes include earning type, amount threshold or beverage count threshold, point amount earned, effective date, and active status.
+- **Reward Option**: A configurable redemption choice. Key attributes include reward name, point cost, reward benefit, availability status, and effective date.
+- **Point Ledger Entry**: An immutable customer point event. Key attributes include customer, point amount, event type, reason, associated order or reward when applicable, earned date, expiration date when applicable, and event date.
+- **Loyalty Order Association**: The connection between a shop order and a loyalty customer, including earned points and redeemed rewards tied to that order.
+- **Expiration Policy**: The active rule for whether earned points expire and the duration used to calculate expiration when enabled.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Staff can register a new loyalty customer during counter service in under 45 seconds.
+- **SC-002**: Staff can find an existing loyalty customer by phone number or name in under 15 seconds.
+- **SC-003**: 100% of attempted duplicate phone registrations and duplicate phone updates are blocked with a clear staff-facing explanation.
+- **SC-004**: For eligible completed loyalty orders, awarded points match the active earning configuration in 100% of tested amount-based and beverage-count scenarios.
+- **SC-005**: Staff can configure or update an earning rule, reward option, and expiration policy in under 2 minutes each.
+- **SC-006**: Staff can determine whether a customer can redeem a configured reward in under 20 seconds from the customer or order view.
+- **SC-007**: Expired points are excluded from redeemable balances in 100% of tested expiration scenarios while remaining visible in history.
+- **SC-008**: A customer account's point history explains the source of every earned, redeemed, returned, expired, or adjusted point change without requiring staff to inspect unrelated order records.
+
+## Assumptions
+
+- "Royalty program" in the request means a customer loyalty program for retaining repeat customers.
+- The first increment is staff-managed inside the existing staff operations product; customer self-service signup, customer-facing apps, and marketing message automation are out of scope.
+- The shop remains single-location for this feature; cross-location customer balances and reward policies are out of scope.
+- All authorized staff may perform loyalty enrollment, lookup, order association, reward redemption, and program configuration unless a later specification introduces distinct staff roles.
+- Only one earning rule and one expiration policy are active at a time; historical records preserve the rule that applied when points were earned.
+- Eligible purchase amount means the order amount that remains after cancellations and non-eligible reward benefits are considered.
+- Point earning uses whole points only; partial purchase progress does not carry over unless a later specification adds stored fractional progress.
+- Payment processing, discounts outside configured reward benefits, loyalty tiers, referrals, coupons, and bulk import/export are out of scope for this feature.
