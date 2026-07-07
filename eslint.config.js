@@ -9,6 +9,7 @@ export default [
       "**/build/**",
       "**/coverage/**",
       "**/node_modules/**",
+      "**/*.min.js",
       "apps/api/drizzle/migrations/**"
     ]
   },

@@ -1,22 +1,24 @@
 <!--
 Sync Impact Report
-Version change: template -> 1.0.0
+Version change: 1.0.0 -> 1.1.0
 Modified principles:
-- PRINCIPLE_1_NAME -> I. Staff Workflow Integrity
-- PRINCIPLE_2_NAME -> II. Daily Order Identity
-- PRINCIPLE_3_NAME -> III. Queue State Correctness
-- PRINCIPLE_4_NAME -> IV. Purchased Detail Preservation
-- PRINCIPLE_5_NAME -> V. Incremental, Spec-Driven Delivery
+- V. Incremental, Spec-Driven Delivery -> V. Incremental, Spec-Driven Delivery
 Added sections:
-- Product Scope and Constraints
-- Development Workflow and Quality Gates
+- VI. Simple, Necessary Design
+- VII. Test-First, Risk-Based Quality
 Removed sections:
 - None
 Templates requiring updates:
-- .specify/templates/plan-template.md: reviewed, no change required
-- .specify/templates/spec-template.md: reviewed, no change required
-- .specify/templates/tasks-template.md: reviewed, no change required
+- .specify/templates/plan-template.md: updated
+- .specify/templates/spec-template.md: updated
+- .specify/templates/tasks-template.md: updated
 - .specify/templates/commands/*.md: not present in this repo
+- README.md: reviewed, no change required
+- apps/api/README.md: reviewed, no change required
+- apps/staff-web/README.md: reviewed, no change required
+- AGENTS.md: reviewed, no change required
+- specs/002-sales-report-dashboard/plan.md: updated
+- specs/002-sales-report-dashboard/tasks.md: updated
 Follow-up TODOs:
 - None
 -->
@@ -82,8 +84,40 @@ implemented, validated, and demonstrated before lower-priority capabilities.
 Implementation details MUST NOT leak into feature specifications; planning may
 choose technologies only after the constitution check passes.
 
-Rationale: this repo is in its first staff-operations feature, so disciplined
-increments matter more than broad platform assumptions.
+Rationale: this repo evolves through staff-operations increments, so disciplined
+delivery matters more than broad platform assumptions.
+
+### VI. Simple, Necessary Design
+
+Implementation MUST follow KISS and YAGNI. The chosen solution MUST be the
+simplest design that satisfies the active specification, uses existing project
+patterns where practical, and avoids speculative abstractions, dependencies,
+data stores, workflows, or configuration that are not needed for the current
+story. Any intentional complexity MUST be documented in Complexity Tracking with
+the concrete need and the simpler alternative that was rejected.
+
+Rationale: this single-shop staff operations product benefits more from clear,
+maintainable increments than from generalized platform design ahead of need.
+
+### VII. Test-First, Risk-Based Quality
+
+Executable behavior changes MUST follow TDD: write the relevant automated tests
+first, confirm they fail for the expected reason, implement the smallest change
+that makes them pass, and refactor only while preserving passing tests. The test
+suite MUST follow the test pyramid: broad unit, domain, and component coverage
+for rules and rendering; targeted integration and API contract tests for module
+and service boundaries; and a small number of end-to-end tests for critical
+staff journeys and high-risk workflows.
+
+Tests MUST be correct, fast enough for regular local use, deterministic,
+readable, independent, behavior-focused, cheap to maintain, and targeted at real
+risk. High-risk areas include authorization, queue concurrency, order state
+transitions, business-date boundaries, purchased-detail preservation, report
+aggregation, sorting, filtering, and graph/table parity.
+
+Rationale: test-first development keeps implementation honest, while a
+risk-based pyramid gives strong confidence without creating a slow or brittle
+suite.
 
 ## Product Scope and Constraints
 
@@ -118,9 +152,17 @@ reason it is necessary and the simpler alternative that was rejected.
 Task lists MUST preserve user-story grouping and dependency order. Foundational
 work may block stories, but individual user stories MUST remain independently
 implementable and independently verifiable wherever the spec claims they are.
-Tests are required when the active specification, plan, or risk profile calls
-for them; concurrency, state transitions, authorization, and purchased-detail
-preservation are high-risk areas that SHOULD receive automated coverage.
+Task lists for executable behavior changes MUST place the relevant failing test
+tasks before implementation tasks for each story. Testing exceptions MUST be
+explicitly justified for non-executable changes or cases where automated tests
+cannot provide useful confidence.
+
+Plans and tasks MUST describe the intended test pyramid for the change and keep
+the test suite correct, fast enough, deterministic, readable, independent,
+behavior-focused, cheap to maintain, and targeted at real risk. Concurrency,
+state transitions, authorization, purchased-detail preservation, reporting
+aggregation, filtering, sorting, and graph/table parity are high-risk areas that
+MUST receive automated coverage when touched.
 
 Before work is considered complete, the relevant spec checklist, plan
 Constitution Check, generated tasks, and implemented behavior MUST agree with
@@ -145,4 +187,4 @@ governance. Last amended date MUST change whenever the constitution content
 changes. The current active feature branch and AGENTS.md guidance MUST continue
 to point contributors toward the current plan once planning artifacts exist.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-11
+**Version**: 1.1.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-06-29

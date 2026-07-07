@@ -18,6 +18,10 @@
   - Tested independently
   - Deployed independently
   - Demonstrated to users independently
+
+  Independent Tests MUST describe observable behavior and real user or system
+  risk, not implementation details. Keep scope to what the current feature
+  needs; defer speculative capabilities to Assumptions or out-of-scope notes.
 -->
 
 ### User Story 1 - [Brief Title] (Priority: P1)
@@ -120,6 +124,8 @@
   ACTION REQUIRED: The content in this section represents placeholders.
   Fill them out with the right assumptions based on reasonable defaults
   chosen when the feature description did not specify certain details.
+  Include explicit out-of-scope decisions when they prevent speculative
+  implementation work.
 -->
 
 - [Assumption about target users, e.g., "Users have stable internet connectivity"]

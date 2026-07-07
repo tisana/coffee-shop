@@ -10,6 +10,7 @@ import { createOrderHistoryRoutes } from "./routes/orderHistoryRoutes";
 import { createOrderRoutes } from "./routes/orderRoutes";
 import { createQueueRoutes } from "./routes/queueRoutes";
 import { createQueueSubmissionRoutes } from "./routes/queueSubmissionRoutes";
+import { createReportRoutes } from "./routes/reportRoutes";
 
 export function createApp(): Express {
   const app = express();
@@ -40,6 +41,7 @@ export function createApp(): Express {
   app.use(createQueueSubmissionRoutes());
   app.use(createOrderFulfillmentRoutes());
   app.use(createQueueRoutes());
+  app.use(createReportRoutes());
   app.use(errorHandler);
 
   return app;

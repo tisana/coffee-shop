@@ -1,13 +1,17 @@
 import "dotenv/config";
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, eq, inArray, notInArray } from "drizzle-orm";
 
 import { hashPassword } from "../auth/passwords";
+import { currentBusinessDate } from "../domain/businessDate";
 import { closeDatabase, db } from "./db";
+import { buildReportDemoOrderSeeds, type ReportDemoOrderSeed } from "./reportDemoSeedData";
 import {
   customizationChoices,
   customizationGroups,
   menuCategories,
   menuItems,
+  orderBeverages,
+  orders,
   staffUsers
 } from "./schema";
 
@@ -156,17 +160,25 @@ const seedItems: SeedItem[] = [
 const categoryOrder = ["Hot Coffee", "Iced Coffee", "Non-Coffee", "Pastries", "Food", "Add-ons"];
 
 async function seed(): Promise<void> {
+  const seedStaffUsername = process.env.SEED_STAFF_USERNAME ?? "barista";
   const passwordHash = await hashPassword(process.env.SEED_STAFF_PASSWORD ?? "barista-pass");
 
   await db
     .insert(staffUsers)
     .values({
-      username: process.env.SEED_STAFF_USERNAME ?? "barista",
+      username: seedStaffUsername,
       passwordHash,
       displayName: "Demo Barista",
       authorizationStatus: "authorized"
     })
     .onConflictDoNothing({ target: staffUsers.username });
+  const seedStaffUser = await db.query.staffUsers.findFirst({
+    where: eq(staffUsers.username, seedStaffUsername)
+  });
+
+  if (!seedStaffUser) {
+    throw new Error("Unable to create or locate seed staff user.");
+  }
 
   for (const categoryName of categoryOrder) {
     await upsertCategory(categoryName, categoryOrder.indexOf(categoryName) + 1);
@@ -192,6 +204,8 @@ async function seed(): Promise<void> {
     .update(menuItems)
     .set({ active: false, available: false })
     .where(notInArray(menuItems.name, seedItems.map((item) => item.name)));
+
+  await seedReportDemoOrders(seedStaffUser.id);
 }
 
 async function upsertCategory(name: string, displayOrder: number) {
@@ -338,6 +352,140 @@ async function seedMilkChoices(menuItemId: string): Promise<void> {
       });
     }
   }
+}
+
+async function seedReportDemoOrders(staffId: string): Promise<void> {
+  const demoOrders = buildReportDemoOrderSeeds(currentBusinessDate());
+  const requiredMenuItemNames = Array.from(
+    new Set(demoOrders.flatMap((order) => order.beverages.map((beverage) => beverage.itemName)))
+  );
+  const demoMenuItems = await db
+    .select({ id: menuItems.id, name: menuItems.name })
+    .from(menuItems)
+    .where(inArray(menuItems.name, requiredMenuItemNames));
+  const menuItemIdByName = new Map(demoMenuItems.map((item) => [item.name, item.id]));
+
+  for (const itemName of requiredMenuItemNames) {
+    if (!menuItemIdByName.has(itemName)) {
+      throw new Error(`Unable to locate ${itemName} for report demo seed orders.`);
+    }
+  }
+
+  for (const demoOrder of demoOrders) {
+    await upsertReportDemoOrder(staffId, menuItemIdByName, demoOrder);
+  }
+}
+
+async function upsertReportDemoOrder(
+  staffId: string,
+  menuItemIdByName: ReadonlyMap<string, string>,
+  demoOrder: ReportDemoOrderSeed
+): Promise<void> {
+  const existingOrder = await db.query.orders.findFirst({
+    where: and(eq(orders.businessDate, demoOrder.businessDate), eq(orders.pickupName, demoOrder.pickupName))
+  });
+  const dailyOrderNumber = await availableDailyOrderNumber(
+    demoOrder.businessDate,
+    demoOrder.dailyOrderNumber,
+    existingOrder?.id
+  );
+  const orderValues = {
+    businessDate: demoOrder.businessDate,
+    dailyOrderNumber,
+    pickupName: demoOrder.pickupName,
+    status: demoOrder.status,
+    createdByStaffId: staffId,
+    assignedBaristaId: staffId,
+    total: demoOrder.total,
+    createdAt: toDate(demoOrder.createdAt),
+    queuedAt: toDate(demoOrder.queuedAt),
+    inProgressAt: toDate(demoOrder.inProgressAt),
+    completedAt: toDate(demoOrder.completedAt),
+    pickedUpAt: demoOrder.pickedUpAt ? toDate(demoOrder.pickedUpAt) : null,
+    cancelledAt: null
+  };
+  const orderId = existingOrder
+    ? await updateReportDemoOrder(existingOrder.id, orderValues)
+    : await insertReportDemoOrder(orderValues);
+
+  await db.delete(orderBeverages).where(eq(orderBeverages.orderId, orderId));
+  await db.insert(orderBeverages).values(
+    demoOrder.beverages.map((beverage) => {
+      const sourceMenuItemId = menuItemIdByName.get(beverage.itemName);
+
+      if (!sourceMenuItemId) {
+        throw new Error(`Unable to locate ${beverage.itemName} for report demo seed beverage.`);
+      }
+
+      return {
+        orderId,
+        sourceMenuItemId,
+        nameSnapshot: beverage.itemName,
+        quantity: beverage.quantity,
+        priceSnapshot: beverage.priceSnapshot,
+        selectedCustomizationsSnapshot: beverage.selectedCustomizationsSnapshot,
+        specialInstructions: beverage.specialInstructions,
+        status: beverage.status,
+        completedAt: toDate(demoOrder.completedAt),
+        cancelledAt: null,
+        cancellationReason: null
+      };
+    })
+  );
+}
+
+async function insertReportDemoOrder(orderValues: typeof orders.$inferInsert): Promise<string> {
+  const [insertedOrder] = await db.insert(orders).values(orderValues).returning({ id: orders.id });
+
+  if (!insertedOrder) {
+    throw new Error("Unable to create report demo seed order.");
+  }
+
+  return insertedOrder.id;
+}
+
+async function updateReportDemoOrder(
+  orderId: string,
+  orderValues: typeof orders.$inferInsert
+): Promise<string> {
+  const [updatedOrder] = await db
+    .update(orders)
+    .set(orderValues)
+    .where(eq(orders.id, orderId))
+    .returning({ id: orders.id });
+
+  if (!updatedOrder) {
+    throw new Error("Unable to update report demo seed order.");
+  }
+
+  return updatedOrder.id;
+}
+
+async function availableDailyOrderNumber(
+  businessDate: string,
+  preferredDailyOrderNumber: number,
+  existingOrderId: string | undefined
+): Promise<number> {
+  const sameDayOrders = await db
+    .select({ id: orders.id, dailyOrderNumber: orders.dailyOrderNumber })
+    .from(orders)
+    .where(eq(orders.businessDate, businessDate));
+  const usedDailyOrderNumbers = new Set(
+    sameDayOrders
+      .filter((order) => order.id !== existingOrderId)
+      .map((order) => order.dailyOrderNumber)
+  );
+  let candidate = preferredDailyOrderNumber;
+
+  while (usedDailyOrderNumbers.has(candidate)) {
+    candidate += 1;
+  }
+
+  return candidate;
+}
+
+function toDate(value: string): Date {
+  return new Date(value);
 }
 
 seed()

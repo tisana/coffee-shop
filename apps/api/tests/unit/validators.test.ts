@@ -4,7 +4,9 @@ import {
   createOrderRequestSchema,
   historyQuerySchema,
   loginRequestSchema,
-  menuItemInputSchema
+  menuItemInputSchema,
+  reportOrdersQuerySchema,
+  reportSalesQuerySchema
 } from "../../src/routes/validators";
 
 const categoryId = "8a7ea15d-9d7f-4d95-859d-5eb0c5a40f4f";
@@ -47,5 +49,47 @@ describe("route validators", () => {
       dailyOrderNumber: 7,
       status: "queued"
     });
+  });
+
+  it("validates report filters and rejects invalid report ranges", () => {
+    expect(
+      reportSalesQuerySchema.parse({
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+        period: "weekly",
+        statuses: "completed,picked_up",
+        menuCategoryId: categoryId,
+        menuItemId
+      })
+    ).toEqual({
+      startDate: "2026-06-01",
+      endDate: "2026-06-30",
+      period: "weekly",
+      statuses: ["completed", "picked_up"],
+      menuCategoryId: categoryId,
+      menuItemId
+    });
+
+    expect(
+      reportOrdersQuerySchema.parse({
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+        period: "daily",
+        periodKey: "2026-06-12",
+        combinationKey: "latte:1|mocha:1"
+      })
+    ).toMatchObject({
+      period: "daily",
+      statuses: ["completed", "picked_up"],
+      periodKey: "2026-06-12",
+      combinationKey: "latte:1|mocha:1"
+    });
+
+    expect(() =>
+      reportSalesQuerySchema.parse({
+        startDate: "2026-06-30",
+        endDate: "2026-06-01"
+      })
+    ).toThrow();
   });
 });

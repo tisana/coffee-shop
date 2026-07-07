@@ -27,6 +27,16 @@ describe("Express app foundation", () => {
     expect(response.body.code).toBe("UNAUTHORIZED");
   });
 
+  it("protects report route scaffolding with staff authorization", async () => {
+    const salesResponse = await request(createApp()).get("/reports/sales");
+    const ordersResponse = await request(createApp()).get("/reports/orders");
+
+    expect(salesResponse.status).toBe(401);
+    expect(salesResponse.body.code).toBe("UNAUTHORIZED");
+    expect(ordersResponse.status).toBe(401);
+    expect(ordersResponse.body.code).toBe("UNAUTHORIZED");
+  });
+
   it("rejects unsafe requests that do not include a CSRF token", async () => {
     const response = await request(createApp()).post("/auth/logout").send();
 
