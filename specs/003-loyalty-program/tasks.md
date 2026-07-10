@@ -17,9 +17,9 @@
 
 **Purpose**: Establish reusable loyalty fixtures and browser mocks without changing production behavior.
 
-- [ ] T001 Create API loyalty customer fixtures with E.164 identities plus rule, reward, order, redemption-cancellation, and ledger builders in `apps/api/tests/integration/loyaltyTestFixtures.ts`
-- [ ] T002 [P] Create staff-web loyalty customer, point history, configuration, and reward test data in `apps/staff-web/src/test/loyaltyTestData.ts`
-- [ ] T003 [P] Extend authenticated loyalty API route mocks, standalone reward cancellation responses, and mutable balance fixtures in `apps/staff-web/tests/e2e/testApiMocks.ts`
+- [x] T001 Create API loyalty customer fixtures with E.164 identities plus rule, reward, order, redemption-cancellation, and ledger builders in `apps/api/tests/integration/loyaltyTestFixtures.ts`
+- [x] T002 [P] Create staff-web loyalty customer, point history, configuration, and reward test data in `apps/staff-web/src/test/loyaltyTestData.ts`
+- [x] T003 [P] Extend authenticated loyalty API route mocks, standalone reward cancellation responses, and mutable balance fixtures in `apps/staff-web/tests/e2e/testApiMocks.ts`
 
 ---
 
