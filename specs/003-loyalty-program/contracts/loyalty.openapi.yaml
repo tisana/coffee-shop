@@ -1,0 +1,746 @@
+openapi: 3.1.0
+info:
+  title: Coffee Shop Loyalty API
+  version: 0.1.0
+  description: Staff-only customer, program configuration, point history, and order loyalty contracts.
+security:
+  - cookieAuth: []
+paths:
+  /loyalty/customers:
+    get:
+      summary: Find loyalty customers by phone or name
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Matching customers ordered by exact phone match, then name
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [customers]
+                properties:
+                  customers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LoyaltyCustomer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Register a loyalty customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoyaltyCustomerInput"
+      responses:
+        "201":
+          description: Customer registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyCustomer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Normalized phone number already belongs to another customer
+
+  /loyalty/customers/{customerId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    get:
+      summary: Return one loyalty customer
+      responses:
+        "200":
+          description: Customer profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyCustomer"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update customer identity fields without changing the loyalty account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoyaltyCustomerUpdate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyCustomer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Normalized phone number already belongs to another customer
+
+  /loyalty/customers/{customerId}/points:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    get:
+      summary: Return current point totals and immutable history
+      description: Materializes due expiration entries using the current shop business date before returning.
+      responses:
+        "200":
+          description: Current balance and point history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyPointsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /loyalty/config/earning-rule:
+    get:
+      summary: Return the active earning rule
+      responses:
+        "200":
+          description: Active rule or null before first configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rule]
+                properties:
+                  rule:
+                    anyOf:
+                      - $ref: "#/components/schemas/EarningRule"
+                      - type: "null"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      summary: Replace the active earning rule with a new version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EarningRuleInput"
+      responses:
+        "200":
+          description: Newly active earning rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EarningRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /loyalty/config/expiration-policy:
+    get:
+      summary: Return the active expiration policy
+      responses:
+        "200":
+          description: Active policy or null before first configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [policy]
+                properties:
+                  policy:
+                    anyOf:
+                      - $ref: "#/components/schemas/ExpirationPolicy"
+                      - type: "null"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      summary: Replace the active expiration policy with a new version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpirationPolicyInput"
+      responses:
+        "200":
+          description: Newly active expiration policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpirationPolicy"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /loyalty/rewards:
+    get:
+      summary: List reward options
+      parameters:
+        - name: includeInactive
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Reward options
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rewards]
+                properties:
+                  rewards:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RewardOption"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create a reward option
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RewardOptionInput"
+      responses:
+        "201":
+          description: Reward option created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RewardOption"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /loyalty/rewards/{rewardId}:
+    parameters:
+      - name: rewardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      summary: Update or retire a reward option
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RewardOptionUpdate"
+      responses:
+        "200":
+          description: Reward option updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RewardOption"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /orders:
+    post:
+      summary: Create an order with optional loyalty association and rewards
+      description: Loyalty association, reward debits, order, and beverage snapshots are committed atomically.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderWithLoyaltyRequest"
+      responses:
+        "201":
+          description: Order created with loyalty details when selected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithLoyalty"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Insufficient current points, inactive customer or reward, stale target, or concurrent redemption conflict
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: staff_session
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Unauthorized:
+      description: Staff authorization required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+  schemas:
+    LoyaltyCustomerStatus:
+      type: string
+      enum: [active, inactive]
+    LoyaltyCustomer:
+      type: object
+      required: [id, name, phone, status, enrolledAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phone:
+          type: string
+          description: Staff-facing display value; canonical identity is not exposed.
+        email:
+          anyOf:
+            - type: string
+              format: email
+            - type: "null"
+        status:
+          $ref: "#/components/schemas/LoyaltyCustomerStatus"
+        enrolledAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    LoyaltyCustomerInput:
+      type: object
+      required: [name, phone]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 40
+        email:
+          anyOf:
+            - type: string
+              format: email
+              maxLength: 254
+            - type: "null"
+    LoyaltyCustomerUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 40
+        email:
+          anyOf:
+            - type: string
+              format: email
+              maxLength: 254
+            - type: "null"
+        status:
+          $ref: "#/components/schemas/LoyaltyCustomerStatus"
+    PointEventType:
+      type: string
+      enum: [earned, redeemed, returned, expired, adjusted]
+    PointSummary:
+      type: object
+      required:
+        [available, lifetimeEarned, redeemed, returned, expired, adjusted]
+      properties:
+        available:
+          type: integer
+          minimum: 0
+        lifetimeEarned:
+          type: integer
+          minimum: 0
+        redeemed:
+          type: integer
+          minimum: 0
+        returned:
+          type: integer
+          minimum: 0
+        expired:
+          type: integer
+          minimum: 0
+        adjusted:
+          type: integer
+    PointHistoryEntry:
+      type: object
+      required: [id, eventType, pointsDelta, reason, occurredAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          $ref: "#/components/schemas/PointEventType"
+        pointsDelta:
+          type: integer
+        reason:
+          type: string
+        businessDate:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        expirationBusinessDate:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        orderId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        orderLabel:
+          anyOf:
+            - type: string
+            - type: "null"
+          description: Staff label built from business date and daily order number.
+        rewardName:
+          anyOf:
+            - type: string
+            - type: "null"
+        occurredAt:
+          type: string
+          format: date-time
+    LoyaltyPointsResponse:
+      type: object
+      required: [customer, asOfBusinessDate, summary, history]
+      properties:
+        customer:
+          $ref: "#/components/schemas/LoyaltyCustomer"
+        asOfBusinessDate:
+          type: string
+          format: date
+        summary:
+          $ref: "#/components/schemas/PointSummary"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/PointHistoryEntry"
+    EarningType:
+      type: string
+      enum: [purchase_amount, beverage_count]
+    EarningRuleInput:
+      type: object
+      required: [earningType, pointsAwarded]
+      properties:
+        earningType:
+          $ref: "#/components/schemas/EarningType"
+        amountThreshold:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+        beverageCountThreshold:
+          type: integer
+          minimum: 1
+        pointsAwarded:
+          type: integer
+          minimum: 1
+      description: Exactly one threshold must match earningType.
+    EarningRule:
+      allOf:
+        - $ref: "#/components/schemas/EarningRuleInput"
+        - type: object
+          required: [id, active, effectiveAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            active:
+              type: boolean
+            effectiveAt:
+              type: string
+              format: date-time
+    ExpirationPolicyInput:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+        expirationMonths:
+          type: integer
+          minimum: 1
+      description: expirationMonths is required only when enabled.
+    ExpirationPolicy:
+      allOf:
+        - $ref: "#/components/schemas/ExpirationPolicyInput"
+        - type: object
+          required: [id, active, effectiveAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            active:
+              type: boolean
+            effectiveAt:
+              type: string
+              format: date-time
+    RewardBenefitType:
+      type: string
+      enum: [free_beverage, size_upgrade]
+    RewardOptionInput:
+      type: object
+      required: [name, pointsCost, benefitType, benefitDescription]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        pointsCost:
+          type: integer
+          minimum: 1
+        benefitType:
+          $ref: "#/components/schemas/RewardBenefitType"
+        benefitDescription:
+          type: string
+          minLength: 1
+          maxLength: 500
+        active:
+          type: boolean
+          default: true
+    RewardOptionUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        pointsCost:
+          type: integer
+          minimum: 1
+        benefitDescription:
+          type: string
+          minLength: 1
+          maxLength: 500
+        active:
+          type: boolean
+    RewardOption:
+      allOf:
+        - $ref: "#/components/schemas/RewardOptionInput"
+        - type: object
+          required: [id, effectiveAt, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            effectiveAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    RewardSelection:
+      type: object
+      required: [rewardOptionId, targetBeverageIndex]
+      properties:
+        rewardOptionId:
+          type: string
+          format: uuid
+        targetBeverageIndex:
+          type: integer
+          minimum: 0
+          description: Zero-based index into the request beverages array.
+        targetCustomizationChoiceId:
+          type: string
+          format: uuid
+          description: Required for size_upgrade and must be selected on the target beverage.
+    SelectedCustomization:
+      type: object
+      required: [customizationGroupId, customizationChoiceIds]
+      properties:
+        customizationGroupId:
+          type: string
+          format: uuid
+        customizationChoiceIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+    CreateOrderBeverage:
+      type: object
+      required: [menuItemId, quantity]
+      properties:
+        menuItemId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        selectedCustomizations:
+          type: array
+          items:
+            $ref: "#/components/schemas/SelectedCustomization"
+        specialInstructions:
+          type: string
+          maxLength: 500
+    CreateOrderWithLoyaltyRequest:
+      type: object
+      required: [beverages]
+      properties:
+        pickupName:
+          type: string
+          maxLength: 120
+        beverages:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreateOrderBeverage"
+        loyalty:
+          type: object
+          required: [customerId]
+          properties:
+            customerId:
+              type: string
+              format: uuid
+            rewards:
+              type: array
+              items:
+                $ref: "#/components/schemas/RewardSelection"
+    AppliedReward:
+      type: object
+      required:
+        [
+          id,
+          name,
+          pointsCost,
+          benefitType,
+          targetDescription,
+          coveredAmount,
+          status,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        pointsCost:
+          type: integer
+        benefitType:
+          $ref: "#/components/schemas/RewardBenefitType"
+        targetDescription:
+          type: string
+        coveredAmount:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+        status:
+          type: string
+          enum: [active, returned]
+    OrderWithLoyalty:
+      type: object
+      required:
+        [
+          id,
+          businessDate,
+          dailyOrderNumber,
+          status,
+          total,
+          loyaltyRewardDiscountTotal,
+          payableTotal,
+          beverages,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        businessDate:
+          type: string
+          format: date
+        dailyOrderNumber:
+          type: integer
+        status:
+          type: string
+          enum: [created, queued, in_progress, completed, picked_up, cancelled]
+        total:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+        loyaltyRewardDiscountTotal:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+        payableTotal:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+        beverages:
+          type: array
+          items:
+            type: object
+        loyalty:
+          anyOf:
+            - type: object
+              required: [customer, rewards]
+              properties:
+                customer:
+                  $ref: "#/components/schemas/LoyaltyCustomer"
+                rewards:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/AppliedReward"
+            - type: "null"
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details: {}

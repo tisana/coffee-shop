@@ -5,7 +5,13 @@
 **Status**: Draft  
 **Input**: User description: "I want to have royalty program so I can retain customer and let them come back to the shop again. Loyalty program would need customer to register their name and phone number as primary identity. Phone number can be edit and change later but it must be unique per customer. Email address will be optional. Reward should be configurable such as rating how much amount customer need to buy to earn 1 point. Eg. $10 to 1 point. Or it can be per beverage. Redeem point must be configurable as well. Eg. 10 point can redeem 1 beverage, 5 point can get a size upgrade. Point expiration is another configurable needed."
 
-## User Scenarios & Testing *(mandatory)*
+## Clarifications
+
+### Session 2026-07-10
+
+- Q: Should point expiration use a rolling duration from each earning date, a calendar-month cutoff, or support both modes? → A: Use a configurable calendar-month cutoff.
+
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Register and identify loyalty customers (Priority: P1)
 
@@ -63,12 +69,12 @@ Authorized staff can configure whether points expire and, when expiration is ena
 
 **Why this priority**: Expiration is important for program cost control, but customer registration, earning, and redemption can deliver value first.
 
-**Independent Test**: Can be fully tested by enabling an expiration period, awarding points on different dates, and confirming expired points are excluded from redemption while remaining visible in customer history.
+**Independent Test**: Can be fully tested by enabling a calendar-month expiration period, awarding points in different months, and confirming each month's points expire after the configured future month while remaining visible in customer history.
 
 **Acceptance Scenarios**:
 
 1. **Given** point expiration is disabled, **When** a customer earns points, **Then** those points remain available until redeemed or adjusted.
-2. **Given** point expiration is configured as 90 days from earning, **When** a customer has points older than 90 days, **Then** those points are no longer redeemable.
+2. **Given** point expiration is configured as 3 calendar months after the earning month, **When** points earned during July reach the end of the October 31 shop business day, **Then** those points expire and are no longer redeemable.
 3. **Given** a customer has both expired and available points, **When** staff view the loyalty account, **Then** the account clearly separates available, redeemed, and expired points.
 
 ---
@@ -81,9 +87,10 @@ Authorized staff can configure whether points expire and, when expiration is ena
 - If the active earning rule changes, past point ledger entries keep their original earned amounts while future eligible orders use the new rule.
 - If a reward option changes or is retired, past redemptions remain visible in customer history while future redemptions use only currently available reward options.
 - If points expire after staff open a customer profile but before redemption is completed, redemption must use the latest available balance.
+- Points remain redeemable through the final shop business day of their configured expiration month and become expired after that business day ends.
 - Staff need a clear explanation when a customer cannot earn points, cannot redeem a reward, or has no available points.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -102,22 +109,22 @@ Authorized staff can configure whether points expire and, when expiration is ena
 - **FR-013**: System MUST prevent redemption when the customer does not have enough available unexpired points.
 - **FR-014**: System MUST deduct points when a reward is redeemed and show the redeemed reward on the associated order.
 - **FR-015**: System MUST return redeemed points when the associated order or reward benefit is cancelled before the customer receives it.
-- **FR-016**: System MUST allow authorized staff to configure point expiration as disabled or as a duration from the date points are earned.
+- **FR-016**: System MUST allow authorized staff to configure point expiration as disabled or as a number of calendar months after the month in which points are earned; points earned in the same calendar month MUST share an expiration cutoff after the final shop business day of the configured future month.
 - **FR-017**: System MUST exclude expired points from the customer's available redeemable balance.
 - **FR-018**: System MUST show available, redeemed, expired, returned, and lifetime earned point totals for a loyalty customer.
 - **FR-019**: System MUST keep historical earning and redemption records understandable after customer information, earning rules, reward options, or expiration settings change.
 - **FR-020**: System MUST keep loyalty actions available only to authorized staff users.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Loyalty Customer**: A registered customer identity for the program. Key attributes include customer name, unique phone number, optional email address, enrollment date, current status, and point summary.
 - **Earning Rule**: The active configuration that determines how eligible purchases earn points. Key attributes include earning type, amount threshold or beverage count threshold, point amount earned, effective date, and active status.
 - **Reward Option**: A configurable redemption choice. Key attributes include reward name, point cost, reward benefit, availability status, and effective date.
 - **Point Ledger Entry**: An immutable customer point event. Key attributes include customer, point amount, event type, reason, associated order or reward when applicable, earned date, expiration date when applicable, and event date.
 - **Loyalty Order Association**: The connection between a shop order and a loyalty customer, including earned points and redeemed rewards tied to that order.
-- **Expiration Policy**: The active rule for whether earned points expire and the duration used to calculate expiration when enabled.
+- **Expiration Policy**: The active rule for whether earned points expire and, when enabled, the number of calendar months after the earning month used to determine the shared month-end expiration cutoff.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
