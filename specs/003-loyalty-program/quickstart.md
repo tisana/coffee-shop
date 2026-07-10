@@ -8,6 +8,7 @@ This guide validates the loyalty program end to end after implementation.
 - Docker available for local PostgreSQL
 - Repository root: `D:\dev\workspaces\coffee-shop`
 - `SHOP_TIME_ZONE` set to the shop's operating time zone when it is not UTC
+- `SHOP_PHONE_REGION` set to the shop's ISO 3166-1 alpha-2 phone region, such as `TH`
 
 ## Local Setup
 
@@ -38,16 +39,18 @@ Expected outcomes:
 
 ## Customer Identity
 
-1. Register a customer with a name and formatted phone such as `+66 81-234-5678`; leave email empty.
-2. Search using the same digits without punctuation and confirm the customer appears within 15 seconds.
-3. Attempt to register another customer with the same digits in a different display format.
+1. With `SHOP_PHONE_REGION=TH`, register a customer with a name and a valid local phone such as `081-234-5678`; leave email empty.
+2. Search using the equivalent `+66 81-234-5678` international form and confirm the customer appears within 15 seconds.
+3. Attempt to register another customer using the equivalent `0066 81-234-5678` international-dial-prefix form.
 4. Edit the original customer to a new unused phone and optional email.
 5. Attempt to change the phone to one already used by another customer.
+6. Attempt registration with an invalid phone for the configured region.
 
 Expected outcomes:
 
 - Registration completes within 45 seconds without email.
-- Formatting differences do not create a duplicate normalized phone.
+- Equivalent local, international, and international-dial-prefix forms normalize to one E.164 identity and cannot create duplicates.
+- Invalid phone input is rejected before uniqueness is evaluated.
 - Duplicate create and update attempts return a clear conflict and preserve existing data.
 - The original account ID and point history survive profile edits.
 
@@ -85,20 +88,22 @@ Use a seeded/test customer with enough unexpired points for this flow.
 
 1. Select the customer on `Counter Order` and add a beverage.
 2. Apply the 10-point free-beverage reward to one beverage unit.
-3. Confirm the order summary shows the reward, point cost, gross total, reward coverage, and payable total.
+3. Confirm the reward covers that complete unit including selected customizations and the order summary shows the reward, point cost, gross total, reward coverage, and payable total.
 4. Create and queue the order.
 5. Confirm the customer's available balance decreases by 10 points and the redemption appears in history.
-6. Cancel the reward-targeted beverage or fully cancel the order before pickup.
+6. Cancel only the reward before pickup and confirm the beverage and order remain active.
+7. On separate orders, cancel the reward-targeted beverage and fully cancel the order before pickup.
 
 Expected outcomes:
 
 - Redemption is blocked when the latest balance has fewer than 10 available points.
 - Two concurrent redemptions cannot spend the same points.
 - Earliest-expiring credits are consumed first.
-- Cancellation returns the consumed points once with their original expiration cutoff.
+- A second reward cannot be stacked on the same beverage unit.
+- Standalone reward, target-beverage, and full-order cancellation each return consumed points once with their original expiration cutoff.
 - Returned rewards no longer reduce the order's active payable amount or sales value.
 
-Repeat with the 5-point size-upgrade reward on a selected positive-price size customization. Confirm the reward covers only that selected adjustment and the beverage remains eligible for beverage-count earning.
+Repeat with the 5-point size-upgrade reward on a selected positive-price size customization. Confirm the reward covers only that selected adjustment, the beverage remains eligible for beverage-count earning, and changing the option's benefit type requires retirement and replacement.
 
 ## Calendar-Month Expiration
 
@@ -130,14 +135,14 @@ npm run test --workspace @coffee-shop/api -- loyalty-redemption-concurrency.test
 
 The tests must cover:
 
-- normalized-phone uniqueness on create and update, including a database race
+- E.164 phone validation and local/international equivalence using `SHOP_PHONE_REGION`, including a database uniqueness race
 - rule versioning and amount/beverage calculations
 - calendar-month cutoff calculations in the shop time zone
-- earliest-expiring allocation, insufficient points, return, and expiration
+- earliest-expiring allocation, insufficient points, standalone reward return, beverage/order return, and expiration
 - idempotent earning, reversal, redemption return, and expiration
 - full and beverage-level cancellation integration
 - staff authorization and request validation for every loyalty endpoint
-- reward coverage in payable totals, earning basis, and sales reports
+- non-stackable free-beverage and size-upgrade coverage in payable totals, earning basis, and sales reports
 
 ## Staff Web Checks
 
@@ -153,6 +158,7 @@ The UI checks must confirm:
 - earning, reward, and expiration configuration controls
 - counter customer selection and clearing
 - reward availability based on the latest balance and valid beverage target
+- standalone reward cancellation before pickup without cancelling the beverage or order
 - gross, covered, and payable values remain readable in the order summary
 - loading, empty, validation, conflict, and stale-balance states do not overlap or shift core controls
 - timed enrollment, lookup, configuration, and redemption goals from the specification
