@@ -9,9 +9,8 @@ Represents one customer identity enrolled by staff.
 - `id`: UUID primary key
 - `name`: required display name, 1-120 characters
 - `phoneDisplay`: required staff-entered phone, 1-40 characters
-- `phoneNormalized`: required digits-only canonical phone
+- `phoneNormalized`: required E.164 phone produced with the configured shop region
 - `email`: optional trimmed email, maximum 254 characters
-- `status`: `active` or `inactive`
 - `enrolledAt`, `updatedAt`: timestamps
 
 **Relationships**
@@ -21,10 +20,10 @@ Represents one customer identity enrolled by staff.
 
 **Rules**
 
-- `phoneNormalized` is unique at the database level.
-- Create, update, and phone search use the same normalizer.
+- `phoneNormalized` is unique at the database level and contains a valid E.164 value.
+- Create, update, and phone search use `libphonenumber-js` with `SHOP_PHONE_REGION`; invalid numbers are rejected before uniqueness checks.
 - Editing name, phone, or email never changes `id` or historical relationships.
-- Inactive customers remain searchable for history but cannot be attached to a new order.
+- Customer activation, deactivation, and deletion are outside this increment.
 
 ## Earning Rule
 
@@ -103,8 +102,10 @@ Represents a staff-configured reward available for redemption.
 
 - Retired options cannot be newly redeemed.
 - Editing or retiring an option does not change redemption snapshots.
-- A free beverage covers one unit of one target order beverage.
-- A size upgrade covers one selected positive customization price adjustment on the target beverage.
+- `benefitType` is immutable; changing it requires retiring the option and creating another.
+- A free beverage covers one complete unit of one target order beverage, including selected customizations.
+- A size upgrade covers one selected positive-price size adjustment on the target beverage.
+- Active rewards cannot exceed the target beverage quantity, so one beverage unit never receives stacked rewards.
 
 ## Loyalty Order Association
 
@@ -125,7 +126,7 @@ Connects at most one loyalty customer to one shop order.
 **Rules**
 
 - One order can have zero or one loyalty customer.
-- The association is created atomically with the order in this increment.
+- Staff select the customer before submitting the counter order; the association is created atomically with the order and cannot be added, replaced, or removed afterward in this increment.
 - Order history displays the existing `businessDate + dailyOrderNumber` identity.
 
 ## Reward Redemption
@@ -161,7 +162,9 @@ Snapshots a configured benefit applied to an order.
 - The reward option must be active when redemption occurs.
 - The target beverage must be part of the same order and not cancelled.
 - The covered amount is computed from the purchased snapshot, not later menu values.
-- Cancelling the target beverage or order changes an active redemption to returned exactly once and appends returned point events.
+- A free-beverage covered amount is one complete unit price including selected customizations; a size-upgrade covered amount is one selected positive-price adjustment.
+- Active redemptions targeting one beverage row cannot exceed its quantity.
+- Before pickup, staff may cancel an active redemption without cancelling the beverage or order; cancelling the redemption, target beverage, or order changes it to returned exactly once, removes active coverage, and appends returned point events using the original expiration buckets.
 
 ## Point Ledger Entry
 
@@ -245,7 +248,7 @@ Extends the existing order value without replacing purchased snapshots.
 
 ### Registration and phone update
 
-1. Normalize the submitted phone.
+1. Validate and normalize the submitted phone to E.164 with `libphonenumber-js` and `SHOP_PHONE_REGION`.
 2. Insert or update the customer.
 3. Let the database unique index resolve any concurrent duplicate as a conflict.
 4. Preserve the same customer ID and all history on update.
@@ -258,6 +261,14 @@ Extends the existing order value without replacing purchased snapshots.
 4. Confirm available points cover all selected rewards.
 5. Insert order, beverage snapshots, association, redemption snapshots, ledger debits, and allocations in one transaction.
 6. Return order loyalty details and payable total.
+
+### Standalone reward cancellation
+
+1. Lock the order and associated loyalty customer.
+2. Confirm the redemption belongs to the order, is active, and the order has not been picked up or cancelled.
+3. Mark the redemption returned and remove its amount from active loyalty reward coverage.
+4. Append returned credit entries for the original redemption allocations, preserving each expiration date.
+5. Commit once and return the updated order; retries cannot issue points twice.
 
 ### Order completion
 

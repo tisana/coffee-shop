@@ -274,7 +274,7 @@ paths:
   /orders:
     post:
       summary: Create an order with optional loyalty association and rewards
-      description: Loyalty association, reward debits, order, and beverage snapshots are committed atomically.
+      description: Loyalty association, reward debits, order, and beverage snapshots are committed atomically. The selected customer cannot be added or changed after creation in this increment.
       requestBody:
         required: true
         content:
@@ -293,7 +293,40 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
-          description: Insufficient current points, inactive customer or reward, stale target, or concurrent redemption conflict
+          description: Insufficient current points, unavailable reward, stacked target, stale target, or concurrent redemption conflict
+
+  /orders/{orderId}/loyalty-rewards/{redemptionId}/cancel:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: redemptionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Cancel only an active loyalty reward before pickup
+      description: Leaves the beverage and order active, removes reward coverage, and returns consumed points once with their original expiration dates.
+      responses:
+        "200":
+          description: Updated order with the reward marked returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithLoyalty"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Reward does not belong to the order, is already returned, or the order was picked up or cancelled
 
 components:
   securitySchemes:
@@ -329,12 +362,9 @@ components:
           schema:
             $ref: "#/components/schemas/ApiError"
   schemas:
-    LoyaltyCustomerStatus:
-      type: string
-      enum: [active, inactive]
     LoyaltyCustomer:
       type: object
-      required: [id, name, phone, status, enrolledAt, updatedAt]
+      required: [id, name, phone, enrolledAt, updatedAt]
       properties:
         id:
           type: string
@@ -343,14 +373,12 @@ components:
           type: string
         phone:
           type: string
-          description: Staff-facing display value; canonical identity is not exposed.
+          description: Staff-facing display value; the E.164 identity normalized with SHOP_PHONE_REGION is not exposed.
         email:
           anyOf:
             - type: string
               format: email
             - type: "null"
-        status:
-          $ref: "#/components/schemas/LoyaltyCustomerStatus"
         enrolledAt:
           type: string
           format: date-time
@@ -369,6 +397,7 @@ components:
           type: string
           minLength: 1
           maxLength: 40
+          description: Valid local or international phone interpreted with SHOP_PHONE_REGION and normalized to E.164.
         email:
           anyOf:
             - type: string
@@ -387,14 +416,13 @@ components:
           type: string
           minLength: 1
           maxLength: 40
+          description: Valid local or international phone interpreted with SHOP_PHONE_REGION and normalized to E.164.
         email:
           anyOf:
             - type: string
               format: email
               maxLength: 254
             - type: "null"
-        status:
-          $ref: "#/components/schemas/LoyaltyCustomerStatus"
     PointEventType:
       type: string
       enum: [earned, redeemed, returned, expired, adjusted]
@@ -535,6 +563,7 @@ components:
     RewardBenefitType:
       type: string
       enum: [free_beverage, size_upgrade]
+      description: free_beverage covers one complete unit including selected customizations; size_upgrade covers one selected positive-price size adjustment. Benefit type is immutable after creation.
     RewardOptionInput:
       type: object
       required: [name, pointsCost, benefitType, benefitDescription]
@@ -558,6 +587,7 @@ components:
     RewardOptionUpdate:
       type: object
       minProperties: 1
+      description: benefitType is intentionally immutable and cannot be updated.
       properties:
         name:
           type: string
@@ -590,6 +620,7 @@ components:
     RewardSelection:
       type: object
       required: [rewardOptionId, targetBeverageIndex]
+      description: Applies to one beverage unit. Active reward selections cannot exceed the target beverage quantity, preventing stacking on one unit.
       properties:
         rewardOptionId:
           type: string
@@ -601,7 +632,7 @@ components:
         targetCustomizationChoiceId:
           type: string
           format: uuid
-          description: Required for size_upgrade and must be selected on the target beverage.
+          description: Required for size_upgrade and must identify the selected positive-price size adjustment on the target beverage.
     SelectedCustomization:
       type: object
       required: [customizationGroupId, customizationChoiceIds]

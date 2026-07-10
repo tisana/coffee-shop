@@ -10,15 +10,25 @@
 - Put every loyalty control on the counter page. Rejected because configuration and full point history would make the service-time order surface too dense.
 - Hide loyalty under Reports or Menu. Rejected because customer accounts and program rules are operational records, not reporting or menu maintenance.
 
-## Decision: Normalize phone identity in the API and enforce it in PostgreSQL
+## Decision: Normalize phone identity to E.164 with a configured shop region
 
-**Rationale**: Store the staff-entered phone for display and a `phoneNormalized` value containing digits only for lookup and uniqueness. Formatting characters and a leading plus therefore do not create duplicates. The API uses one normalizer for create, update, and search, while a database unique index closes concurrency races. The first increment does not infer a country code, because the shop's numbering region is not specified and guessing could merge different customers.
+**Rationale**: Require `SHOP_PHONE_REGION` and use `libphonenumber-js` in the API to validate local, international, and international-dial-prefix input and normalize it to E.164. Store the staff-entered phone for display and the E.164 value for lookup and uniqueness. The API uses one normalizer for create, update, and search, while a database unique index closes concurrency races. This makes values such as a valid local number, its `+` country-code form, and its `00` dialing form one customer identity without hard-coding regional numbering rules.
 
 **Alternatives considered**:
 
 - Enforce uniqueness on the display string. Rejected because spaces, parentheses, dashes, and plus signs would bypass uniqueness.
 - Rely only on an API pre-check. Rejected because concurrent requests can both pass before either insert commits.
-- Add a phone-number parsing dependency and default region. Rejected because a correct region is unavailable and the current requirement only needs common formatting normalization.
+- Strip punctuation or implement regional prefix rules manually. Rejected because punctuation-only normalization misses equivalent national/international forms and custom phone parsing is error-prone.
+- Infer the region from the server or user locale. Rejected because deployment locale is not a reliable shop identity rule; the shop must configure it explicitly.
+
+## Decision: Create the customer association only with a new order
+
+**Rationale**: Staff select at most one registered customer while composing a counter order. The association is inserted atomically with order creation and remains immutable afterward. This matches the current create-and-queue counter flow, gives earning and redemption one stable customer boundary, and avoids post-creation reassignment of already-earned or redeemed events.
+
+**Alternatives considered**:
+
+- Attach or replace a customer until completion. Rejected for this increment because it introduces reassignment, audit, stale-balance, and reward-ownership rules beyond the requested counter flow.
+- Add a customer after completion. Rejected because it could retroactively change earning eligibility and applied rule timing.
 
 ## Decision: Version earning and expiration configuration
 
@@ -58,7 +68,7 @@ This model supports exact available, redeemed, returned, expired, adjusted, and 
 
 **Rationale**: The specification's earning scenario awards points when an eligible order completes, while the existing state machine still permits cancellation from `completed` before pickup. `completeOrder` therefore posts earning in the same transaction as the successful status transition. A later full cancellation appends an adjusted reversal of the earned points and returns any active redemption points. Unique order-source constraints prevent duplicate earning or reversal.
 
-Cancelled beverages are excluded when the earning basis is calculated. If a reward-targeted beverage is cancelled before completion, that redemption is returned immediately so the customer does not lose points for an undelivered benefit.
+Cancelled beverages are excluded when the earning basis is calculated. If a reward-targeted beverage is cancelled before completion, that redemption is returned immediately so the customer does not lose points for an undelivered benefit. Staff may also cancel only an active reward before pickup without cancelling its beverage or order; the same return service removes coverage and restores the original expiration buckets exactly once.
 
 **Alternatives considered**:
 
@@ -68,15 +78,25 @@ Cancelled beverages are excluded when the earning basis is calculated. If a rewa
 
 ## Decision: Apply rewards atomically during order creation
 
-**Rationale**: Extend `CreateOrderRequest` with an optional loyalty customer and reward selections. Each selection names a reward option and target draft beverage index; size-upgrade rewards also name the selected customization choice being covered. The order service validates the customer, active reward, target, and balance, then inserts the order, beverage snapshots, customer association, redemption snapshots, ledger debits, and allocations in one transaction. A failed redemption therefore cannot leave a partially created order.
+**Rationale**: Extend `CreateOrderRequest` with an optional loyalty customer and reward selections. Each selection names a reward option and target draft beverage index; size-upgrade rewards also name the selected customization choice being covered. The order service validates the customer, active reward, target, one-reward-per-unit rule, and balance, then inserts the order, beverage snapshots, customer association, redemption snapshots, ledger debits, and allocations in one transaction. A failed redemption therefore cannot leave a partially created order.
 
-Free-beverage rewards cover one unit of the target beverage. Size-upgrade rewards cover the selected positive price adjustment. Each redemption snapshots the reward label, point cost, benefit type, target description, and covered amount so later menu or reward edits do not alter the order.
+The first increment supports exactly two immutable benefit types. A free-beverage reward covers one complete unit of the target beverage, including selected customizations. A size-upgrade reward covers one selected positive-price size adjustment and leaves the beverage eligible for beverage-count earning. Rewards do not stack on one beverage unit. Each redemption snapshots the reward label, point cost, benefit type, target description, and covered amount so later menu or reward edits do not alter the order. Changing benefit type requires retiring the option and creating another.
 
 **Alternatives considered**:
 
 - Redeem after the order has already queued. Rejected because failure would require staff to unwind an accepted order and the benefit might not be visible to brewing staff.
 - Store only a textual reward note. Rejected because earning and sales calculations need the covered amount and target.
+- Stack multiple rewards on one beverage unit. Rejected because overlapping monetary coverage and point-return ordering add ambiguity without a current business requirement.
 - Add a generalized discount engine. Rejected because the current scope contains only two loyalty benefit types and excludes unrelated discounts and coupons.
+
+## Decision: Cancel active rewards through the order-fulfillment boundary
+
+**Rationale**: Add `POST /orders/:orderId/loyalty-rewards/:redemptionId/cancel` under the existing protected order-fulfillment route. Before pickup, it locks the customer and order, validates that the active redemption belongs to that order, marks it returned, removes its active monetary coverage, appends returned credits with the original expiration dates, and returns the updated order. Repeated cancellation is rejected or returns the already-current state without issuing points twice.
+
+**Alternatives considered**:
+
+- Require cancelling the beverage or entire order. Rejected because FR-015 explicitly allows the reward benefit itself to be cancelled.
+- Delete the redemption and debit rows. Rejected because immutable history must explain both redemption and return.
 
 ## Decision: Preserve gross order value and store loyalty coverage separately
 
