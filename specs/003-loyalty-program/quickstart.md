@@ -175,3 +175,15 @@ git diff --check
 ```
 
 Review the implementation against [data-model.md](./data-model.md) and [contracts/loyalty.openapi.yaml](./contracts/loyalty.openapi.yaml) before marking the feature complete.
+
+## Phase 3 Verification Evidence
+
+On 2026-07-13, the US1 focused checks passed:
+
+```powershell
+npm run test --workspace @coffee-shop/api -- loyaltyCustomerService.test.ts loyalty.customer.contract.test.ts
+npm run test --workspace @coffee-shop/staff-web -- LoyaltyCustomerComponents.test.tsx App.test.tsx
+npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
+```
+
+The API tests verify that `081-234-5678`, `+66 81-234-5678`, and `0066 81-234-5678` normalize to the same E.164 identity and that the duplicate form is rejected. The Playwright registration, international lookup, duplicate, invalid-phone, and edit flow completed in 1.6 seconds, below both the 45-second registration target and the 15-second lookup target.

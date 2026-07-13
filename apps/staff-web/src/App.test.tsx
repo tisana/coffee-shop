@@ -32,6 +32,10 @@ vi.mock("./pages/ReportsPage", () => ({
   ReportsPage: () => <section aria-label="Reports page" />
 }));
 
+vi.mock("./pages/LoyaltyPage", () => ({
+  LoyaltyPage: () => <section aria-label="Loyalty page" />
+}));
+
 vi.mock("./services/authApi", () => ({
   getCurrentSession: vi.fn(),
   logout: vi.fn()
@@ -60,7 +64,7 @@ test("staff shell shows the requested navigation order without an unused top nav
     "History",
     "Menu",
     "Reports",
-    "Customers",
+    "Loyalty",
     "Staff",
     "Inventory",
     "Settings"
@@ -75,4 +79,12 @@ test("staff shell renders ReportsPage from the existing reports sidebar route", 
 
   expect(await screen.findByLabelText("Reports page")).toBeInTheDocument();
   expect(screen.queryByText("Planned")).not.toBeInTheDocument();
+});
+
+test("staff shell renders LoyaltyPage from the existing customer sidebar position", async () => {
+  window.location.hash = "#loyalty";
+
+  render(<App />);
+
+  expect(await screen.findByLabelText("Loyalty page")).toBeInTheDocument();
 });

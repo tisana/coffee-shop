@@ -98,12 +98,17 @@ export async function fulfillLoyaltyApiRoute(
   }
 
   if (path === "/loyalty/customers" && route.request().method() === "POST") {
-    await fulfillJson(route, customer, 201);
+    const input = route.request().postDataJSON() as Partial<LoyaltyCustomer>;
+    await fulfillJson(route, { ...customer, ...input, email: input.email ?? null }, 201);
     return true;
   }
 
   if (path === `/loyalty/customers/${customer.id}`) {
-    await fulfillJson(route, customer);
+    const update =
+      route.request().method() === "PATCH"
+        ? (route.request().postDataJSON() as Partial<LoyaltyCustomer>)
+        : undefined;
+    await fulfillJson(route, update ? { ...customer, ...update } : customer);
     return true;
   }
 
@@ -199,6 +204,14 @@ export async function fulfillCsrfToken(
     body: JSON.stringify({ csrfToken: "test-csrf-token" }),
   });
   return true;
+}
+
+async function fulfillJson(route: Route, body: unknown, status = 200): Promise<void> {
+  await route.fulfill({
+    status,
+    contentType: "application/json",
+    body: JSON.stringify(body)
+  });
 }
 
 function applyRewardReturn(

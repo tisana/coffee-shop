@@ -53,24 +53,24 @@
 
 ### Tests for User Story 1 (write first)
 
-- [ ] T010 [P] [US1] Write failing unit tests for `SHOP_PHONE_REGION`, valid E.164 normalization, equivalent local/international/dial-prefix input, invalid phones, customer creation, search ordering, profile edits, and duplicate conflicts in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
-- [ ] T011 [P] [US1] Write failing authorized and unauthorized contract tests for `GET/POST /loyalty/customers` and `GET/PATCH /loyalty/customers/:customerId` in `apps/api/tests/integration/loyalty.contract.test.ts`
-- [ ] T012 [P] [US1] Write failing component tests for customer search, no-result, registration, duplicate error, selection, profile edit, loading, and optional email states in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
-- [ ] T013 [P] [US1] Write the failing Playwright local-phone registration, international lookup, equivalent dial-prefix duplicate, invalid-phone, and edit journey in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
+- [X] T010 [P] [US1] Write failing unit tests for `SHOP_PHONE_REGION`, valid E.164 normalization, equivalent local/international/dial-prefix input, invalid phones, customer creation, search ordering, profile edits, and duplicate conflicts in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
+- [X] T011 [P] [US1] Write failing authorized and unauthorized contract tests for `GET/POST /loyalty/customers` and `GET/PATCH /loyalty/customers/:customerId` in `apps/api/tests/integration/loyalty.contract.test.ts`
+- [X] T012 [P] [US1] Write failing component tests for customer search, no-result, registration, duplicate error, selection, profile edit, loading, and optional email states in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
+- [X] T013 [P] [US1] Write the failing Playwright local-phone registration, international lookup, equivalent dial-prefix duplicate, invalid-phone, and edit journey in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Add `libphonenumber-js` to `apps/api/package.json` and `package-lock.json`, then implement configured-region E.164 normalization and transactional customer create, search, get, and update operations in `apps/api/src/domain/loyaltyCustomerService.ts`
-- [ ] T015 [US1] Add customer query, create, path, and patch Zod schemas with valid regional phone, email, and pagination validation in `apps/api/src/routes/validators.ts`
-- [ ] T016 [US1] Implement protected customer search, registration, profile, and edit endpoints with duplicate conflict mapping in `apps/api/src/routes/loyaltyRoutes.ts`
-- [ ] T017 [US1] Mount the protected loyalty route group in `apps/api/src/app.ts`
-- [ ] T018 [P] [US1] Implement customer search, registration, profile, and edit client calls in `apps/staff-web/src/services/loyaltyApi.ts`
-- [ ] T019 [US1] Implement debounced phone/name search, quick registration, exact selection, and clear-selection behavior in `apps/staff-web/src/components/LoyaltyCustomerPicker.tsx`
-- [ ] T020 [P] [US1] Implement identity display and editable name, phone, and optional email form states without customer activation controls in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
-- [ ] T021 [US1] Build the customer search, registration, and profile workspace in `apps/staff-web/src/pages/LoyaltyPage.tsx`
-- [ ] T022 [US1] Add the `#loyalty` sidebar entry and route `LoyaltyPage` inside the existing authorized staff shell in `apps/staff-web/src/App.tsx`
-- [ ] T023 [US1] Add compact responsive customer picker, registration, profile, error, loading, and empty-state styles in `apps/staff-web/src/styles.css`
-- [ ] T024 [US1] Run the focused API, component, and Playwright US1 checks and record E.164 equivalence plus the 45-second registration and 15-second lookup evidence in `specs/003-loyalty-program/quickstart.md`
+- [X] T014 [US1] Add `libphonenumber-js` to `apps/api/package.json` and `package-lock.json`, then implement configured-region E.164 normalization and transactional customer create, search, get, and update operations in `apps/api/src/domain/loyaltyCustomerService.ts`
+- [X] T015 [US1] Add customer query, create, path, and patch Zod schemas with valid regional phone, email, and pagination validation in `apps/api/src/routes/validators.ts`
+- [X] T016 [US1] Implement protected customer search, registration, profile, and edit endpoints with duplicate conflict mapping in `apps/api/src/routes/loyaltyRoutes.ts`
+- [X] T017 [US1] Mount the protected loyalty route group in `apps/api/src/app.ts`
+- [X] T018 [P] [US1] Implement customer search, registration, profile, and edit client calls in `apps/staff-web/src/services/loyaltyApi.ts`
+- [X] T019 [US1] Implement debounced phone/name search, quick registration, exact selection, and clear-selection behavior in `apps/staff-web/src/components/LoyaltyCustomerPicker.tsx`
+- [X] T020 [P] [US1] Implement identity display and editable name, phone, and optional email form states without customer activation controls in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
+- [X] T021 [US1] Build the customer search, registration, and profile workspace in `apps/staff-web/src/pages/LoyaltyPage.tsx`
+- [X] T022 [US1] Add the `#loyalty` sidebar entry and route `LoyaltyPage` inside the existing authorized staff shell in `apps/staff-web/src/App.tsx`
+- [X] T023 [US1] Add compact responsive customer picker, registration, profile, error, loading, and empty-state styles in `apps/staff-web/src/styles.css`
+- [X] T024 [US1] Run the focused API, component, and Playwright US1 checks and record E.164 equivalence plus the 45-second registration and 15-second lookup evidence in `specs/003-loyalty-program/quickstart.md`
 
 **Checkpoint**: User Story 1 is a complete staff-only customer identity MVP and is independently demonstrable without earning, rewards, or expiration.
 
