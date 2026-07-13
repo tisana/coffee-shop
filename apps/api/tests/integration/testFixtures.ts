@@ -8,9 +8,17 @@ import { db } from "../../src/storage/db";
 import {
   customizationChoices,
   customizationGroups,
+  loyaltyCustomers,
+  loyaltyEarningRules,
+  loyaltyExpirationPolicies,
+  loyaltyOrderAssociations,
+  loyaltyPointAllocations,
+  loyaltyPointLedgerEntries,
+  loyaltyRewardOptions,
+  loyaltyRewardRedemptions,
   menuCategories,
   menuItems,
-  staffUsers
+  staffUsers,
 } from "../../src/storage/schema";
 
 export interface TestMenuFixture {
@@ -32,7 +40,7 @@ export async function createTestStaff(password = "barista-pass") {
       username: `barista-${suffix}`,
       passwordHash: await hashPassword(password),
       displayName: `Barista ${suffix}`,
-      authorizationStatus: "authorized"
+      authorizationStatus: "authorized",
     })
     .returning();
 
@@ -50,7 +58,7 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
     .values({
       name: `Coffee ${suffix}`,
       displayOrder: 1,
-      active: true
+      active: true,
     })
     .returning();
 
@@ -67,7 +75,7 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
       price: "4.50",
       available: true,
       active: true,
-      displayOrder: 1
+      displayOrder: 1,
     })
     .returning();
 
@@ -84,7 +92,7 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
       minSelections: 1,
       maxSelections: 1,
       displayOrder: 1,
-      active: true
+      active: true,
     })
     .returning();
 
@@ -101,7 +109,7 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
         priceAdjustment: "0.00",
         available: true,
         active: true,
-        displayOrder: 1
+        displayOrder: 1,
       },
       {
         customizationGroupId: group.id,
@@ -109,8 +117,8 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
         priceAdjustment: "0.75",
         available: true,
         active: true,
-        displayOrder: 2
-      }
+        displayOrder: 2,
+      },
     ])
     .returning();
 
@@ -123,7 +131,7 @@ export async function createTestMenuFixture(): Promise<TestMenuFixture> {
     menuItemId: item.id,
     groupId: group.id,
     wholeMilkChoiceId: wholeMilk.id,
-    oatMilkChoiceId: oatMilk.id
+    oatMilkChoiceId: oatMilk.id,
   };
 }
 
@@ -132,8 +140,13 @@ export async function createLoggedInAgent() {
   const agent = request.agent(createApp());
   const csrfResponse = await agent.get("/auth/csrf-token");
 
-  if (csrfResponse.status !== 200 || typeof csrfResponse.body.csrfToken !== "string") {
-    throw new Error(`Test CSRF token request failed with status ${csrfResponse.status}.`);
+  if (
+    csrfResponse.status !== 200 ||
+    typeof csrfResponse.body.csrfToken !== "string"
+  ) {
+    throw new Error(
+      `Test CSRF token request failed with status ${csrfResponse.status}.`,
+    );
   }
 
   const loginResponse = await agent
@@ -141,7 +154,7 @@ export async function createLoggedInAgent() {
     .set("X-CSRF-Token", csrfResponse.body.csrfToken)
     .send({
       username: credentials.staff.username,
-      password: credentials.password
+      password: credentials.password,
     });
 
   if (loginResponse.status !== 204) {
@@ -152,14 +165,34 @@ export async function createLoggedInAgent() {
 
   return {
     agent,
-    staff: credentials.staff
+    staff: credentials.staff,
   };
 }
 
+export async function cleanupLoyaltyFixtureData(): Promise<void> {
+  await db.delete(loyaltyPointAllocations);
+  await db.delete(loyaltyPointLedgerEntries);
+  await db.delete(loyaltyRewardRedemptions);
+  await db.delete(loyaltyOrderAssociations);
+  await db.delete(loyaltyRewardOptions);
+  await db.delete(loyaltyExpirationPolicies);
+  await db.delete(loyaltyEarningRules);
+  await db.delete(loyaltyCustomers);
+}
+
 function attachCsrfToken(agent: LoggedInAgent, csrfToken: string): void {
-  for (const method of ["delete", "patch", "post", "put"] as const satisfies UnsafeAgentMethod[]) {
+  for (const method of [
+    "delete",
+    "patch",
+    "post",
+    "put",
+  ] as const satisfies UnsafeAgentMethod[]) {
     const original = agent[method].bind(agent);
 
-    agent[method] = ((url: string) => original(url).set("X-CSRF-Token", csrfToken)) as LoggedInAgent[typeof method];
+    agent[method] = ((url: string) =>
+      original(url).set(
+        "X-CSRF-Token",
+        csrfToken,
+      )) as LoggedInAgent[typeof method];
   }
 }

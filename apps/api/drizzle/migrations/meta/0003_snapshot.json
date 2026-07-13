@@ -1,0 +1,2312 @@
+{
+  "id": "9363e956-e086-432b-9637-9a27d5404357",
+  "prevId": "35a6a372-a13e-4dbf-91cf-4d7721072f81",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.customization_choices": {
+      "name": "customization_choices",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "customization_group_id": {
+          "name": "customization_group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_adjustment": {
+          "name": "price_adjustment",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
+        },
+        "available": {
+          "name": "available",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "customization_choices_group_id_idx": {
+          "name": "customization_choices_group_id_idx",
+          "columns": [
+            {
+              "expression": "customization_group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "customization_choices_customization_group_id_customization_groups_id_fk": {
+          "name": "customization_choices_customization_group_id_customization_groups_id_fk",
+          "tableFrom": "customization_choices",
+          "tableTo": "customization_groups",
+          "columnsFrom": [
+            "customization_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.customization_groups": {
+      "name": "customization_groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "menu_item_id": {
+          "name": "menu_item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "required": {
+          "name": "required",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "min_selections": {
+          "name": "min_selections",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "max_selections": {
+          "name": "max_selections",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "customization_groups_menu_item_id_idx": {
+          "name": "customization_groups_menu_item_id_idx",
+          "columns": [
+            {
+              "expression": "menu_item_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "customization_groups_menu_item_id_menu_items_id_fk": {
+          "name": "customization_groups_menu_item_id_menu_items_id_fk",
+          "tableFrom": "customization_groups",
+          "tableTo": "menu_items",
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "customization_groups_selection_bounds": {
+          "name": "customization_groups_selection_bounds",
+          "value": "\"customization_groups\".\"min_selections\" >= 0 AND \"customization_groups\".\"max_selections\" >= \"customization_groups\".\"min_selections\" AND (\"customization_groups\".\"required\" OR \"customization_groups\".\"min_selections\" = 0)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.daily_order_sequences": {
+      "name": "daily_order_sequences",
+      "schema": "",
+      "columns": {
+        "business_date": {
+          "name": "business_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_issued_number": {
+          "name": "last_issued_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "daily_order_sequences_business_date_pk": {
+          "name": "daily_order_sequences_business_date_pk",
+          "columns": [
+            "business_date"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.loyalty_customers": {
+      "name": "loyalty_customers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_display": {
+          "name": "phone_display",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_normalized": {
+          "name": "phone_normalized",
+          "type": "varchar(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(254)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enrolled_at": {
+          "name": "enrolled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "loyalty_customers_phone_normalized_unique": {
+          "name": "loyalty_customers_phone_normalized_unique",
+          "columns": [
+            {
+              "expression": "phone_normalized",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_customers_name_idx": {
+          "name": "loyalty_customers_name_idx",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_customers_phone_normalized_e164": {
+          "name": "loyalty_customers_phone_normalized_e164",
+          "value": "\"loyalty_customers\".\"phone_normalized\" ~ '^\\+[1-9][0-9]{1,14}$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.loyalty_earning_rules": {
+      "name": "loyalty_earning_rules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "earning_type": {
+          "name": "earning_type",
+          "type": "loyalty_earning_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_threshold": {
+          "name": "amount_threshold",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "beverage_count_threshold": {
+          "name": "beverage_count_threshold",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "points_awarded": {
+          "name": "points_awarded",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "effective_at": {
+          "name": "effective_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "retired_at": {
+          "name": "retired_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by_staff_id": {
+          "name": "created_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "loyalty_earning_rules_one_active_unique": {
+          "name": "loyalty_earning_rules_one_active_unique",
+          "columns": [
+            {
+              "expression": "active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"loyalty_earning_rules\".\"active\" = true",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_earning_rules_active_idx": {
+          "name": "loyalty_earning_rules_active_idx",
+          "columns": [
+            {
+              "expression": "active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_earning_rules_created_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_earning_rules_created_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_earning_rules",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "created_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_earning_rules_positive_points": {
+          "name": "loyalty_earning_rules_positive_points",
+          "value": "\"loyalty_earning_rules\".\"points_awarded\" > 0"
+        },
+        "loyalty_earning_rules_threshold_matches_type": {
+          "name": "loyalty_earning_rules_threshold_matches_type",
+          "value": "(\n      \"loyalty_earning_rules\".\"earning_type\" = 'purchase_amount'\n      AND \"loyalty_earning_rules\".\"amount_threshold\" IS NOT NULL\n      AND \"loyalty_earning_rules\".\"amount_threshold\" > 0\n      AND \"loyalty_earning_rules\".\"beverage_count_threshold\" IS NULL\n    ) OR (\n      \"loyalty_earning_rules\".\"earning_type\" = 'beverage_count'\n      AND \"loyalty_earning_rules\".\"amount_threshold\" IS NULL\n      AND \"loyalty_earning_rules\".\"beverage_count_threshold\" IS NOT NULL\n      AND \"loyalty_earning_rules\".\"beverage_count_threshold\" > 0\n    )"
+        },
+        "loyalty_earning_rules_active_not_retired": {
+          "name": "loyalty_earning_rules_active_not_retired",
+          "value": "NOT \"loyalty_earning_rules\".\"active\" OR \"loyalty_earning_rules\".\"retired_at\" IS NULL"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.loyalty_expiration_policies": {
+      "name": "loyalty_expiration_policies",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expiration_months": {
+          "name": "expiration_months",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "effective_at": {
+          "name": "effective_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "retired_at": {
+          "name": "retired_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by_staff_id": {
+          "name": "created_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "loyalty_expiration_policies_one_active_unique": {
+          "name": "loyalty_expiration_policies_one_active_unique",
+          "columns": [
+            {
+              "expression": "active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"loyalty_expiration_policies\".\"active\" = true",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_expiration_policies_active_idx": {
+          "name": "loyalty_expiration_policies_active_idx",
+          "columns": [
+            {
+              "expression": "active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_expiration_policies_created_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_expiration_policies_created_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_expiration_policies",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "created_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_expiration_policies_enabled_months": {
+          "name": "loyalty_expiration_policies_enabled_months",
+          "value": "(\"loyalty_expiration_policies\".\"enabled\" AND \"loyalty_expiration_policies\".\"expiration_months\" IS NOT NULL AND \"loyalty_expiration_policies\".\"expiration_months\" > 0)\n      OR (NOT \"loyalty_expiration_policies\".\"enabled\" AND \"loyalty_expiration_policies\".\"expiration_months\" IS NULL)"
+        },
+        "loyalty_expiration_policies_active_not_retired": {
+          "name": "loyalty_expiration_policies_active_not_retired",
+          "value": "NOT \"loyalty_expiration_policies\".\"active\" OR \"loyalty_expiration_policies\".\"retired_at\" IS NULL"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.loyalty_order_associations": {
+      "name": "loyalty_order_associations",
+      "schema": "",
+      "columns": {
+        "order_id": {
+          "name": "order_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "associated_by_staff_id": {
+          "name": "associated_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "associated_at": {
+          "name": "associated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "loyalty_order_associations_customer_id_idx": {
+          "name": "loyalty_order_associations_customer_id_idx",
+          "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_order_associations_order_id_orders_id_fk": {
+          "name": "loyalty_order_associations_order_id_orders_id_fk",
+          "tableFrom": "loyalty_order_associations",
+          "tableTo": "orders",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "loyalty_order_associations_customer_id_loyalty_customers_id_fk": {
+          "name": "loyalty_order_associations_customer_id_loyalty_customers_id_fk",
+          "tableFrom": "loyalty_order_associations",
+          "tableTo": "loyalty_customers",
+          "columnsFrom": [
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_order_associations_associated_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_order_associations_associated_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_order_associations",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "associated_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.loyalty_point_allocations": {
+      "name": "loyalty_point_allocations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credit_entry_id": {
+          "name": "credit_entry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "debit_entry_id": {
+          "name": "debit_entry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points": {
+          "name": "points",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "loyalty_point_allocations_customer_id_idx": {
+          "name": "loyalty_point_allocations_customer_id_idx",
+          "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_allocations_credit_entry_id_idx": {
+          "name": "loyalty_point_allocations_credit_entry_id_idx",
+          "columns": [
+            {
+              "expression": "credit_entry_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_allocations_debit_entry_id_idx": {
+          "name": "loyalty_point_allocations_debit_entry_id_idx",
+          "columns": [
+            {
+              "expression": "debit_entry_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_allocations_debit_credit_unique": {
+          "name": "loyalty_point_allocations_debit_credit_unique",
+          "columns": [
+            {
+              "expression": "debit_entry_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "credit_entry_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_point_allocations_credit_entry_customer_fk": {
+          "name": "loyalty_point_allocations_credit_entry_customer_fk",
+          "tableFrom": "loyalty_point_allocations",
+          "tableTo": "loyalty_point_ledger_entries",
+          "columnsFrom": [
+            "credit_entry_id",
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id",
+            "customer_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_point_allocations_debit_entry_customer_fk": {
+          "name": "loyalty_point_allocations_debit_entry_customer_fk",
+          "tableFrom": "loyalty_point_allocations",
+          "tableTo": "loyalty_point_ledger_entries",
+          "columnsFrom": [
+            "debit_entry_id",
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id",
+            "customer_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_point_allocations_positive_points": {
+          "name": "loyalty_point_allocations_positive_points",
+          "value": "\"loyalty_point_allocations\".\"points\" > 0"
+        },
+        "loyalty_point_allocations_distinct_entries": {
+          "name": "loyalty_point_allocations_distinct_entries",
+          "value": "\"loyalty_point_allocations\".\"credit_entry_id\" <> \"loyalty_point_allocations\".\"debit_entry_id\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.loyalty_point_ledger_entries": {
+      "name": "loyalty_point_ledger_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "loyalty_point_event_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points_delta": {
+          "name": "points_delta",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reward_redemption_id": {
+          "name": "reward_redemption_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "earning_rule_id": {
+          "name": "earning_rule_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expiration_policy_id": {
+          "name": "expiration_policy_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "earned_business_date": {
+          "name": "earned_business_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expiration_business_date": {
+          "name": "expiration_business_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by_staff_id": {
+          "name": "created_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "loyalty_point_ledger_entries_customer_occurred_at_idx": {
+          "name": "loyalty_point_ledger_entries_customer_occurred_at_idx",
+          "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "occurred_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_ledger_entries_expiration_business_date_idx": {
+          "name": "loyalty_point_ledger_entries_expiration_business_date_idx",
+          "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expiration_business_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_ledger_entries_id_customer_unique": {
+          "name": "loyalty_point_ledger_entries_id_customer_unique",
+          "columns": [
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_ledger_entries_earned_order_unique": {
+          "name": "loyalty_point_ledger_entries_earned_order_unique",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"loyalty_point_ledger_entries\".\"event_type\" = 'earned'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_ledger_entries_adjusted_order_unique": {
+          "name": "loyalty_point_ledger_entries_adjusted_order_unique",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"loyalty_point_ledger_entries\".\"event_type\" = 'adjusted' AND \"loyalty_point_ledger_entries\".\"order_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_point_ledger_entries_redeemed_reward_unique": {
+          "name": "loyalty_point_ledger_entries_redeemed_reward_unique",
+          "columns": [
+            {
+              "expression": "reward_redemption_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"loyalty_point_ledger_entries\".\"event_type\" = 'redeemed' AND \"loyalty_point_ledger_entries\".\"reward_redemption_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_point_ledger_entries_customer_id_loyalty_customers_id_fk": {
+          "name": "loyalty_point_ledger_entries_customer_id_loyalty_customers_id_fk",
+          "tableFrom": "loyalty_point_ledger_entries",
+          "tableTo": "loyalty_customers",
+          "columnsFrom": [
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_point_ledger_entries_order_id_orders_id_fk": {
+          "name": "loyalty_point_ledger_entries_order_id_orders_id_fk",
+          "tableFrom": "loyalty_point_ledger_entries",
+          "tableTo": "orders",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_point_ledger_entries_reward_redemption_id_loyalty_reward_redemptions_id_fk": {
+          "name": "loyalty_point_ledger_entries_reward_redemption_id_loyalty_reward_redemptions_id_fk",
+          "tableFrom": "loyalty_point_ledger_entries",
+          "tableTo": "loyalty_reward_redemptions",
+          "columnsFrom": [
+            "reward_redemption_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_point_ledger_entries_earning_rule_id_loyalty_earning_rules_id_fk": {
+          "name": "loyalty_point_ledger_entries_earning_rule_id_loyalty_earning_rules_id_fk",
+          "tableFrom": "loyalty_point_ledger_entries",
+          "tableTo": "loyalty_earning_rules",
+          "columnsFrom": [
+            "earning_rule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_point_ledger_entries_expiration_policy_id_loyalty_expiration_policies_id_fk": {
+          "name": "loyalty_point_ledger_entries_expiration_policy_id_loyalty_expiration_policies_id_fk",
+          "tableFrom": "loyalty_point_ledger_entries",
+          "tableTo": "loyalty_expiration_policies",
+          "columnsFrom": [
+            "expiration_policy_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_point_ledger_entries_created_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_point_ledger_entries_created_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_point_ledger_entries",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "created_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_point_ledger_entries_non_zero_delta": {
+          "name": "loyalty_point_ledger_entries_non_zero_delta",
+          "value": "\"loyalty_point_ledger_entries\".\"points_delta\" <> 0"
+        },
+        "loyalty_point_ledger_entries_event_sign": {
+          "name": "loyalty_point_ledger_entries_event_sign",
+          "value": "(\n      \"loyalty_point_ledger_entries\".\"event_type\" IN ('earned', 'returned')\n      AND \"loyalty_point_ledger_entries\".\"points_delta\" > 0\n    ) OR (\n      \"loyalty_point_ledger_entries\".\"event_type\" IN ('redeemed', 'expired')\n      AND \"loyalty_point_ledger_entries\".\"points_delta\" < 0\n    ) OR \"loyalty_point_ledger_entries\".\"event_type\" = 'adjusted'"
+        },
+        "loyalty_point_ledger_entries_positive_credit_business_date": {
+          "name": "loyalty_point_ledger_entries_positive_credit_business_date",
+          "value": "\"loyalty_point_ledger_entries\".\"event_type\" NOT IN ('earned', 'returned') OR \"loyalty_point_ledger_entries\".\"earned_business_date\" IS NOT NULL"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.loyalty_reward_options": {
+      "name": "loyalty_reward_options",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points_cost": {
+          "name": "points_cost",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "benefit_type": {
+          "name": "benefit_type",
+          "type": "loyalty_reward_benefit_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "benefit_description": {
+          "name": "benefit_description",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "effective_at": {
+          "name": "effective_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by_staff_id": {
+          "name": "created_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_by_staff_id": {
+          "name": "updated_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "loyalty_reward_options_active_idx": {
+          "name": "loyalty_reward_options_active_idx",
+          "columns": [
+            {
+              "expression": "active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_reward_options_created_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_reward_options_created_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_reward_options",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "created_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_options_updated_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_reward_options_updated_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_reward_options",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "updated_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_reward_options_positive_points_cost": {
+          "name": "loyalty_reward_options_positive_points_cost",
+          "value": "\"loyalty_reward_options\".\"points_cost\" > 0"
+        },
+        "loyalty_reward_options_non_blank_name": {
+          "name": "loyalty_reward_options_non_blank_name",
+          "value": "length(trim(\"loyalty_reward_options\".\"name\")) > 0"
+        },
+        "loyalty_reward_options_non_blank_description": {
+          "name": "loyalty_reward_options_non_blank_description",
+          "value": "length(trim(\"loyalty_reward_options\".\"benefit_description\")) > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.loyalty_reward_redemptions": {
+      "name": "loyalty_reward_redemptions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "customer_id": {
+          "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reward_option_id": {
+          "name": "reward_option_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_order_beverage_id": {
+          "name": "target_order_beverage_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_customization_choice_id": {
+          "name": "target_customization_choice_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reward_name_snapshot": {
+          "name": "reward_name_snapshot",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points_cost_snapshot": {
+          "name": "points_cost_snapshot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "benefit_type_snapshot": {
+          "name": "benefit_type_snapshot",
+          "type": "loyalty_reward_benefit_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "benefit_description_snapshot": {
+          "name": "benefit_description_snapshot",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_description_snapshot": {
+          "name": "target_description_snapshot",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "covered_amount_snapshot": {
+          "name": "covered_amount_snapshot",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
+        },
+        "covered_beverage_quantity": {
+          "name": "covered_beverage_quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "status": {
+          "name": "status",
+          "type": "loyalty_redemption_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "redeemed_at": {
+          "name": "redeemed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "returned_at": {
+          "name": "returned_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "returned_reason": {
+          "name": "returned_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redeemed_by_staff_id": {
+          "name": "redeemed_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "returned_by_staff_id": {
+          "name": "returned_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "loyalty_reward_redemptions_order_id_idx": {
+          "name": "loyalty_reward_redemptions_order_id_idx",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_reward_redemptions_customer_id_idx": {
+          "name": "loyalty_reward_redemptions_customer_id_idx",
+          "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "loyalty_reward_redemptions_active_target_idx": {
+          "name": "loyalty_reward_redemptions_active_target_idx",
+          "columns": [
+            {
+              "expression": "target_order_beverage_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"loyalty_reward_redemptions\".\"status\" = 'active'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "loyalty_reward_redemptions_order_id_orders_id_fk": {
+          "name": "loyalty_reward_redemptions_order_id_orders_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "orders",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_redemptions_customer_id_loyalty_customers_id_fk": {
+          "name": "loyalty_reward_redemptions_customer_id_loyalty_customers_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "loyalty_customers",
+          "columnsFrom": [
+            "customer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_redemptions_reward_option_id_loyalty_reward_options_id_fk": {
+          "name": "loyalty_reward_redemptions_reward_option_id_loyalty_reward_options_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "loyalty_reward_options",
+          "columnsFrom": [
+            "reward_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_redemptions_target_order_beverage_id_order_beverages_id_fk": {
+          "name": "loyalty_reward_redemptions_target_order_beverage_id_order_beverages_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "order_beverages",
+          "columnsFrom": [
+            "target_order_beverage_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_redemptions_target_customization_choice_id_customization_choices_id_fk": {
+          "name": "loyalty_reward_redemptions_target_customization_choice_id_customization_choices_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "customization_choices",
+          "columnsFrom": [
+            "target_customization_choice_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_redemptions_redeemed_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_reward_redemptions_redeemed_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "redeemed_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "loyalty_reward_redemptions_returned_by_staff_id_staff_users_id_fk": {
+          "name": "loyalty_reward_redemptions_returned_by_staff_id_staff_users_id_fk",
+          "tableFrom": "loyalty_reward_redemptions",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "returned_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "loyalty_reward_redemptions_positive_points_cost": {
+          "name": "loyalty_reward_redemptions_positive_points_cost",
+          "value": "\"loyalty_reward_redemptions\".\"points_cost_snapshot\" > 0"
+        },
+        "loyalty_reward_redemptions_non_negative_coverage": {
+          "name": "loyalty_reward_redemptions_non_negative_coverage",
+          "value": "\"loyalty_reward_redemptions\".\"covered_amount_snapshot\" >= 0"
+        },
+        "loyalty_reward_redemptions_benefit_target_consistency": {
+          "name": "loyalty_reward_redemptions_benefit_target_consistency",
+          "value": "(\n      \"loyalty_reward_redemptions\".\"benefit_type_snapshot\" = 'free_beverage'\n      AND \"loyalty_reward_redemptions\".\"target_customization_choice_id\" IS NULL\n      AND \"loyalty_reward_redemptions\".\"covered_beverage_quantity\" = 1\n    ) OR (\n      \"loyalty_reward_redemptions\".\"benefit_type_snapshot\" = 'size_upgrade'\n      AND \"loyalty_reward_redemptions\".\"target_customization_choice_id\" IS NOT NULL\n      AND \"loyalty_reward_redemptions\".\"covered_beverage_quantity\" = 0\n    )"
+        },
+        "loyalty_reward_redemptions_returned_status_consistency": {
+          "name": "loyalty_reward_redemptions_returned_status_consistency",
+          "value": "(\n      \"loyalty_reward_redemptions\".\"status\" = 'active'\n      AND \"loyalty_reward_redemptions\".\"returned_at\" IS NULL\n      AND \"loyalty_reward_redemptions\".\"returned_by_staff_id\" IS NULL\n    ) OR (\n      \"loyalty_reward_redemptions\".\"status\" = 'returned'\n      AND \"loyalty_reward_redemptions\".\"returned_at\" IS NOT NULL\n      AND \"loyalty_reward_redemptions\".\"returned_by_staff_id\" IS NOT NULL\n    )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.menu_categories": {
+      "name": "menu_categories",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.menu_items": {
+      "name": "menu_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(160)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price": {
+          "name": "price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available": {
+          "name": "available",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "menu_items_category_id_idx": {
+          "name": "menu_items_category_id_idx",
+          "columns": [
+            {
+              "expression": "category_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "menu_items_category_id_menu_categories_id_fk": {
+          "name": "menu_items_category_id_menu_categories_id_fk",
+          "tableFrom": "menu_items",
+          "tableTo": "menu_categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.order_beverages": {
+      "name": "order_beverages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_menu_item_id": {
+          "name": "source_menu_item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name_snapshot": {
+          "name": "name_snapshot",
+          "type": "varchar(160)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_snapshot": {
+          "name": "price_snapshot",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selected_customizations_snapshot": {
+          "name": "selected_customizations_snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "special_instructions": {
+          "name": "special_instructions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "beverage_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancellation_reason": {
+          "name": "cancellation_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "order_beverages_order_id_idx": {
+          "name": "order_beverages_order_id_idx",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "order_beverages_order_id_orders_id_fk": {
+          "name": "order_beverages_order_id_orders_id_fk",
+          "tableFrom": "order_beverages",
+          "tableTo": "orders",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "order_beverages_source_menu_item_id_menu_items_id_fk": {
+          "name": "order_beverages_source_menu_item_id_menu_items_id_fk",
+          "tableFrom": "order_beverages",
+          "tableTo": "menu_items",
+          "columnsFrom": [
+            "source_menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "order_beverages_quantity_positive": {
+          "name": "order_beverages_quantity_positive",
+          "value": "\"order_beverages\".\"quantity\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.orders": {
+      "name": "orders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "business_date": {
+          "name": "business_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "daily_order_number": {
+          "name": "daily_order_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pickup_name": {
+          "name": "pickup_name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "order_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'created'"
+        },
+        "created_by_staff_id": {
+          "name": "created_by_staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "assigned_barista_id": {
+          "name": "assigned_barista_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total": {
+          "name": "total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "loyalty_reward_discount_total": {
+          "name": "loyalty_reward_discount_total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "queued_at": {
+          "name": "queued_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "in_progress_at": {
+          "name": "in_progress_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "picked_up_at": {
+          "name": "picked_up_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "orders_business_date_daily_number_unique": {
+          "name": "orders_business_date_daily_number_unique",
+          "columns": [
+            {
+              "expression": "business_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "daily_order_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "orders_status_idx": {
+          "name": "orders_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "orders_business_date_idx": {
+          "name": "orders_business_date_idx",
+          "columns": [
+            {
+              "expression": "business_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "orders_created_by_staff_id_staff_users_id_fk": {
+          "name": "orders_created_by_staff_id_staff_users_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "created_by_staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "orders_assigned_barista_id_staff_users_id_fk": {
+          "name": "orders_assigned_barista_id_staff_users_id_fk",
+          "tableFrom": "orders",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "assigned_barista_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "orders_loyalty_reward_discount_bounds": {
+          "name": "orders_loyalty_reward_discount_bounds",
+          "value": "\"orders\".\"loyalty_reward_discount_total\" >= 0 AND \"orders\".\"loyalty_reward_discount_total\" <= \"orders\".\"total\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.staff_sessions": {
+      "name": "staff_sessions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "staff_sessions_staff_id_idx": {
+          "name": "staff_sessions_staff_id_idx",
+          "columns": [
+            {
+              "expression": "staff_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "staff_sessions_expires_at_idx": {
+          "name": "staff_sessions_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "staff_sessions_staff_id_staff_users_id_fk": {
+          "name": "staff_sessions_staff_id_staff_users_id_fk",
+          "tableFrom": "staff_sessions",
+          "tableTo": "staff_users",
+          "columnsFrom": [
+            "staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.staff_users": {
+      "name": "staff_users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "username": {
+          "name": "username",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "authorization_status": {
+          "name": "authorization_status",
+          "type": "staff_authorization_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'authorized'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "staff_users_username_unique": {
+          "name": "staff_users_username_unique",
+          "columns": [
+            {
+              "expression": "username",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.beverage_status": {
+      "name": "beverage_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "public.loyalty_earning_type": {
+      "name": "loyalty_earning_type",
+      "schema": "public",
+      "values": [
+        "purchase_amount",
+        "beverage_count"
+      ]
+    },
+    "public.loyalty_point_event_type": {
+      "name": "loyalty_point_event_type",
+      "schema": "public",
+      "values": [
+        "earned",
+        "redeemed",
+        "returned",
+        "expired",
+        "adjusted"
+      ]
+    },
+    "public.loyalty_redemption_status": {
+      "name": "loyalty_redemption_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "returned"
+      ]
+    },
+    "public.loyalty_reward_benefit_type": {
+      "name": "loyalty_reward_benefit_type",
+      "schema": "public",
+      "values": [
+        "free_beverage",
+        "size_upgrade"
+      ]
+    },
+    "public.order_status": {
+      "name": "order_status",
+      "schema": "public",
+      "values": [
+        "created",
+        "queued",
+        "in_progress",
+        "completed",
+        "picked_up",
+        "cancelled"
+      ]
+    },
+    "public.staff_authorization_status": {
+      "name": "staff_authorization_status",
+      "schema": "public",
+      "values": [
+        "authorized",
+        "inactive"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

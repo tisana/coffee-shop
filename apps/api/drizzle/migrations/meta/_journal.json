@@ -15,6 +15,13 @@
       "when": 1779637920000,
       "tag": "0002_menu_item_image_url",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783867926560,
+      "tag": "0003_loyalty_program",
+      "breakpoints": true
     }
   ]
 }
