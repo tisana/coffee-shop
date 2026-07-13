@@ -22,6 +22,7 @@ import { DailyActivityPage } from "./pages/DailyActivityPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuMaintenancePage } from "./pages/MenuMaintenancePage";
 import { ReportsPage } from "./pages/ReportsPage";
+import { LoyaltyPage } from "./pages/LoyaltyPage";
 import { ApiClientError } from "./services/apiClient";
 import { getCurrentSession, logout } from "./services/authApi";
 
@@ -31,7 +32,7 @@ const navItems = [
   { href: "#history", label: "History", icon: History },
   { href: "#menu", label: "Menu", icon: MenuIcon },
   { href: "#reports", label: "Reports", icon: ChartColumn },
-  { href: "#customers", label: "Customers", icon: Users },
+  { href: "#loyalty", label: "Loyalty", icon: Users },
   { href: "#staff", label: "Staff", icon: UserRound },
   { href: "#inventory", label: "Inventory", icon: Package },
   { href: "#settings", label: "Settings", icon: Settings }
@@ -143,6 +144,8 @@ export function App() {
             <MenuMaintenancePage />
           ) : activeView === "#reports" ? (
             <ReportsPage />
+          ) : activeView === "#loyalty" ? (
+            <LoyaltyPage />
           ) : (
             <section className="placeholder-panel">
               <p className="eyebrow">Planned</p>

@@ -1,0 +1,65 @@
+import { expect, test } from "@playwright/test";
+
+import { fulfillCsrfToken, fulfillLoyaltyApiRoute } from "./testApiMocks";
+
+test("staff registers, looks up, and edits a loyalty customer from the existing staff shell", async ({ page }) => {
+  await page.route("**/api/**", async (route) => {
+    const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+
+    if (await fulfillCsrfToken(route, path)) {
+      return;
+    }
+
+    if (path === "/loyalty/customers" && route.request().method() === "POST") {
+      const input = route.request().postDataJSON() as { phone?: string };
+      if (input.phone?.startsWith("0066")) {
+        await route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ code: "CONFLICT", message: "Phone number already belongs to a customer." }) });
+        return;
+      }
+      if (input.phone === "invalid") {
+        await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ code: "BAD_REQUEST", message: "Phone number must be valid for the configured shop region." }) });
+        return;
+      }
+    }
+
+    if (await fulfillLoyaltyApiRoute(route)) {
+      return;
+    }
+
+    await route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ code: "NOT_FOUND", message: `Unhandled test route ${path}` })
+    });
+  });
+
+  await page.goto("/#loyalty");
+
+  await expect(page.getByRole("heading", { name: "Loyalty" })).toBeVisible();
+  await page.getByRole("button", { name: "Register customer" }).click();
+  await page.getByLabel("Customer name").fill("Nina Saelim");
+  await page.getByLabel("Phone number").fill("081-234-5678");
+  await page.getByRole("button", { name: "Save customer" }).click();
+
+  const profile = page.getByLabel("Customer profile");
+  await expect(profile.getByRole("heading", { name: "Nina Saelim" })).toBeVisible();
+  await page.getByLabel("Search customers").fill("081");
+  await expect(page.getByRole("button", { name: "Select Ari Srisuk" })).toBeVisible();
+  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await expect(profile.getByText("081-234-5678")).toBeVisible();
+
+  await page.getByRole("button", { name: "Edit customer" }).click();
+  await page.getByLabel("Phone number").fill("082-234-5678");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(profile.getByText("082-234-5678")).toBeVisible();
+
+  await page.getByRole("button", { name: "Register customer" }).click();
+  await page.getByLabel("Customer name").fill("Duplicate Nina");
+  await page.getByLabel("Phone number").fill("0066 81-234-5678");
+  await page.getByRole("button", { name: "Save customer" }).click();
+  await expect(page.getByText("Phone number already belongs to a customer.")).toBeVisible();
+
+  await page.getByLabel("Phone number").fill("invalid");
+  await page.getByRole("button", { name: "Save customer" }).click();
+  await expect(page.getByText("Phone number must be valid for the configured shop region.")).toBeVisible();
+});

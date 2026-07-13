@@ -5,6 +5,10 @@ import { BEVERAGE_STATUSES, ORDER_STATUSES } from "@coffee-shop/shared/domain/st
 const idSchema = z.string().uuid();
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const optionalTextSchema = z.string().trim().min(1).max(500).optional();
+const optionalEmailSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+  z.string().trim().email().max(254).nullable().optional()
+);
 const moneySchema = z
   .union([z.string(), z.number()])
   .transform((value) => (typeof value === "number" ? value.toFixed(2) : value))
@@ -164,3 +168,22 @@ export const reportOrdersQuerySchema = z
 
 export const orderStatusSchema = z.enum(ORDER_STATUSES);
 export const beverageStatusSchema = z.enum(BEVERAGE_STATUSES);
+
+export const loyaltyCustomerInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  phone: z.string().trim().min(1).max(40),
+  email: optionalEmailSchema
+});
+
+export const loyaltyCustomerUpdateSchema = loyaltyCustomerInputSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, "At least one customer field is required.");
+
+export const loyaltyCustomerParamsSchema = z.object({
+  customerId: idSchema
+});
+
+export const loyaltyCustomerSearchQuerySchema = z.object({
+  query: z.string().trim().min(1).max(120),
+  limit: z.coerce.number().int().min(1).max(50).default(20)
+});

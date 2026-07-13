@@ -38,7 +38,10 @@ describe("US5 current-day order history", () => {
 
     await db
       .update(orders)
-      .set({ businessDate: previousBusinessDate })
+      .set({
+        businessDate: previousBusinessDate,
+        dailyOrderNumber: previousOrder.dailyOrderNumber + 1_000_000
+      })
       .where(eq(orders.id, previousOrder.id));
 
     const result = await listCurrentDayOrderHistory({});

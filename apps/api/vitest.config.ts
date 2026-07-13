@@ -16,8 +16,12 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    env: {
+      SHOP_PHONE_REGION: "TH"
+    },
     include: ["tests/**/*.test.ts"],
     pool: "threads",
+    fileParallelism: false,
     testTimeout: 10_000
   }
 });
