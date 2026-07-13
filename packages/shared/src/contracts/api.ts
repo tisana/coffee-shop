@@ -1,13 +1,21 @@
 import type {
+  AppliedLoyaltyReward,
   CustomizationChoice,
   CustomizationGroup,
+  LoyaltyCustomer,
+  LoyaltyEarningRule,
+  LoyaltyExpirationPolicy,
+  LoyaltyPointEventType,
+  LoyaltyRewardBenefitType,
+  LoyaltyRewardOption,
   MenuCategory,
   MenuItem,
   Order,
+  OrderWithLoyalty,
   OrderStatus,
   BeverageStatus,
   SelectedCustomization,
-  StaffUser
+  StaffUser,
 } from "../domain/types";
 
 export type QueueOrder = Order & {
@@ -32,6 +40,113 @@ export interface CreateOrderRequest {
 }
 
 export type CreateOrderResponse = Order;
+
+export interface LoyaltyCustomerInput {
+  name: string;
+  phone: string;
+  email?: string | null | undefined;
+}
+
+export interface LoyaltyCustomerUpdate {
+  name?: string | undefined;
+  phone?: string | undefined;
+  email?: string | null | undefined;
+}
+
+export interface LoyaltyCustomerSearchQuery {
+  query?: string | undefined;
+}
+
+export interface LoyaltyCustomerSearchResponse {
+  customers: LoyaltyCustomer[];
+}
+
+export interface LoyaltyPointSummary {
+  available: number;
+  lifetimeEarned: number;
+  redeemed: number;
+  returned: number;
+  expired: number;
+  adjusted: number;
+}
+
+export interface LoyaltyPointHistoryEntry {
+  id: string;
+  eventType: LoyaltyPointEventType;
+  pointsDelta: number;
+  reason: string;
+  businessDate: string | null;
+  expirationBusinessDate: string | null;
+  orderId: string | null;
+  orderLabel: string | null;
+  rewardName: string | null;
+  occurredAt: string;
+}
+
+export interface LoyaltyPointsResponse {
+  customer: LoyaltyCustomer;
+  asOfBusinessDate: string;
+  summary: LoyaltyPointSummary;
+  history: LoyaltyPointHistoryEntry[];
+}
+
+export interface LoyaltyEarningRuleInput {
+  earningType: LoyaltyEarningRule["earningType"];
+  amountThreshold?: string | undefined;
+  beverageCountThreshold?: number | undefined;
+  pointsAwarded: number;
+}
+
+export interface LoyaltyExpirationPolicyInput {
+  enabled: boolean;
+  expirationMonths?: number | undefined;
+}
+
+export interface LoyaltyRewardOptionInput {
+  name: string;
+  pointsCost: number;
+  benefitType: LoyaltyRewardBenefitType;
+  benefitDescription: string;
+  active?: boolean | undefined;
+}
+
+export interface LoyaltyRewardOptionUpdate {
+  name?: string | undefined;
+  pointsCost?: number | undefined;
+  benefitDescription?: string | undefined;
+  active?: boolean | undefined;
+}
+
+export interface LoyaltyRewardsResponse {
+  rewards: LoyaltyRewardOption[];
+}
+
+export interface LoyaltyEarningRuleResponse {
+  rule: LoyaltyEarningRule | null;
+}
+
+export interface LoyaltyExpirationPolicyResponse {
+  policy: LoyaltyExpirationPolicy | null;
+}
+
+export interface LoyaltyRewardSelection {
+  rewardOptionId: string;
+  targetBeverageIndex: number;
+  targetCustomizationChoiceId?: string | undefined;
+}
+
+export interface CreateOrderWithLoyaltyRequest extends CreateOrderRequest {
+  loyalty?:
+    | {
+        customerId: string;
+        rewards?: LoyaltyRewardSelection[] | undefined;
+      }
+    | undefined;
+}
+
+export type CreateOrderWithLoyaltyResponse = OrderWithLoyalty;
+export type CancelLoyaltyRewardResponse = OrderWithLoyalty;
+export type AppliedReward = AppliedLoyaltyReward;
 
 export interface QueueOrdersResponse {
   orders: QueueOrder[];
@@ -73,7 +188,9 @@ export interface MenuItemInput {
 }
 
 export type MenuItemResponse = Omit<MenuItem, "customizationGroups"> & {
-  customizationGroups: Array<CustomizationGroup & { choices: CustomizationChoice[] }>;
+  customizationGroups: Array<
+    CustomizationGroup & { choices: CustomizationChoice[] }
+  >;
 };
 
 export interface MenuItemSaveResponse {

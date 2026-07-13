@@ -31,15 +31,15 @@
 
 ### Tests for Foundation (write first)
 
-- [ ] T004 Write failing database constraint tests for normalized phone uniqueness, one-active-policy indexes, ledger signs and allocation references, and loyalty discount bounds in `apps/api/tests/integration/loyalty-schema.test.ts`
+- [x] T004 Write failing database constraint tests for normalized phone uniqueness, one-active-policy indexes, ledger signs and allocation references, and loyalty discount bounds in `apps/api/tests/integration/loyalty-schema.test.ts`
 
 ### Foundation Implementation
 
-- [ ] T005 [P] Define loyalty enums, customers, configurations, rewards, point events, applied rewards, and order loyalty totals in `packages/shared/src/domain/types.ts`
-- [ ] T006 [P] Define the customer, point, configuration, reward, and extended order request/response contracts from the OpenAPI design in `packages/shared/src/contracts/api.ts`
-- [ ] T007 Add loyalty enums, customers, earning rules, expiration policies, reward options, order associations, redemptions, ledger entries, allocations, indexes, checks, and order discount storage in `apps/api/src/storage/schema.ts`
-- [ ] T008 Create the matching PostgreSQL DDL, constraints, partial unique indexes, and existing-order backfill in `apps/api/drizzle/migrations/0003_loyalty_program.sql`
-- [ ] T009 Extend integration database cleanup and deterministic fixture teardown for all loyalty tables in `apps/api/tests/integration/testFixtures.ts`
+- [x] T005 [P] Define loyalty enums, customers, configurations, rewards, point events, applied rewards, and order loyalty totals in `packages/shared/src/domain/types.ts`
+- [x] T006 [P] Define the customer, point, configuration, reward, and extended order request/response contracts from the OpenAPI design in `packages/shared/src/contracts/api.ts`
+- [x] T007 Add loyalty enums, customers, earning rules, expiration policies, reward options, order associations, redemptions, ledger entries, allocations, indexes, checks, and order discount storage in `apps/api/src/storage/schema.ts`
+- [x] T008 Create the matching PostgreSQL DDL, constraints, partial unique indexes, and existing-order backfill in `apps/api/drizzle/migrations/0003_loyalty_program.sql`
+- [x] T009 Extend integration database cleanup and deterministic fixture teardown for all loyalty tables in `apps/api/tests/integration/testFixtures.ts`
 
 **Checkpoint**: The complete loyalty storage model migrates cleanly, shared contracts compile, and the foundation constraint test passes.
 
