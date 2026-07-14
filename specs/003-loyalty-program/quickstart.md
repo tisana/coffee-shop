@@ -42,14 +42,16 @@ Expected outcomes:
 1. With `SHOP_PHONE_REGION=TH`, register a customer with a name and a valid local phone such as `081-234-5678`; leave email empty.
 2. Search using the equivalent `+66 81-234-5678` international form and confirm the customer appears within 15 seconds.
 3. Attempt to register another customer using the equivalent `0066 81-234-5678` international-dial-prefix form.
-4. Edit the original customer to a new unused phone and optional email.
-5. Attempt to change the phone to one already used by another customer.
-6. Attempt registration with an invalid phone for the configured region.
+4. Edit the original customer to a new unused phone and `Ada@Example.com` email.
+5. Attempt to register a second customer with a different phone and ` ada@example.com ` as the email.
+6. Attempt to change the original phone to one already used by another customer.
+7. Attempt registration with an invalid phone for the configured region.
 
 Expected outcomes:
 
 - Registration completes within 45 seconds without email.
 - Equivalent local, international, and international-dial-prefix forms normalize to one E.164 identity and cannot create duplicates.
+- A supplied email is trimmed, case-insensitively unique, and returns an email-specific conflict when another customer uses the same address.
 - Invalid phone input is rejected before uniqueness is evaluated.
 - Duplicate create and update attempts return a clear conflict and preserve existing data.
 - The original account ID and point history survive profile edits.
@@ -135,7 +137,7 @@ npm run test --workspace @coffee-shop/api -- loyalty-redemption-concurrency.test
 
 The tests must cover:
 
-- E.164 phone validation and local/international equivalence using `SHOP_PHONE_REGION`, including a database uniqueness race
+- E.164 phone validation and local/international equivalence using `SHOP_PHONE_REGION`, plus supplied-email trimming, case-insensitive uniqueness, field-specific conflict responses, and database uniqueness races
 - rule versioning and amount/beverage calculations
 - calendar-month cutoff calculations in the shop time zone
 - earliest-expiring allocation, insufficient points, standalone reward return, beverage/order return, and expiration
@@ -154,7 +156,7 @@ npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
 The UI checks must confirm:
 
 - `#loyalty` opens inside the existing sidebar/topbar shell
-- customer registration, search, duplicate errors, editing, totals, and history states
+- customer registration, search, field-specific phone/email duplicate errors, editing, totals, and history states
 - earning, reward, and expiration configuration controls
 - counter customer selection and clearing
 - reward availability based on the latest balance and valid beverage target
@@ -186,4 +188,4 @@ npm run test --workspace @coffee-shop/staff-web -- LoyaltyCustomerComponents.tes
 npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
 ```
 
-The API tests verify that `081-234-5678`, `+66 81-234-5678`, and `0066 81-234-5678` normalize to the same E.164 identity and that the duplicate form is rejected. The Playwright registration, international lookup, duplicate, invalid-phone, and edit flow completed in 1.6 seconds, below both the 45-second registration target and the 15-second lookup target.
+The API tests verify that `081-234-5678`, `+66 81-234-5678`, and `0066 81-234-5678` normalize to the same E.164 identity and that the duplicate form is rejected. The Playwright registration, international lookup, duplicate, invalid-phone, and edit flow completed in 1.6 seconds, below both the 45-second registration target and the 15-second lookup target. This evidence predates the email-uniqueness clarification and does not replace the required case-insensitive email create, edit, and migration-collision checks above.

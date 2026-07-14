@@ -61,7 +61,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
-          description: Normalized phone number already belongs to another customer
+          description: Normalized phone number or case-insensitively matching supplied email already belongs to another customer; the error identifies the conflicting field.
 
   /loyalty/customers/{customerId}:
     parameters:
@@ -101,7 +101,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          description: Normalized phone number already belongs to another customer
+          description: Normalized phone number or case-insensitively matching supplied email already belongs to another customer; no part of the requested update is persisted.
 
   /loyalty/customers/{customerId}/points:
     parameters:
@@ -378,6 +378,7 @@ components:
           anyOf:
             - type: string
               format: email
+              description: Optional trimmed display value; uniqueness ignores letter case.
             - type: "null"
         enrolledAt:
           type: string
@@ -403,6 +404,7 @@ components:
             - type: string
               format: email
               maxLength: 254
+              description: Optional value trimmed before storage; uniqueness ignores letter case.
             - type: "null"
     LoyaltyCustomerUpdate:
       type: object
@@ -422,6 +424,7 @@ components:
             - type: string
               format: email
               maxLength: 254
+              description: Optional value trimmed before storage; uniqueness ignores letter case.
             - type: "null"
     PointEventType:
       type: string
