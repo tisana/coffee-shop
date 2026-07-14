@@ -15,6 +15,10 @@
 - Q: Which reward benefits and coverage rules are supported initially? → A: Support one non-stackable free-beverage or size-upgrade reward per beverage unit with immutable benefit type.
 - Q: How can staff undo a redeemed reward before the customer receives it? → A: Allow standalone reward cancellation before pickup and return the original expiration buckets exactly once.
 
+### Session 2026-07-14
+
+- Q: Must customer phone numbers and email addresses both be unique while remaining editable? → A: Yes. Phone numbers are unique by normalized E.164 value; when supplied, email addresses are trimmed and compared case-insensitively for uniqueness. Staff may edit either value, but a collision is rejected without changing the customer account.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Register and identify loyalty customers (Priority: P1)
@@ -23,7 +27,7 @@ Authorized staff can register a customer for the loyalty program using the custo
 
 **Why this priority**: The shop cannot retain returning customers or award points until customers have a reliable loyalty identity.
 
-**Independent Test**: Can be fully tested by registering a customer with name and phone, searching for the customer on a later visit, and confirming duplicate phone numbers are rejected while optional email remains optional.
+**Independent Test**: Can be fully tested by registering a customer with name, phone, and optional email, searching for the customer on a later visit, and confirming duplicate phone numbers and supplied email addresses are rejected during registration and editing.
 
 **Acceptance Scenarios**:
 
@@ -32,6 +36,8 @@ Authorized staff can register a customer for the loyalty program using the custo
 3. **Given** a registered loyalty customer, **When** staff update the customer's phone number to a new unused phone number, **Then** the customer remains the same loyalty account and future lookup uses the new phone number.
 4. **Given** a registered loyalty customer, **When** staff update the customer's phone number to one already used by another customer, **Then** the system rejects the change and keeps the original phone number.
 5. **Given** a phone number entered in a valid local format, **When** another customer is registered with the equivalent international format for the shop's configured phone region, **Then** the system treats both values as the same E.164 identity and blocks the duplicate.
+6. **Given** a loyalty customer already uses an email address, **When** staff register another customer with the same address using different letter case or surrounding whitespace, **Then** the system prevents the duplicate and explains that the email address is already registered.
+7. **Given** a registered loyalty customer, **When** staff update the customer's email address to one already used by another customer, **Then** the system rejects the change and keeps the original email address and loyalty account unchanged.
 
 ---
 
@@ -92,8 +98,8 @@ Authorized staff can configure whether points expire and, when expiration is ena
 
 - Valid local, international, and international-dial-prefix representations of the same phone number must normalize to one E.164 customer identity using the shop's configured phone region.
 - Invalid phone numbers must be rejected before customer uniqueness is evaluated.
-- Customers may not have an email address; email must not block registration or lookup.
-- Updating a customer's name or email must not create a new loyalty identity or lose point history.
+- Customers may not have an email address; email must not block registration or lookup, but a supplied email must not match another customer's email after surrounding whitespace is removed and letter case is ignored.
+- Updating a customer's name, phone number, or email address must not create a new loyalty identity or lose point history; a rejected phone or email collision leaves the existing customer data unchanged.
 - If the active earning rule changes, past point ledger entries keep their original earned amounts while future eligible orders use the new rule.
 - If a reward option changes or is retired, past redemptions remain visible in customer history while future redemptions use only currently available reward options.
 - A reward option's benefit type cannot be edited; staff must retire it and create a new option to change the benefit type.
@@ -108,10 +114,10 @@ Authorized staff can configure whether points expire and, when expiration is ena
 ### Functional Requirements
 
 - **FR-001**: System MUST allow authorized staff to create a loyalty customer with customer name and phone number as required information.
-- **FR-002**: System MUST allow authorized staff to optionally store an email address for a loyalty customer.
+- **FR-002**: System MUST allow authorized staff to optionally store an email address for a loyalty customer and MUST enforce uniqueness for every supplied email address after surrounding whitespace is removed and letter case is ignored.
 - **FR-003**: System MUST validate and normalize phone numbers to E.164 using the shop's configured phone region and MUST enforce uniqueness so equivalent local and international representations identify the same loyalty customer.
 - **FR-004**: System MUST allow authorized staff to edit a loyalty customer's name, phone number, and email address while preserving the same loyalty account and point history.
-- **FR-005**: System MUST prevent phone number updates that would duplicate another loyalty customer's phone number.
+- **FR-005**: System MUST prevent customer registration or customer updates that would duplicate another loyalty customer's normalized phone number or supplied email address, explain the conflicting field to staff, and preserve the existing customer account data when an update is rejected.
 - **FR-006**: System MUST allow authorized staff to find an existing loyalty customer by phone number and by customer name.
 - **FR-007**: System MUST allow authorized staff to select at most one registered loyalty customer before submitting a new counter order and MUST create the association atomically with that order; adding or changing the association after order creation is outside this increment.
 - **FR-008**: System MUST allow authorized staff to configure the active point earning rule as either purchase-amount based or beverage-count based.
@@ -130,7 +136,7 @@ Authorized staff can configure whether points expire and, when expiration is ena
 
 ### Key Entities _(include if feature involves data)_
 
-- **Loyalty Customer**: A registered customer identity for the program. Key attributes include customer name, unique E.164 phone identity, staff-entered phone display value, optional email address, enrollment date, and point summary.
+- **Loyalty Customer**: A registered customer identity for the program. Key attributes include customer name, unique E.164 phone identity, staff-entered phone display value, optional case-insensitively unique email identity, enrollment date, and point summary.
 - **Earning Rule**: The active configuration that determines how eligible purchases earn points. Key attributes include earning type, amount threshold or beverage count threshold, point amount earned, effective date, and active status.
 - **Reward Option**: A configurable redemption choice. Key attributes include reward name, point cost, reward benefit, availability status, and effective date.
 - **Point Ledger Entry**: An immutable customer point event. Key attributes include customer, point amount, event type, reason, associated order or reward when applicable, earned date, expiration date when applicable, and event date.
@@ -143,7 +149,7 @@ Authorized staff can configure whether points expire and, when expiration is ena
 
 - **SC-001**: Staff can register a new loyalty customer during counter service in under 45 seconds.
 - **SC-002**: Staff can find an existing loyalty customer by phone number or name in under 15 seconds.
-- **SC-003**: 100% of attempted duplicate phone registrations and duplicate phone updates are blocked with a clear staff-facing explanation.
+- **SC-003**: 100% of attempted duplicate normalized-phone and supplied-email registrations and updates are blocked with a clear staff-facing explanation that identifies the conflicting field.
 - **SC-004**: For eligible completed loyalty orders, awarded points match the active earning configuration in 100% of tested amount-based and beverage-count scenarios.
 - **SC-005**: Staff can configure or update an earning rule, reward option, and expiration policy in under 2 minutes each.
 - **SC-006**: Staff can determine whether a customer can redeem a configured reward in under 20 seconds from the customer or order view.

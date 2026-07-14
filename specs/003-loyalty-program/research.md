@@ -21,6 +21,27 @@
 - Strip punctuation or implement regional prefix rules manually. Rejected because punctuation-only normalization misses equivalent national/international forms and custom phone parsing is error-prone.
 - Infer the region from the server or user locale. Rejected because deployment locale is not a reliable shop identity rule; the shop must configure it explicitly.
 
+## Decision: Preserve email display casing and enforce case-insensitive uniqueness
+
+**Rationale**: Email remains optional. When supplied, trim surrounding whitespace for storage and compare it case-insensitively through the `loyalty_customers_email_ci_unique` PostgreSQL partial unique index on `lower(email)` for non-null values. The API maps the named index conflict to an email-specific response for both create and update. This preserves the staff-entered casing while preventing case-only duplicate identities and closing concurrent-write races.
+
+**Alternatives considered**:
+
+- Make email a required primary identity. Rejected because the specification keeps email optional and phone remains the primary identity.
+- Lowercase the displayed email before storing it. Rejected because canonical comparison does not require discarding staff-entered casing.
+- Check availability in the API without a database constraint. Rejected because simultaneous creates or edits can bypass a pre-check.
+- Use a plain unique index on `email`. Rejected because it permits case-only variants as separate customer identities.
+
+## Decision: Add email enforcement in a follow-up migration with collision preflight
+
+**Rationale**: The loyalty customer table is already introduced by the initial loyalty migration. A new migration trims stored email values, converts blanks to null, checks for duplicate non-null `lower(email)` values, and creates the named partial unique index only when the data is clean. It must not silently merge or delete customers because identities can already have order and point history.
+
+**Alternatives considered**:
+
+- Amend the original loyalty migration. Rejected because deployed migration history must remain immutable.
+- Automatically retain one duplicate email and clear the rest. Rejected because staff must decide which customer data is correct and the system must not discard an identity without review.
+- Skip the preflight and rely on index-creation failure. Rejected because a named duplicate report gives staff a clear remediation path.
+
 ## Decision: Create the customer association only with a new order
 
 **Rationale**: Staff select at most one registered customer while composing a counter order. The association is inserted atomically with order creation and remains immutable afterward. This matches the current create-and-queue counter flow, gives earning and redemption one stable customer boundary, and avoids post-creation reassignment of already-earned or redeemed events.

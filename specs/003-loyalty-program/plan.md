@@ -1,11 +1,11 @@
 # Implementation Plan: Loyalty Program
 
-**Branch**: `003-loyalty-program` | **Date**: 2026-07-10 | **Spec**: [spec.md](./spec.md)
+**Branch**: `003-loyalty-program` | **Date**: 2026-07-14 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/003-loyalty-program/spec.md`
 
 ## Summary
 
-Add a staff-managed loyalty program to the existing counter workflow. Staff can register and find customers by a unique E.164 phone identity normalized with the shop's configured phone region, select one customer before submitting an order, award points from the active amount- or beverage-based rule when the order completes, redeem one non-stackable free-beverage or size-upgrade reward per beverage unit during order creation, cancel an active reward independently before pickup, return points with their original expiration buckets, and enforce a configurable calendar-month expiration cutoff.
+Add a staff-managed loyalty program to the existing counter workflow. Staff can register and find customers by a unique E.164 phone identity normalized with the shop's configured phone region and an optional case-insensitively unique email identity, select one customer before submitting an order, award points from the active amount- or beverage-based rule when the order completes, redeem one non-stackable free-beverage or size-upgrade reward per beverage unit during order creation, cancel an active reward independently before pickup, return points with their original expiration buckets, and enforce a configurable calendar-month expiration cutoff.
 
 The implementation extends the current TypeScript monorepo and adds `libphonenumber-js` to the API for region-aware validation and E.164 normalization. PostgreSQL stores versioned earning and expiration policies, reward definitions, order associations, redemptions, an append-only point ledger, and point allocations. Express services perform identity, balance, redemption, earning, expiration, and standalone reward cancellation work transactionally. Shared contracts expose the loyalty state to the React staff app. The existing counter page gains a compact customer and reward section, while a new `#loyalty` page in the current staff shell provides customer history and program configuration.
 
@@ -17,7 +17,7 @@ The implementation extends the current TypeScript monorepo and adds `libphonenum
 
 **Storage**: Existing PostgreSQL database, extended with loyalty customer, configuration, reward, order-association, redemption, ledger, and allocation tables
 
-**Testing**: TDD test pyramid with broad loyalty domain/service and React component tests; targeted migration, API contract, transaction, authorization, and order-lifecycle integration tests; focused Playwright coverage for enrollment, earning, redemption, cancellation return, and expiration
+**Testing**: TDD test pyramid with broad loyalty domain/service and React component tests; targeted migration, API contract, transaction, authorization, and order-lifecycle integration tests; focused Playwright coverage for phone and email identity conflicts, enrollment, earning, redemption, cancellation return, and expiration
 
 **Target Platform**: Browser-based staff web app backed by the existing Node.js service
 
@@ -25,7 +25,7 @@ The implementation extends the current TypeScript monorepo and adds `libphonenum
 
 **Performance Goals**: Preserve the specification's 45-second enrollment, 15-second lookup, 20-second redemption decision, and 2-minute configuration targets; indexed customer and balance API operations should normally complete within 500 ms at single-shop scale
 
-**Constraints**: Authorized staff only; `SHOP_PHONE_REGION` is required for E.164 phone normalization; one customer may be selected only before order submission and the association cannot change after creation; no customer activation lifecycle; one active earning rule and expiration policy at a time; whole points only; earning posts exactly once when an associated order completes; free-beverage and size-upgrade benefit types are immutable, do not stack on one beverage unit, and use purchased snapshots for coverage; standalone reward, order, and beverage cancellation before pickup must return applicable points exactly once using original expiration dates; points remain valid through the final shop business day of their expiration month; historical rules, reward labels, costs, benefits, and expiration dates remain understandable after configuration changes; no customer self-service, marketing automation, payment integration, tiers, referrals, menu/category reward eligibility, or cross-location balances
+**Constraints**: Authorized staff only; `SHOP_PHONE_REGION` is required for E.164 phone normalization; supplied email is trimmed and unique ignoring letter case while a missing email remains allowed; one customer may be selected only before order submission and the association cannot change after creation; no customer activation lifecycle; one active earning rule and expiration policy at a time; whole points only; earning posts exactly once when an associated order completes; free-beverage and size-upgrade benefit types are immutable, do not stack on one beverage unit, and use purchased snapshots for coverage; standalone reward, order, and beverage cancellation before pickup must return applicable points exactly once using original expiration dates; points remain valid through the final shop business day of their expiration month; historical rules, reward labels, costs, benefits, and expiration dates remain understandable after configuration changes; no customer self-service, marketing automation, payment integration, tiers, referrals, menu/category reward eligibility, or cross-location balances
 
 **Scale/Scope**: One shop, thousands of loyalty customers, dozens of orders per business day, and a growing append-only point history; optimize indexed point reads and redemptions without adding a scheduler, cache, queue, or separate loyalty service
 
@@ -37,12 +37,12 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - **II. Daily Order Identity**: PASS. Loyalty records reference the durable order UUID while staff-facing history continues to display `businessDate + dailyOrderNumber`.
 - **III. Queue State Correctness**: PASS. No new order states are introduced. Earning, redemption return, and cancellation adjustments execute in the same transactions as valid order or beverage transitions.
 - **IV. Purchased Detail Preservation**: PASS. Reward redemptions snapshot the configured name, point cost, benefit, target, and covered amount. Earning uses non-cancelled purchased beverage snapshots and does not recalculate past events from mutable menu data.
-- **V. Incremental, Spec-Driven Delivery**: PASS. P1 customer identity, P2 earning, P3 redemption, and P4 expiration remain independently testable story increments over shared storage and contract foundations.
-- **VI. Simple, Necessary Design**: PASS with documented allocation and phone-normalization rationale. The design reuses the existing database, API, shared package, staff shell, order lifecycle, and test tools. It adds no new service, scheduler, cache, or queue; the one new runtime dependency avoids unsafe regional phone parsing.
-- **VII. Test-First, Risk-Based Quality**: PASS. Tasks must place failing tests before implementation for phone uniqueness, rule calculation, ledger allocation, concurrent redemption, order completion/cancellation integration, expiration boundaries, authorization, and critical staff UI flows.
+- **V. Incremental, Spec-Driven Delivery**: PASS. P1 customer identity, including phone and supplied-email uniqueness, P2 earning, P3 redemption, and P4 expiration remain independently testable story increments over shared storage and contract foundations.
+- **VI. Simple, Necessary Design**: PASS with documented allocation, phone-normalization, and case-insensitive email-index rationale. The design reuses the existing database, API, shared package, staff shell, order lifecycle, and test tools. It adds no new service, scheduler, cache, or queue; the one new runtime dependency avoids unsafe regional phone parsing.
+- **VII. Test-First, Risk-Based Quality**: PASS. Tasks must place failing tests before phone and email uniqueness, rule calculation, ledger allocation, concurrent redemption, order completion/cancellation integration, expiration boundaries, authorization, and critical staff UI flows.
 - **Product Scope and Constraints**: PASS. The feature remains staff-operated and single-location. It does not add customer applications, payment processing, delivery, or marketing workflows.
 
-**Post-Design Constitution Check**: PASS. Research, data model, contracts, and quickstart preserve the existing staff workflow and order state machine. The point-allocation table is the only non-obvious addition and is justified below because calendar expiration and exact redemption returns cannot be represented safely by an aggregate balance alone.
+**Post-Design Constitution Check**: PASS. Research, data model, contracts, and quickstart preserve the existing staff workflow and order state machine. The point-allocation table and partial case-insensitive email unique index are the only non-obvious additions: allocations make calendar expiration and exact redemption returns safe, while the index closes concurrent email collision races without making email required.
 
 ## Project Structure
 
@@ -66,7 +66,8 @@ apps/
 |-- api/
 |   |-- package.json
 |   |-- drizzle/migrations/
-|   |   `-- 0003_loyalty_program.sql
+|   |   |-- 0003_loyalty_program.sql
+|   |   `-- 0004_loyalty_customer_email_identity.sql
 |   |-- src/
 |   |   |-- domain/
 |   |   |   |-- loyaltyCustomerService.ts
@@ -119,4 +120,5 @@ packages/shared/src/
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Add a point-allocation table alongside the immutable ledger | Redemption must consume the earliest-expiring credits, expiration must remove only unspent points, and cancellation must return points with their original cutoff. Allocations provide that trace without mutating history. | A single aggregate balance cannot prove which earning batch was redeemed or expired and would either extend returned-point lifetime or make calendar cutoffs inaccurate. |
 | Add `libphonenumber-js` to the API                          | Equivalent local, international, and international-dial-prefix values must normalize to one valid E.164 identity using a configured shop region.                                                                            | Ad hoc regional parsing is error-prone, while punctuation-only normalization does not satisfy identity equivalence.                                                      |
+| Add `loyalty_customers_email_ci_unique` on `lower(email)`  | Supplied email addresses must be unique regardless of letter case while customers without email remain valid, and concurrent registration or edits must not create duplicates. A follow-up migration is needed because the loyalty table already exists. | An application-only availability check races under concurrent writes; a plain unique index would not treat case variants as equal.                                      |
 | Extend report calculations with active reward coverage      | Free-beverage and size-upgrade rewards reduce the amount actually attributable to an order and must not generate points or sales as if fully paid.                                                                          | Leaving reports and earning based on gross beverage snapshots would overstate sales and award points on the rewarded benefit.                                            |

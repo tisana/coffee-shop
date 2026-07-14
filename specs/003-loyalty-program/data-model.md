@@ -10,7 +10,7 @@ Represents one customer identity enrolled by staff.
 - `name`: required display name, 1-120 characters
 - `phoneDisplay`: required staff-entered phone, 1-40 characters
 - `phoneNormalized`: required E.164 phone produced with the configured shop region
-- `email`: optional trimmed email, maximum 254 characters
+- `email`: optional trimmed staff-entered email, maximum 254 characters
 - `enrolledAt`, `updatedAt`: timestamps
 
 **Relationships**
@@ -21,7 +21,10 @@ Represents one customer identity enrolled by staff.
 **Rules**
 
 - `phoneNormalized` is unique at the database level and contains a valid E.164 value.
+- When present, `email` is unique at the database level after trimming and case-insensitive comparison; the named `loyalty_customers_email_ci_unique` partial unique index on `lower(email)` allows multiple customers with no email address.
+- A follow-up migration trims existing non-null email values, converts blanks to null, and must report any duplicate `lower(email)` values for staff remediation before creating the named partial unique index; it must not silently merge customer accounts.
 - Create, update, and phone search use `libphonenumber-js` with `SHOP_PHONE_REGION`; invalid numbers are rejected before uniqueness checks.
+- Create and update map named phone and email unique-index conflicts to the corresponding staff-facing field; rejected updates leave the stored customer record unchanged.
 - Editing name, phone, or email never changes `id` or historical relationships.
 - Customer activation, deactivation, and deletion are outside this increment.
 
@@ -246,12 +249,13 @@ Extends the existing order value without replacing purchased snapshots.
 
 ## Lifecycle Sequences
 
-### Registration and phone update
+### Registration and identity update
 
 1. Validate and normalize the submitted phone to E.164 with `libphonenumber-js` and `SHOP_PHONE_REGION`.
-2. Insert or update the customer.
-3. Let the database unique index resolve any concurrent duplicate as a conflict.
-4. Preserve the same customer ID and all history on update.
+2. Trim a supplied email while preserving its display casing; treat blank input as no email.
+3. Insert or update the customer.
+4. Let the named phone or partial case-insensitive email unique index resolve any concurrent duplicate as the corresponding conflict.
+5. Preserve the same customer ID and all history on update; on conflict, persist no part of the requested update.
 
 ### Redemption during order creation
 
