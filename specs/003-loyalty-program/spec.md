@@ -18,6 +18,7 @@
 ### Session 2026-07-14
 
 - Q: Must customer phone numbers and email addresses both be unique while remaining editable? → A: Yes. Phone numbers are unique by normalized E.164 value; when supplied, email addresses are trimmed and compared case-insensitively for uniqueness. Staff may edit either value, but a collision is rejected without changing the customer account.
+- Q: Must a supplied email address have valid email format before uniqueness is evaluated? → A: Yes. Reject malformed supplied email addresses before checking uniqueness.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -27,7 +28,7 @@ Authorized staff can register a customer for the loyalty program using the custo
 
 **Why this priority**: The shop cannot retain returning customers or award points until customers have a reliable loyalty identity.
 
-**Independent Test**: Can be fully tested by registering a customer with name, phone, and optional email, searching for the customer on a later visit, and confirming duplicate phone numbers and supplied email addresses are rejected during registration and editing.
+**Independent Test**: Can be fully tested by registering a customer with name, phone, and optional email, searching for the customer on a later visit, and confirming malformed or duplicate phone numbers and supplied email addresses are rejected during registration and editing.
 
 **Acceptance Scenarios**:
 
@@ -38,6 +39,7 @@ Authorized staff can register a customer for the loyalty program using the custo
 5. **Given** a phone number entered in a valid local format, **When** another customer is registered with the equivalent international format for the shop's configured phone region, **Then** the system treats both values as the same E.164 identity and blocks the duplicate.
 6. **Given** a loyalty customer already uses an email address, **When** staff register another customer with the same address using different letter case or surrounding whitespace, **Then** the system prevents the duplicate and explains that the email address is already registered.
 7. **Given** a registered loyalty customer, **When** staff update the customer's email address to one already used by another customer, **Then** the system rejects the change and keeps the original email address and loyalty account unchanged.
+8. **Given** staff enter a malformed non-empty email address, **When** they register or update a loyalty customer, **Then** the system rejects the value before checking email uniqueness and keeps existing customer data unchanged on an update.
 
 ---
 
@@ -98,7 +100,7 @@ Authorized staff can configure whether points expire and, when expiration is ena
 
 - Valid local, international, and international-dial-prefix representations of the same phone number must normalize to one E.164 customer identity using the shop's configured phone region.
 - Invalid phone numbers must be rejected before customer uniqueness is evaluated.
-- Customers may not have an email address; email must not block registration or lookup, but a supplied email must not match another customer's email after surrounding whitespace is removed and letter case is ignored.
+- Customers may not have an email address; email must not block registration or lookup, but a supplied email must have valid email format and must not match another customer's email after surrounding whitespace is removed and letter case is ignored.
 - Updating a customer's name, phone number, or email address must not create a new loyalty identity or lose point history; a rejected phone or email collision leaves the existing customer data unchanged.
 - If the active earning rule changes, past point ledger entries keep their original earned amounts while future eligible orders use the new rule.
 - If a reward option changes or is retired, past redemptions remain visible in customer history while future redemptions use only currently available reward options.
@@ -114,7 +116,7 @@ Authorized staff can configure whether points expire and, when expiration is ena
 ### Functional Requirements
 
 - **FR-001**: System MUST allow authorized staff to create a loyalty customer with customer name and phone number as required information.
-- **FR-002**: System MUST allow authorized staff to optionally store an email address for a loyalty customer and MUST enforce uniqueness for every supplied email address after surrounding whitespace is removed and letter case is ignored.
+- **FR-002**: System MUST allow authorized staff to optionally store an email address for a loyalty customer; every supplied email address MUST have valid email format and MUST be unique after surrounding whitespace is removed and letter case is ignored.
 - **FR-003**: System MUST validate and normalize phone numbers to E.164 using the shop's configured phone region and MUST enforce uniqueness so equivalent local and international representations identify the same loyalty customer.
 - **FR-004**: System MUST allow authorized staff to edit a loyalty customer's name, phone number, and email address while preserving the same loyalty account and point history.
 - **FR-005**: System MUST prevent customer registration or customer updates that would duplicate another loyalty customer's normalized phone number or supplied email address, explain the conflicting field to staff, and preserve the existing customer account data when an update is rejected.

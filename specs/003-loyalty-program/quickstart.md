@@ -46,6 +46,7 @@ Expected outcomes:
 5. Attempt to register a second customer with a different phone and ` ada@example.com ` as the email.
 6. Attempt to change the original phone to one already used by another customer.
 7. Attempt registration with an invalid phone for the configured region.
+8. Attempt registration and an edit with `not-an-email` as the non-empty email value.
 
 Expected outcomes:
 
@@ -53,6 +54,7 @@ Expected outcomes:
 - Equivalent local, international, and international-dial-prefix forms normalize to one E.164 identity and cannot create duplicates.
 - A supplied email is trimmed, case-insensitively unique, and returns an email-specific conflict when another customer uses the same address.
 - Invalid phone input is rejected before uniqueness is evaluated.
+- A malformed non-empty email is rejected before email uniqueness is evaluated; an invalid-email edit preserves the stored customer data.
 - Duplicate create and update attempts return a clear conflict and preserve existing data.
 - The original account ID and point history survive profile edits.
 
@@ -130,14 +132,14 @@ Write failing tests first, then implement and run the focused suites:
 npm run test --workspace @coffee-shop/api -- loyaltyCustomerService.test.ts
 npm run test --workspace @coffee-shop/api -- loyaltyConfigurationService.test.ts
 npm run test --workspace @coffee-shop/api -- loyaltyLedgerService.test.ts
-npm run test --workspace @coffee-shop/api -- loyalty.contract.test.ts
+npm run test --workspace @coffee-shop/api -- loyalty.customer.contract.test.ts
 npm run test --workspace @coffee-shop/api -- loyalty-order-lifecycle.test.ts
 npm run test --workspace @coffee-shop/api -- loyalty-redemption-concurrency.test.ts
 ```
 
 The tests must cover:
 
-- E.164 phone validation and local/international equivalence using `SHOP_PHONE_REGION`, plus supplied-email trimming, case-insensitive uniqueness, field-specific conflict responses, and database uniqueness races
+- E.164 phone validation and local/international equivalence using `SHOP_PHONE_REGION`, plus supplied-email trimming, format validation before uniqueness, case-insensitive uniqueness, field-specific conflict responses, and database uniqueness races
 - rule versioning and amount/beverage calculations
 - calendar-month cutoff calculations in the shop time zone
 - earliest-expiring allocation, insufficient points, standalone reward return, beverage/order return, and expiration
@@ -156,7 +158,7 @@ npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
 The UI checks must confirm:
 
 - `#loyalty` opens inside the existing sidebar/topbar shell
-- customer registration, search, field-specific phone/email duplicate errors, editing, totals, and history states
+- customer registration, search, email format and field-specific phone/email duplicate errors, editing, totals, and history states
 - earning, reward, and expiration configuration controls
 - counter customer selection and clearing
 - reward availability based on the latest balance and valid beverage target

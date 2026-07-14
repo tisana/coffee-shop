@@ -47,14 +47,14 @@
 
 ## Phase 3: User Story 1 - Register and Identify Loyalty Customers (Priority: P1) MVP
 
-**Goal**: Authorized staff can register, search, view, and edit one durable customer account using a required unique E.164 phone identity derived from the configured shop region and an optional email identity that is unique ignoring letter case.
+**Goal**: Authorized staff can register, search, view, and edit one durable customer account using a required unique E.164 phone identity derived from the configured shop region and an optional valid email identity that is unique ignoring letter case.
 
-**Independent Test**: Register a customer without email using a valid local phone, find them by equivalent international phone and name, reject equivalent dial-prefix and invalid phones, create or edit a second customer with the same trimmed case-insensitive email, and confirm each rejected collision leaves the original account unchanged.
+**Independent Test**: Register a customer without email using a valid local phone, find them by equivalent international phone and name, reject equivalent dial-prefix and invalid phones, reject malformed supplied email before uniqueness, create or edit a second customer with the same trimmed case-insensitive email, and confirm each rejected update leaves the original account unchanged.
 
 ### Tests for User Story 1 (write first)
 
 - [X] T010 [P] [US1] Write failing unit tests for `SHOP_PHONE_REGION`, valid E.164 normalization, equivalent local/international/dial-prefix input, invalid phones, customer creation, search ordering, profile edits, and duplicate conflicts in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
-- [X] T011 [P] [US1] Write failing authorized and unauthorized contract tests for `GET/POST /loyalty/customers` and `GET/PATCH /loyalty/customers/:customerId` in `apps/api/tests/integration/loyalty.contract.test.ts`
+- [X] T011 [P] [US1] Write failing authorized and unauthorized contract tests for `GET/POST /loyalty/customers` and `GET/PATCH /loyalty/customers/:customerId` in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
 - [X] T012 [P] [US1] Write failing component tests for customer search, no-result, registration, duplicate error, selection, profile edit, loading, and optional email states in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
 - [X] T013 [P] [US1] Write the failing Playwright local-phone registration, international lookup, equivalent dial-prefix duplicate, invalid-phone, and edit journey in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
@@ -62,7 +62,7 @@
 
 - [X] T014 [US1] Add `libphonenumber-js` to `apps/api/package.json` and `package-lock.json`, then implement configured-region E.164 normalization and transactional customer create, search, get, and update operations in `apps/api/src/domain/loyaltyCustomerService.ts`
 - [X] T015 [US1] Add customer query, create, path, and patch Zod schemas with valid regional phone, email, and pagination validation in `apps/api/src/routes/validators.ts`
-- [X] T016 [US1] Implement protected customer search, registration, profile, and edit endpoints with duplicate conflict mapping in `apps/api/src/routes/loyaltyRoutes.ts`
+- [X] T016 [US1] Implement protected customer search, registration, profile, and edit endpoints with duplicate conflict mapping in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [X] T017 [US1] Mount the protected loyalty route group in `apps/api/src/app.ts`
 - [X] T018 [P] [US1] Implement customer search, registration, profile, and edit client calls in `apps/staff-web/src/services/loyaltyApi.ts`
 - [X] T019 [US1] Implement debounced phone/name search, quick registration, exact selection, and clear-selection behavior in `apps/staff-web/src/components/LoyaltyCustomerPicker.tsx`
@@ -74,19 +74,19 @@
 
 ### Email Identity Follow-up (write tests first)
 
-- [ ] T025 [P] [US1] Write failing unit tests for trimming supplied email, case-insensitive duplicate creates and edits, blank-email handling, named phone/email constraint mapping, and unchanged customer data after a rejected update in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
-- [ ] T026 [P] [US1] Extend failing customer API contract tests for email-specific `409` responses on create and update, mixed-case and surrounding-whitespace collisions, and preserved account data in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
+- [ ] T025 [P] [US1] Write failing unit tests for malformed email rejection before uniqueness, trimming supplied email, case-insensitive duplicate creates and edits, blank-email handling, named phone/email constraint mapping, and unchanged customer data after a rejected update in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
+- [ ] T026 [P] [US1] Extend failing customer API contract tests for malformed-email `400` responses before uniqueness, email-specific `409` responses on create and update, mixed-case and surrounding-whitespace collisions, and preserved account data in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
 - [ ] T027 [P] [US1] Add failing migration and database tests for existing-email trimming, blank-to-null conversion, named partial `lower(email)` uniqueness, concurrent conflicts, and duplicate-data preflight failure in `apps/api/tests/integration/loyalty-schema.test.ts`
-- [ ] T028 [P] [US1] Extend failing customer component tests for email-specific duplicate messages and retained form/profile values after a rejected edit in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
-- [ ] T029 [P] [US1] Extend the failing Playwright customer journey for case-insensitive email duplicate registration, duplicate email edit, and unchanged profile state in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
+- [ ] T028 [P] [US1] Extend failing customer component tests for malformed-email and email-specific duplicate messages plus retained form/profile values after rejected edits in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
+- [ ] T029 [P] [US1] Extend the failing Playwright customer journey for malformed-email rejection, case-insensitive email duplicate registration, duplicate email edit, and unchanged profile state in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
 ### Email Identity Follow-up Implementation
 
 - [ ] T030 [US1] Add the `0004_loyalty_customer_email_identity.sql` migration and matching named partial unique-index definition with collision preflight in `apps/api/drizzle/migrations/0004_loyalty_customer_email_identity.sql` and `apps/api/src/storage/schema.ts`
 - [ ] T031 [US1] Normalize optional email by trimming while preserving display casing, distinguish named phone versus email unique-constraint violations, and preserve atomic update behavior in `apps/api/src/domain/loyaltyCustomerService.ts`
-- [ ] T032 [US1] Return field-specific customer identity conflicts from protected create and update routes in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
+- [ ] T032 [US1] Return malformed-email validation before field-specific customer identity conflicts from protected create and update routes in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [ ] T033 [US1] Surface email-specific create and edit conflicts without clearing the customer form or profile in `apps/staff-web/src/services/loyaltyApi.ts`, `apps/staff-web/src/components/LoyaltyCustomerPicker.tsx`, `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`, and `apps/staff-web/src/styles.css`
-- [ ] T034 [US1] Run focused schema, customer service, customer contract, component, and Playwright email-identity checks and record migration, collision, and unchanged-update evidence in `specs/003-loyalty-program/quickstart.md`
+- [ ] T034 [US1] Run focused schema, customer service, customer contract, component, and Playwright email-identity checks and record format validation, migration, collision, and unchanged-update evidence in `specs/003-loyalty-program/quickstart.md`
 
 **Checkpoint**: User Story 1 is a complete staff-only customer identity MVP with unique phone and supplied email identities, independently demonstrable without earning, rewards, or expiration.
 
@@ -102,7 +102,7 @@
 
 - [ ] T035 [P] [US2] Write failing rule-versioning, threshold validation, amount calculation, beverage calculation, and no-carryover unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
 - [ ] T036 [P] [US2] Write failing earned, balance summary, readable history, idempotent post, and earning-reversal unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
-- [ ] T037 [P] [US2] Extend failing contract tests for active earning rule get/replace, customer point summary, create-time order association payloads, and absence of a post-creation association API in `apps/api/tests/integration/loyalty.contract.test.ts`
+- [ ] T037 [P] [US2] Extend failing contract tests for active earning rule get/replace, customer point summary, create-time order association payloads, and absence of a post-creation association API in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
 - [ ] T038 [P] [US2] Write failing amount, beverage, immutable create-time association, no-customer order, partial-cancellation, full-cancellation, completed-order reversal, and duplicate-completion integration tests in `apps/api/tests/integration/loyalty-order-lifecycle.test.ts`
 - [ ] T039 [P] [US2] Write failing component tests for earning rule controls, balance totals, point history, and counter customer selection in `apps/staff-web/src/components/LoyaltyEarningComponents.test.tsx`
 - [ ] T040 [P] [US2] Extend the failing Playwright journey for customer association, amount earning, beverage earning, partial cancellation, and history in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
@@ -113,7 +113,7 @@
 - [ ] T042 [US2] Implement amount and beverage calculations, earned and adjusted ledger posting, available/lifetime totals, readable order labels, and idempotency keys in `apps/api/src/domain/loyaltyLedgerService.ts`
 - [ ] T043 [US2] Implement immutable create-time order association and eligible amount/beverage calculation from non-cancelled purchased snapshots in `apps/api/src/domain/loyaltyOrderService.ts`
 - [ ] T044 [US2] Add earning rule, customer point response, and order loyalty association validation schemas in `apps/api/src/routes/validators.ts`
-- [ ] T045 [US2] Add protected earning rule get/replace and customer point summary/history endpoints in `apps/api/src/routes/loyaltyRoutes.ts`
+- [ ] T045 [US2] Add protected earning rule get/replace and customer point summary/history endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [ ] T046 [US2] Extend order creation to validate a registered customer and insert the immutable loyalty order association atomically, with no post-creation reassignment path, in `apps/api/src/domain/orderCreationService.ts`
 - [ ] T047 [US2] Map loyalty customer identity, point effects, gross total, zero reward coverage, and payable total into order responses in `apps/api/src/domain/orderMapper.ts`
 - [ ] T048 [US2] Post configured earning in the same transaction as the successful `in_progress -> completed` transition in `apps/api/src/domain/orderFulfillmentService.ts`
@@ -139,7 +139,7 @@
 - [ ] T055 [P] [US3] Write failing reward create, edit, retire, active-list, immutable benefit type, free-unit coverage, size-adjustment coverage, non-stacking, validation, and immutable snapshot unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
 - [ ] T056 [P] [US3] Write failing earliest-expiring allocation, insufficient balance, redemption debit, standalone cancellation, multi-bucket original-expiration return, stale balance, and idempotent return unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
 - [ ] T057 [P] [US3] Write failing simultaneous-redemption and customer-row-lock integration tests in `apps/api/tests/integration/loyalty-redemption-concurrency.test.ts`
-- [ ] T058 [P] [US3] Extend failing contract tests for reward CRUD/list, immutable benefit type, atomic non-stackable order reward selections, targets, totals, conflicts, and `POST /orders/:orderId/loyalty-rewards/:redemptionId/cancel` in `apps/api/tests/integration/loyalty.contract.test.ts`
+- [ ] T058 [P] [US3] Extend failing contract tests for reward CRUD/list, immutable benefit type, atomic non-stackable order reward selections, targets, totals, conflicts, and `POST /orders/:orderId/loyalty-rewards/:redemptionId/cancel` in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
 - [ ] T059 [P] [US3] Extend failing lifecycle tests for complete-unit free beverage coverage, selected size adjustment, non-stacking, standalone reward cancellation, target beverage cancellation, full order cancellation, returned points, and reward snapshots in `apps/api/tests/integration/loyalty-order-lifecycle.test.ts`
 - [ ] T060 [P] [US3] Write failing unit tests for reward-covered item sales, order sales, popularity, amount earning basis, and beverage earning basis in `apps/api/tests/unit/reportingService.test.ts`
 - [ ] T061 [P] [US3] Extend failing report contract tests for gross captured totals, reward coverage, payable/reportable totals, and returned rewards in `apps/api/tests/integration/reports.contract.test.ts`
@@ -150,7 +150,7 @@
 
 - [ ] T064 [US3] Implement reward option create, active/all list, editable metadata, immutable benefit type, and retirement/replacement behavior while preserving redemption snapshots in `apps/api/src/domain/loyaltyConfigurationService.ts`
 - [ ] T065 [US3] Add reward create/update/query, non-stackable order selection, conditional size-choice, and standalone reward cancellation path validation in `apps/api/src/routes/validators.ts`
-- [ ] T066 [US3] Add protected reward list, create, edit, and retire endpoints in `apps/api/src/routes/loyaltyRoutes.ts`
+- [ ] T066 [US3] Add protected reward list, create, edit, and retire endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [ ] T067 [US3] Implement customer locking, latest balance refresh, earliest-expiring debit allocation, and idempotent standalone/beverage/order return credits that retain original expiration dates in `apps/api/src/domain/loyaltyLedgerService.ts`
 - [ ] T068 [US3] Implement complete-unit free-beverage coverage including customizations, selected positive size-adjustment coverage, one-reward-per-unit validation, snapshots, complimentary quantity, and active coverage calculations in `apps/api/src/domain/loyaltyOrderService.ts`
 - [ ] T069 [US3] Extend order creation to insert beverage snapshots, immutable association, non-stackable redemption snapshots, ledger debits, allocations, and loyalty discount total in one transaction in `apps/api/src/domain/orderCreationService.ts`
@@ -181,7 +181,7 @@
 
 - [ ] T082 [P] [US4] Write failing policy versioning, disabled policy, positive month validation, July-to-October cutoff, year rollover, and shop business-date unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
 - [ ] T083 [P] [US4] Write failing lazy expiration, partial unspent expiration, idempotent repeated reads, redemption cutoff, returned-after-cutoff, and historical policy unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
-- [ ] T084 [P] [US4] Extend failing contract tests for expiration policy get/replace and point summary materialization as of the shop business date in `apps/api/tests/integration/loyalty.contract.test.ts`
+- [ ] T084 [P] [US4] Extend failing contract tests for expiration policy get/replace and point summary materialization as of the shop business date in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
 - [ ] T085 [P] [US4] Write failing component tests for enabled/disabled expiration controls, month input, active cutoff explanation, expired totals, and expired history in `apps/staff-web/src/components/LoyaltyExpirationComponents.test.tsx`
 - [ ] T086 [P] [US4] Extend the failing Playwright journey for October 31 availability, November 1 expiration, blocked redemption, and visible history in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
@@ -189,10 +189,10 @@
 
 - [ ] T087 [US4] Implement expiration policy reads, transactional version replacement, and end-of-future-month cutoff calculation in `apps/api/src/domain/loyaltyConfigurationService.ts`
 - [ ] T088 [US4] Add expiration policy input validation and enforce enabled/month consistency in `apps/api/src/routes/validators.ts`
-- [ ] T089 [US4] Add protected expiration policy get and replace endpoints in `apps/api/src/routes/loyaltyRoutes.ts`
+- [ ] T089 [US4] Add protected expiration policy get and replace endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [ ] T090 [US4] Assign the active policy version and calculated expiration business date when earned points post in `apps/api/src/domain/loyaltyLedgerService.ts`
 - [ ] T091 [US4] Materialize unspent expired debits and allocations transactionally before point reads and redemptions without duplicate events in `apps/api/src/domain/loyaltyLedgerService.ts`
-- [ ] T092 [US4] Invoke expiration refresh before returning customer totals/history and expose the `asOfBusinessDate` in `apps/api/src/routes/loyaltyRoutes.ts`
+- [ ] T092 [US4] Invoke expiration refresh before returning customer totals/history and expose the `asOfBusinessDate` in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [ ] T093 [P] [US4] Implement expiration policy get/replace client calls in `apps/staff-web/src/services/loyaltyApi.ts`
 - [ ] T094 [US4] Add disabled/enabled controls, calendar-month input, active policy display, and cutoff explanation in `apps/staff-web/src/components/LoyaltyProgramSettings.tsx` and expose them from `apps/staff-web/src/pages/LoyaltyPage.tsx`
 - [ ] T095 [US4] Render expired totals and expiration-date history distinctly while keeping returned and adjusted entries understandable in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
@@ -347,7 +347,7 @@ T086 expiration Playwright journey
 ## Notes
 
 - Every implementation task follows its story's failing tests.
-- `[P]` marks work in distinct files; tasks that share `loyaltyLedgerService.ts`, `loyaltyRoutes.ts`, `LoyaltyProgramSettings.tsx`, or `styles.css` remain sequential.
+- `[P]` marks work in distinct files; tasks that share `loyaltyLedgerService.ts`, `loyaltyCustomerRoutes.ts`, `LoyaltyProgramSettings.tsx`, or `styles.css` remain sequential.
 - Do not mutate historical earning, reward, redemption, or expiration records to satisfy a current-state test; append the required event or configuration version.
 - Preserve existing order state transitions, purchased snapshots, report graph/table parity, staff authorization, and business-date behavior while adding loyalty effects.
 - Commit only when explicitly requested or when the `/speckit-git-commit` workflow is invoked.
