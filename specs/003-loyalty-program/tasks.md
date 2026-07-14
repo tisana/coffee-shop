@@ -74,19 +74,19 @@
 
 ### Email Identity Follow-up (write tests first)
 
-- [ ] T025 [P] [US1] Write failing unit tests for malformed email rejection before uniqueness, trimming supplied email, case-insensitive duplicate creates and edits, blank-email handling, named phone/email constraint mapping, and unchanged customer data after a rejected update in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
-- [ ] T026 [P] [US1] Extend failing customer API contract tests for malformed-email `400` responses before uniqueness, email-specific `409` responses on create and update, mixed-case and surrounding-whitespace collisions, and preserved account data in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
-- [ ] T027 [P] [US1] Add failing migration and database tests for existing-email trimming, blank-to-null conversion, named partial `lower(email)` uniqueness, concurrent conflicts, and duplicate-data preflight failure in `apps/api/tests/integration/loyalty-schema.test.ts`
-- [ ] T028 [P] [US1] Extend failing customer component tests for malformed-email and email-specific duplicate messages plus retained form/profile values after rejected edits in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
-- [ ] T029 [P] [US1] Extend the failing Playwright customer journey for malformed-email rejection, case-insensitive email duplicate registration, duplicate email edit, and unchanged profile state in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
+- [X] T025 [P] [US1] Write failing unit tests for malformed email rejection before uniqueness, trimming supplied email, case-insensitive duplicate creates and edits, blank-email handling, named phone/email constraint mapping, and unchanged customer data after a rejected update in `apps/api/tests/unit/loyaltyCustomerService.test.ts`
+- [X] T026 [P] [US1] Extend failing customer API contract tests for malformed-email `400` responses before uniqueness, email-specific `409` responses on create and update, mixed-case and surrounding-whitespace collisions, and preserved account data in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
+- [X] T027 [P] [US1] Add failing migration and database tests for existing-email trimming, blank-to-null conversion, named partial `lower(email)` uniqueness, concurrent conflicts, and duplicate-data preflight failure in `apps/api/tests/integration/loyalty-schema.test.ts`
+- [X] T028 [P] [US1] Extend failing customer component tests for malformed-email and email-specific duplicate messages plus retained form/profile values after rejected edits in `apps/staff-web/src/components/LoyaltyCustomerComponents.test.tsx`
+- [X] T029 [P] [US1] Extend the failing Playwright customer journey for malformed-email rejection, case-insensitive email duplicate registration, duplicate email edit, and unchanged profile state in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
 ### Email Identity Follow-up Implementation
 
-- [ ] T030 [US1] Add the `0004_loyalty_customer_email_identity.sql` migration and matching named partial unique-index definition with collision preflight in `apps/api/drizzle/migrations/0004_loyalty_customer_email_identity.sql` and `apps/api/src/storage/schema.ts`
-- [ ] T031 [US1] Normalize optional email by trimming while preserving display casing, distinguish named phone versus email unique-constraint violations, and preserve atomic update behavior in `apps/api/src/domain/loyaltyCustomerService.ts`
-- [ ] T032 [US1] Return malformed-email validation before field-specific customer identity conflicts from protected create and update routes in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
-- [ ] T033 [US1] Surface email-specific create and edit conflicts without clearing the customer form or profile in `apps/staff-web/src/services/loyaltyApi.ts`, `apps/staff-web/src/components/LoyaltyCustomerPicker.tsx`, `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`, and `apps/staff-web/src/styles.css`
-- [ ] T034 [US1] Run focused schema, customer service, customer contract, component, and Playwright email-identity checks and record format validation, migration, collision, and unchanged-update evidence in `specs/003-loyalty-program/quickstart.md`
+- [X] T030 [US1] Add the `0004_loyalty_customer_email_identity.sql` migration and matching named partial unique-index definition with collision preflight in `apps/api/drizzle/migrations/0004_loyalty_customer_email_identity.sql` and `apps/api/src/storage/schema.ts`
+- [X] T031 [US1] Normalize optional email by trimming while preserving display casing, distinguish named phone versus email unique-constraint violations, and preserve atomic update behavior in `apps/api/src/domain/loyaltyCustomerService.ts`
+- [X] T032 [US1] Return malformed-email validation before field-specific customer identity conflicts from protected create and update routes in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
+- [X] T033 [US1] Surface email-specific create and edit conflicts without clearing the customer form or profile in `apps/staff-web/src/services/loyaltyApi.ts`, `apps/staff-web/src/components/LoyaltyCustomerPicker.tsx`, `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`, and `apps/staff-web/src/styles.css`
+- [X] T034 [US1] Run focused schema, customer service, customer contract, component, and Playwright email-identity checks and record format validation, migration, collision, and unchanged-update evidence in `specs/003-loyalty-program/quickstart.md`
 
 **Checkpoint**: User Story 1 is a complete staff-only customer identity MVP with unique phone and supplied email identities, independently demonstrable without earning, rewards, or expiration.
 

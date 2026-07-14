@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 
 import { sql } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { db } from "../../src/storage/db";
+import { loyaltyCustomers } from "../../src/storage/schema";
 import { cleanupLoyaltyFixtureData, createTestStaff } from "./testFixtures";
 
 const businessDate = "2099-01-01";
@@ -22,6 +24,91 @@ describe("loyalty schema constraints", () => {
     await expect(
       insertLoyaltyCustomer(staff.id, normalizedPhone),
     ).rejects.toThrow();
+  });
+
+  it("normalizes existing email data and enforces the named case-insensitive email identity", async () => {
+    const migration = await readFile(
+      new URL("../../drizzle/migrations/0004_loyalty_customer_email_identity.sql", import.meta.url),
+      "utf8"
+    );
+    expect(migration).toContain("NULLIF(btrim(email), '')");
+    expect(migration).toContain("HAVING count(*) > 1");
+    expect(migration).toContain("RAISE EXCEPTION");
+    expect(migration).toContain("loyalty_customers_email_ci_unique");
+    expect(migration).toContain("lower(\"email\")");
+
+    const { staff } = await createTestStaff();
+    const legacyTrimmed = await insertLoyaltyCustomer(
+      staff.id,
+      `+6680${randomDigits(7)}`,
+      "  Trimmed@Example.test  "
+    );
+    const legacyBlank = await insertLoyaltyCustomer(
+      staff.id,
+      `+6685${randomDigits(7)}`,
+      "   "
+    );
+    await db.execute(sql`
+      UPDATE loyalty_customers
+      SET email = NULLIF(btrim(email), '')
+      WHERE email IS NOT NULL
+    `);
+    const [trimmedRow] = await db
+      .select()
+      .from(loyaltyCustomers)
+      .where(sql`${loyaltyCustomers.id} = ${legacyTrimmed.id}::uuid`);
+    const [blankRow] = await db
+      .select()
+      .from(loyaltyCustomers)
+      .where(sql`${loyaltyCustomers.id} = ${legacyBlank.id}::uuid`);
+    expect(trimmedRow?.email).toBe("Trimmed@Example.test");
+    expect(blankRow?.email).toBeNull();
+
+    await insertLoyaltyCustomer(
+      staff.id,
+      `+6686${randomDigits(7)}`,
+      "Legacy@Example.test"
+    );
+    await insertLoyaltyCustomer(
+      staff.id,
+      `+6687${randomDigits(7)}`,
+      " legacy@example.test "
+    );
+    await expect(
+      db.execute(sql`
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1
+            FROM loyalty_customers
+            WHERE NULLIF(btrim(email), '') IS NOT NULL
+            GROUP BY lower(NULLIF(btrim(email), ''))
+            HAVING count(*) > 1
+          ) THEN
+            RAISE EXCEPTION 'Cannot create loyalty email identity index: duplicate case-insensitive email values exist.';
+          END IF;
+        END $$;
+      `)
+    ).rejects.toThrow("duplicate case-insensitive email values exist");
+
+    const primary = await insertLoyaltyCustomer(
+      staff.id,
+      `+6681${randomDigits(7)}`,
+      "Ari@Example.test"
+    );
+
+    await expect(
+      insertLoyaltyCustomer(staff.id, `+6682${randomDigits(7)}`, "ari@example.test")
+    ).rejects.toThrow();
+
+    const concurrent = await Promise.allSettled([
+      insertLoyaltyCustomer(staff.id, `+6683${randomDigits(7)}`, "Nina@Example.test"),
+      insertLoyaltyCustomer(staff.id, `+6684${randomDigits(7)}`, "nina@example.test")
+    ]);
+    expect(concurrent.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(concurrent.filter((result) => result.status === "rejected")).toHaveLength(1);
+
+    expect(primary.id).toBeDefined();
   });
 
   it("allows only one active earning rule and expiration policy", async () => {
@@ -156,7 +243,7 @@ describe("loyalty schema constraints", () => {
   });
 });
 
-async function insertLoyaltyCustomer(staffId: string, normalizedPhone: string) {
+async function insertLoyaltyCustomer(staffId: string, normalizedPhone: string, email: string | null = null) {
   const id = randomUUID();
 
   await db.execute(sql`
@@ -168,7 +255,7 @@ async function insertLoyaltyCustomer(staffId: string, normalizedPhone: string) {
       'Test Customer',
       ${normalizedPhone},
       ${normalizedPhone},
-      NULL,
+      ${email},
       now(),
       now()
     )
