@@ -58,5 +58,10 @@ The local Docker database defaults are defined in `infra/docker/compose.yml`.
 For direct API runs, keep `DATABASE_URL` pointed at the local PostgreSQL service.
 Set `SHOP_TIME_ZONE` to the shop's IANA timezone when daily order numbers and
 current-day history need to follow local shop time; it defaults to `UTC`.
+Set `SHOP_PHONE_REGION` to the shop's ISO 3166-1 alpha-2 region for loyalty
+phone validation, for example `TH` for Thailand. Local development defaults to
+`TH`; production requires an explicit valid value. Customers can enter local,
+`+` international, or `00` international-dial-prefix phone forms; spaces,
+dashes, and parentheses are accepted.
 In production, set `NODE_ENV=production` so session cookies include the `Secure`
 attribute in addition to `HttpOnly`, `SameSite=Lax`, `Max-Age`, and `Path=/`.

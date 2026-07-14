@@ -14,6 +14,10 @@ describe("loyalty customer contract", () => {
     expect(unauthorized.status).toBe(401);
 
     const { agent } = await createLoggedInAgent();
+    const regionResponse = await agent.get("/loyalty/phone-region");
+    expect(regionResponse.status).toBe(200);
+    expect(regionResponse.body).toEqual({ region: "TH" });
+
     const createResponse = await agent.post("/loyalty/customers").send({
       name: "Ari Srisuk",
       phone: "081-234-5678",

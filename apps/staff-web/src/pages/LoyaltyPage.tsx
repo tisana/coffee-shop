@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { LoyaltyCustomerInput, LoyaltyCustomerUpdate } from "@coffee-shop/shared/contracts/api";
 import type { LoyaltyCustomer } from "@coffee-shop/shared/domain/types";
@@ -7,12 +7,20 @@ import { LoyaltyCustomerPicker } from "../components/LoyaltyCustomerPicker";
 import { LoyaltyCustomerProfile } from "../components/LoyaltyCustomerProfile";
 import {
   createLoyaltyCustomer,
+  getLoyaltyPhoneRegion,
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
 } from "../services/loyaltyApi";
 
 export function LoyaltyPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<LoyaltyCustomer | null>(null);
+  const [phoneRegion, setPhoneRegion] = useState<string | null>(null);
+
+  useEffect(() => {
+    getLoyaltyPhoneRegion()
+      .then((response) => setPhoneRegion(response.region))
+      .catch(() => setPhoneRegion(null));
+  }, []);
 
   const handleRegister = useCallback(async (input: LoyaltyCustomerInput) => {
     const customer = await createLoyaltyCustomer(input);
@@ -42,8 +50,9 @@ export function LoyaltyPage() {
           onSelect={setSelectedCustomer}
           onClear={() => setSelectedCustomer(null)}
           onRegister={handleRegister}
+          phoneRegion={phoneRegion}
         />
-        {selectedCustomer ? <LoyaltyCustomerProfile customer={selectedCustomer} onSave={handleSave} /> : <p className="empty-state">Select a customer to view the profile.</p>}
+        {selectedCustomer ? <LoyaltyCustomerProfile customer={selectedCustomer} onSave={handleSave} phoneRegion={phoneRegion} /> : <p className="empty-state">Select a customer to view the profile.</p>}
       </div>
     </section>
   );

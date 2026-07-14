@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   createLoyaltyCustomer,
+  getLoyaltyPhoneRegion,
   normalizeLoyaltyPhone,
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
@@ -16,9 +17,20 @@ afterEach(async () => {
     await db.delete(loyaltyCustomers);
     createdCustomerIds.length = 0;
   }
+  vi.unstubAllEnvs();
 });
 
 describe("loyalty customer service", () => {
+  it("uses Thailand for local development and honors the configured shop phone region", () => {
+    vi.stubEnv("SHOP_PHONE_REGION", "");
+    vi.stubEnv("NODE_ENV", "test");
+    expect(getLoyaltyPhoneRegion()).toBe("TH");
+
+    vi.stubEnv("SHOP_PHONE_REGION", "US");
+    expect(getLoyaltyPhoneRegion()).toBe("US");
+    expect(normalizeLoyaltyPhone("(415) 555-2671")).toBe("+14155552671");
+  });
+
   it("normalizes local, international, and IDD phone forms to one E.164 identity", () => {
     expect(normalizeLoyaltyPhone("081-234-5678")).toBe("+66812345678");
     expect(normalizeLoyaltyPhone("+66 81-234-5678")).toBe("+66812345678");

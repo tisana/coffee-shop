@@ -16,11 +16,12 @@ import { db } from "../storage/db";
 import { loyaltyCustomers } from "../storage/schema";
 
 const DEFAULT_SEARCH_LIMIT = 20;
+const LOCAL_DEVELOPMENT_PHONE_REGION = "TH";
 
 type LoyaltyCustomerRow = typeof loyaltyCustomers.$inferSelect;
 
 export function normalizeLoyaltyPhone(phone: string): string {
-  const region = configuredPhoneRegion();
+  const region = getLoyaltyPhoneRegion();
   const input = phone.trim().replace(/^00/, "+");
   const parsed = parsePhoneNumberFromString(input, region);
 
@@ -128,11 +129,12 @@ export async function updateLoyaltyCustomer(
   }
 }
 
-function configuredPhoneRegion(): CountryCode {
-  const configured = process.env.SHOP_PHONE_REGION?.trim().toUpperCase();
+export function getLoyaltyPhoneRegion(): CountryCode {
+  const configured = process.env.SHOP_PHONE_REGION?.trim().toUpperCase()
+    || (process.env.NODE_ENV === "production" ? undefined : LOCAL_DEVELOPMENT_PHONE_REGION);
 
   if (!configured || !isSupportedCountry(configured)) {
-    throw badRequest("SHOP_PHONE_REGION must be a supported ISO 3166-1 alpha-2 country code.");
+    throw badRequest("SHOP_PHONE_REGION must be a supported ISO 3166-1 alpha-2 country code in production.");
   }
 
   return configured;

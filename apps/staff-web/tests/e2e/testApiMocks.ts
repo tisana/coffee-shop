@@ -92,6 +92,11 @@ export async function fulfillLoyaltyApiRoute(
     return true;
   }
 
+  if (path === "/loyalty/phone-region") {
+    await fulfillJson(route, { region: "TH" });
+    return true;
+  }
+
   if (path === "/loyalty/customers" && route.request().method() === "GET") {
     await fulfillJson(route, { customers: mockData.customers ?? [customer] });
     return true;

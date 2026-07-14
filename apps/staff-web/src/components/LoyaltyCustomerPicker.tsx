@@ -9,6 +9,7 @@ interface LoyaltyCustomerPickerProps {
   onSelect: (customer: LoyaltyCustomer) => void;
   onClear: () => void;
   onRegister: (input: LoyaltyCustomerInput) => Promise<LoyaltyCustomer>;
+  phoneRegion: string | null;
 }
 
 export function LoyaltyCustomerPicker({
@@ -16,7 +17,8 @@ export function LoyaltyCustomerPicker({
   searchCustomers,
   onSelect,
   onClear,
-  onRegister
+  onRegister,
+  phoneRegion
 }: LoyaltyCustomerPickerProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<LoyaltyCustomer[]>([]);
@@ -134,10 +136,25 @@ export function LoyaltyCustomerPicker({
             Customer name
             <input value={name} onChange={(event) => setName(event.target.value)} required />
           </label>
-          <label>
-            Phone number
-            <input value={phone} onChange={(event) => setPhone(event.target.value)} required />
-          </label>
+          <div className="loyalty-field">
+            <label htmlFor="loyalty-register-phone">Phone number</label>
+            <input
+              id="loyalty-register-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              aria-describedby="loyalty-register-phone-hint"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="081 234 5678"
+              required
+            />
+            <small id="loyalty-register-phone-hint">
+              {phoneRegion
+                ? phoneInputHint(phoneRegion)
+                : "Enter a local or international number. Spaces and dashes are allowed."}
+            </small>
+          </div>
           <label>
             Email address
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -149,4 +166,9 @@ export function LoyaltyCustomerPicker({
       {error ? <p className="form-error">{error}</p> : null}
     </section>
   );
+}
+
+function phoneInputHint(region: string): string {
+  const countryName = new Intl.DisplayNames(["en"], { type: "region" }).of(region) ?? region;
+  return `${countryName} (${region}): enter a local number such as 081 234 5678.`;
 }
