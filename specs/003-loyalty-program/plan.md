@@ -25,7 +25,7 @@ The implementation extends the current TypeScript monorepo and adds `libphonenum
 
 **Performance Goals**: Preserve the specification's 45-second enrollment, 15-second lookup, 20-second redemption decision, and 2-minute configuration targets; indexed customer and balance API operations should normally complete within 500 ms at single-shop scale
 
-**Constraints**: Authorized staff only; `SHOP_PHONE_REGION` is required for E.164 phone normalization; supplied email is trimmed and unique ignoring letter case while a missing email remains allowed; one customer may be selected only before order submission and the association cannot change after creation; no customer activation lifecycle; one active earning rule and expiration policy at a time; whole points only; earning posts exactly once when an associated order completes; free-beverage and size-upgrade benefit types are immutable, do not stack on one beverage unit, and use purchased snapshots for coverage; standalone reward, order, and beverage cancellation before pickup must return applicable points exactly once using original expiration dates; points remain valid through the final shop business day of their expiration month; historical rules, reward labels, costs, benefits, and expiration dates remain understandable after configuration changes; no customer self-service, marketing automation, payment integration, tiers, referrals, menu/category reward eligibility, or cross-location balances
+**Constraints**: Authorized staff only; `SHOP_PHONE_REGION` is required for E.164 phone normalization; supplied email is trimmed, validated for email format, and unique ignoring letter case while a missing email remains allowed; one customer may be selected only before order submission and the association cannot change after creation; no customer activation lifecycle; one active earning rule and expiration policy at a time; whole points only; earning posts exactly once when an associated order completes; free-beverage and size-upgrade benefit types are immutable, do not stack on one beverage unit, and use purchased snapshots for coverage; standalone reward, order, and beverage cancellation before pickup must return applicable points exactly once using original expiration dates; points remain valid through the final shop business day of their expiration month; historical rules, reward labels, costs, benefits, and expiration dates remain understandable after configuration changes; no customer self-service, marketing automation, payment integration, tiers, referrals, menu/category reward eligibility, or cross-location balances
 
 **Scale/Scope**: One shop, thousands of loyalty customers, dozens of orders per business day, and a growing append-only point history; optimize indexed point reads and redemptions without adding a scheduler, cache, queue, or separate loyalty service
 
@@ -79,13 +79,13 @@ apps/
 |   |   |   |-- beverageService.ts
 |   |   |   `-- reportingService.ts
 |   |   |-- routes/
-|   |   |   |-- loyaltyRoutes.ts
+|   |   |   |-- loyaltyCustomerRoutes.ts
 |   |   |   |-- orderFulfillmentRoutes.ts
 |   |   |   `-- validators.ts
 |   |   |-- storage/schema.ts
 |   |   `-- app.ts
 |   `-- tests/
-|       |-- integration/loyalty.contract.test.ts
+|       |-- integration/loyalty.customer.contract.test.ts
 |       |-- integration/loyalty-order-lifecycle.test.ts
 |       |-- integration/loyalty-redemption-concurrency.test.ts
 |       `-- unit/
