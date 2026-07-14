@@ -22,6 +22,13 @@
       "when": 1783867926560,
       "tag": "0003_loyalty_program",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784048042621,
+      "tag": "0004_loyalty_customer_email_identity",
+      "breakpoints": true
     }
   ]
 }

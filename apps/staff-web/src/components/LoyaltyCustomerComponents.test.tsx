@@ -102,4 +102,45 @@ describe("loyalty customer staff components", () => {
     expect(await screen.findByText("Phone number already belongs to a customer.")).toBeInTheDocument();
     expect(screen.getByLabelText("Phone number")).toBeInTheDocument();
   });
+
+  it("shows malformed-email and email-conflict errors without discarding customer form values", async () => {
+    const onRegister = vi.fn().mockRejectedValue(new Error("Request validation failed."));
+
+    render(
+      <LoyaltyCustomerPicker
+        selectedCustomer={null}
+        searchCustomers={vi.fn().mockResolvedValue([])}
+        onSelect={vi.fn()}
+        onClear={vi.fn()}
+        onRegister={onRegister}
+        phoneRegion="TH"
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Register customer" }));
+    fireEvent.change(screen.getByLabelText("Customer name"), { target: { value: "Nina" } });
+    fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "081-234-5678" } });
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "not-an-email" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Save customer" }).closest("form")!);
+
+    expect(await screen.findByText("Request validation failed.")).toBeInTheDocument();
+    expect(onRegister).toHaveBeenCalledWith({ name: "Nina", phone: "081-234-5678", email: "not-an-email" });
+    expect(screen.getByLabelText("Customer name")).toHaveValue("Nina");
+    expect(screen.getByLabelText("Phone number")).toHaveValue("081-234-5678");
+    expect(screen.getByLabelText("Email address")).toHaveValue("not-an-email");
+  });
+
+  it("shows an email-specific duplicate error while retaining the profile edit values", async () => {
+    const onSave = vi.fn().mockRejectedValue(new Error("Email address already belongs to a customer."));
+
+    render(<LoyaltyCustomerProfile customer={{ ...customer, email: "ari@example.test" }} onSave={onSave} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit customer" }));
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "NINA@EXAMPLE.TEST" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Email address already belongs to a customer.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email address")).toHaveValue("NINA@EXAMPLE.TEST");
+    expect(screen.getByLabelText("Phone number")).toHaveValue("081-234-5678");
+  });
 });

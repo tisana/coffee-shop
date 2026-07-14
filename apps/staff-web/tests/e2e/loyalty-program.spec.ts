@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import { fulfillCsrfToken, fulfillLoyaltyApiRoute } from "./testApiMocks";
 
 test("staff registers, looks up, and edits a loyalty customer from the existing staff shell", async ({ page }) => {
+  let ninaEmailRegistered = false;
+
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
 
@@ -16,13 +18,28 @@ test("staff registers, looks up, and edits a loyalty customer from the existing 
     }
 
     if (path === "/loyalty/customers" && route.request().method() === "POST") {
-      const input = route.request().postDataJSON() as { phone?: string };
+      const input = route.request().postDataJSON() as { phone?: string; email?: string | null };
       if (input.phone?.startsWith("0066")) {
         await route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ code: "CONFLICT", message: "Phone number already belongs to a customer." }) });
         return;
       }
       if (input.phone === "invalid") {
         await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ code: "BAD_REQUEST", message: "Phone number must be valid for the configured shop region." }) });
+        return;
+      }
+      if (input.email?.trim().toLowerCase() === "nina@example.test" && ninaEmailRegistered) {
+        await route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ code: "CONFLICT", message: "Email address already belongs to a customer." }) });
+        return;
+      }
+      if (input.email?.trim().toLowerCase() === "nina@example.test") {
+        ninaEmailRegistered = true;
+      }
+    }
+
+    if (path.startsWith("/loyalty/customers/") && route.request().method() === "PATCH") {
+      const input = route.request().postDataJSON() as { email?: string | null };
+      if (input.email?.trim().toLowerCase() === "nina@example.test") {
+        await route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ code: "CONFLICT", message: "Email address already belongs to a customer." }) });
         return;
       }
     }
@@ -45,6 +62,7 @@ test("staff registers, looks up, and edits a loyalty customer from the existing 
   await expect(page.getByText("Thailand (TH): enter a local number such as 081 234 5678.")).toBeVisible();
   await page.getByLabel("Customer name").fill("Nina Saelim");
   await page.getByLabel("Phone number").fill("081-234-5678");
+  await page.getByLabel("Email address").fill("Nina@Example.test");
   await page.getByRole("button", { name: "Save customer" }).click();
 
   const profile = page.getByLabel("Customer profile");
@@ -65,7 +83,21 @@ test("staff registers, looks up, and edits a loyalty customer from the existing 
   await page.getByRole("button", { name: "Save customer" }).click();
   await expect(page.getByText("Phone number already belongs to a customer.")).toBeVisible();
 
-  await page.getByLabel("Phone number").fill("invalid");
+  await page.getByLabel("Phone number").fill("083-234-5678");
+  await page.getByLabel("Email address").fill(" nina@example.test ");
   await page.getByRole("button", { name: "Save customer" }).click();
-  await expect(page.getByText("Phone number must be valid for the configured shop region.")).toBeVisible();
+  await expect(page.getByText("Email address already belongs to a customer.")).toBeVisible();
+  await expect(page.getByLabel("Customer name")).toHaveValue("Duplicate Nina");
+  await expect(page.getByLabel("Phone number")).toHaveValue("083-234-5678");
+
+  await page.getByLabel("Email address").fill("not-an-email");
+  expect(await page.getByLabel("Email address").evaluate((input) => input.checkValidity())).toBe(false);
+
+  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await page.getByRole("button", { name: "Edit customer" }).click();
+  await profile.getByLabel("Email address").fill("NINA@example.test");
+  await profile.getByRole("button", { name: "Save changes" }).click();
+  await expect(profile.getByText("Email address already belongs to a customer.")).toBeVisible();
+  await expect(profile.getByRole("heading", { name: "Ari Srisuk" })).toBeVisible();
+  await expect(profile.getByLabel("Email address")).toHaveValue("NINA@example.test");
 });

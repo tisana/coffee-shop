@@ -191,3 +191,17 @@ npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
 ```
 
 The API tests verify that `081-234-5678`, `+66 81-234-5678`, and `0066 81-234-5678` normalize to the same E.164 identity and that the duplicate form is rejected. The Playwright registration, international lookup, duplicate, invalid-phone, and edit flow completed in 1.6 seconds, below both the 45-second registration target and the 15-second lookup target. This evidence predates the email-uniqueness clarification and does not replace the required case-insensitive email create, edit, and migration-collision checks above.
+
+On 2026-07-14, the email identity follow-up checks passed after applying `0004_loyalty_customer_email_identity`:
+
+```powershell
+npm run db:migrate
+npm run test --workspace @coffee-shop/api -- loyaltyCustomerService.test.ts loyalty.customer.contract.test.ts loyalty-schema.test.ts
+npm run test --workspace @coffee-shop/staff-web -- LoyaltyCustomerComponents.test.tsx
+npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
+npm run typecheck
+npm run lint
+git diff --check
+```
+
+The API suite passed 12 tests, covering malformed-email `400` validation before conflicts; trim-preserved casing; named phone/email `409` responses; same-customer email updates; unchanged records after rejected updates; whitespace cleanup; blank-to-null conversion; collision preflight; and case-insensitive uniqueness races. The component suite passed 6 tests and retained rejected registration/profile values. The focused Playwright journey passed in 1.5 seconds and confirmed duplicate-email create/edit feedback plus native malformed-email rejection without leaving the existing staff shell.

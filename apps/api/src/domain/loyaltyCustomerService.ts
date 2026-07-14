@@ -17,6 +17,8 @@ import { loyaltyCustomers } from "../storage/schema";
 
 const DEFAULT_SEARCH_LIMIT = 20;
 const LOCAL_DEVELOPMENT_PHONE_REGION = "TH";
+const PHONE_UNIQUE_CONSTRAINT = "loyalty_customers_phone_normalized_unique";
+const EMAIL_UNIQUE_CONSTRAINT = "loyalty_customers_email_ci_unique";
 
 type LoyaltyCustomerRow = typeof loyaltyCustomers.$inferSelect;
 
@@ -52,7 +54,7 @@ export async function createLoyaltyCustomer(input: LoyaltyCustomerInput): Promis
 
     return toLoyaltyCustomer(customer);
   } catch (error) {
-    throwPhoneConflict(error);
+    throwCustomerIdentityConflict(error);
   }
 }
 
@@ -125,7 +127,7 @@ export async function updateLoyaltyCustomer(
 
     return toLoyaltyCustomer(customer);
   } catch (error) {
-    throwPhoneConflict(error);
+    throwCustomerIdentityConflict(error);
   }
 }
 
@@ -164,12 +166,35 @@ function toLoyaltyCustomer(customer: LoyaltyCustomerRow): LoyaltyCustomer {
   };
 }
 
-function throwPhoneConflict(error: unknown): never {
+function throwCustomerIdentityConflict(error: unknown): never {
   if (isUniqueViolation(error)) {
+    const constraintName = findUniqueConstraintName(error);
+
+    if (constraintName === EMAIL_UNIQUE_CONSTRAINT) {
+      throw conflict("Email address already belongs to a customer.");
+    }
+
+    if (constraintName === PHONE_UNIQUE_CONSTRAINT) {
+      throw conflict("Phone number already belongs to a customer.");
+    }
+
     throw conflict("Phone number already belongs to a customer.");
   }
 
   throw error;
+}
+
+function findUniqueConstraintName(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) {
+    return undefined;
+  }
+
+  const candidate = error as { code?: unknown; constraint?: unknown; cause?: unknown };
+  if (candidate.code === "23505" && typeof candidate.constraint === "string") {
+    return candidate.constraint;
+  }
+
+  return findUniqueConstraintName(candidate.cause);
 }
 
 function isUniqueViolation(error: unknown): boolean {

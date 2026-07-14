@@ -124,6 +124,11 @@ export const loyaltyCustomers = pgTable(
     phoneNormalizedUnique: uniqueIndex(
       "loyalty_customers_phone_normalized_unique",
     ).on(table.phoneNormalized),
+    emailCaseInsensitiveUnique: uniqueIndex(
+      "loyalty_customers_email_ci_unique",
+    )
+      .on(sql`lower(${table.email})`)
+      .where(sql`${table.email} IS NOT NULL`),
     nameIndex: index("loyalty_customers_name_idx").on(table.name),
     normalizedPhoneE164: check(
       "loyalty_customers_phone_normalized_e164",
