@@ -30,6 +30,7 @@ describe("loyalty customer staff components", () => {
         onSelect={onSelect}
         onClear={vi.fn()}
         onRegister={onRegister}
+        phoneRegion="TH"
       />
     );
 
@@ -39,6 +40,7 @@ describe("loyalty customer staff components", () => {
     expect(onSelect).toHaveBeenCalledWith(customer);
 
     fireEvent.click(screen.getByRole("button", { name: "Register customer" }));
+    expect(screen.getByText("Thailand (TH): enter a local number such as 081 234 5678.")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Customer name"), { target: { value: "Nina" } });
     fireEvent.change(screen.getByLabelText("Phone number"), { target: { value: "081-234-5678" } });
     fireEvent.click(screen.getByRole("button", { name: "Save customer" }));
@@ -60,6 +62,7 @@ describe("loyalty customer staff components", () => {
         onSelect={vi.fn()}
         onClear={onClear}
         onRegister={vi.fn()}
+        phoneRegion="TH"
       />
     );
 

@@ -7,6 +7,14 @@ import type { LoyaltyCustomer } from "@coffee-shop/shared/domain/types";
 
 import { apiClient } from "./apiClient";
 
+export interface LoyaltyPhoneRegionResponse {
+  region: string;
+}
+
+export function getLoyaltyPhoneRegion(): Promise<LoyaltyPhoneRegionResponse> {
+  return apiClient.request("/loyalty/phone-region");
+}
+
 export async function searchLoyaltyCustomers(query: string): Promise<LoyaltyCustomer[]> {
   const response = await apiClient.request<LoyaltyCustomerSearchResponse>(
     `/loyalty/customers?query=${encodeURIComponent(query)}`

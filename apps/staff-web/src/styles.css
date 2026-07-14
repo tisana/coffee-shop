@@ -1563,9 +1563,19 @@ nav a[aria-current="page"] {
 .loyalty-page-grid,
 .loyalty-customer-picker,
 .loyalty-customer-profile,
-.loyalty-customer-form {
+.loyalty-customer-form,
+.loyalty-field {
   display: grid;
   gap: 16px;
+}
+
+.loyalty-field {
+  gap: 6px;
+}
+
+.loyalty-field small {
+  color: #6d5d49;
+  font-size: 12px;
 }
 
 .loyalty-page-grid {

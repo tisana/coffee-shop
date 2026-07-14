@@ -3,6 +3,7 @@ import { Router } from "express";
 import { requireStaff } from "../auth/requireStaff";
 import {
   createLoyaltyCustomer,
+  getLoyaltyPhoneRegion,
   getLoyaltyCustomer,
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
@@ -16,6 +17,14 @@ import {
 
 export function createLoyaltyCustomerRoutes(): Router {
   const router = Router();
+
+  router.get("/loyalty/phone-region", requireStaff, (_request, response, next) => {
+    try {
+      response.json({ region: getLoyaltyPhoneRegion() });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   router.get("/loyalty/customers", requireStaff, async (request, response, next) => {
     try {

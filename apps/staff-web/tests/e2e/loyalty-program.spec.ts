@@ -10,6 +10,11 @@ test("staff registers, looks up, and edits a loyalty customer from the existing 
       return;
     }
 
+    if (path === "/loyalty/phone-region") {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ region: "TH" }) });
+      return;
+    }
+
     if (path === "/loyalty/customers" && route.request().method() === "POST") {
       const input = route.request().postDataJSON() as { phone?: string };
       if (input.phone?.startsWith("0066")) {
@@ -37,6 +42,7 @@ test("staff registers, looks up, and edits a loyalty customer from the existing 
 
   await expect(page.getByRole("heading", { name: "Loyalty" })).toBeVisible();
   await page.getByRole("button", { name: "Register customer" }).click();
+  await expect(page.getByText("Thailand (TH): enter a local number such as 081 234 5678.")).toBeVisible();
   await page.getByLabel("Customer name").fill("Nina Saelim");
   await page.getByLabel("Phone number").fill("081-234-5678");
   await page.getByRole("button", { name: "Save customer" }).click();

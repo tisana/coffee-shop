@@ -6,9 +6,10 @@ import type { LoyaltyCustomer } from "@coffee-shop/shared/domain/types";
 interface LoyaltyCustomerProfileProps {
   customer: LoyaltyCustomer;
   onSave: (customerId: string, input: LoyaltyCustomerUpdate) => Promise<LoyaltyCustomer>;
+  phoneRegion?: string | null;
 }
 
-export function LoyaltyCustomerProfile({ customer, onSave }: LoyaltyCustomerProfileProps) {
+export function LoyaltyCustomerProfile({ customer, onSave, phoneRegion }: LoyaltyCustomerProfileProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(customer.name);
   const [phone, setPhone] = useState(customer.phone);
@@ -51,10 +52,21 @@ export function LoyaltyCustomerProfile({ customer, onSave }: LoyaltyCustomerProf
             Customer name
             <input value={name} onChange={(event) => setName(event.target.value)} required />
           </label>
-          <label>
-            Phone number
-            <input value={phone} onChange={(event) => setPhone(event.target.value)} required />
-          </label>
+          <div className="loyalty-field">
+            <label htmlFor="loyalty-edit-phone">Phone number</label>
+            <input
+              id="loyalty-edit-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              aria-describedby={phoneRegion ? "loyalty-edit-phone-hint" : undefined}
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="081 234 5678"
+              required
+            />
+            {phoneRegion ? <small id="loyalty-edit-phone-hint">Phone region: {phoneRegion}</small> : null}
+          </div>
           <label>
             Email address
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
