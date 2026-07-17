@@ -59,6 +59,22 @@ describe("reporting service foundation helpers", () => {
     expect(calculateBeverageLineTotal({ priceSnapshot: "4.50", quantity: 2, loyaltyCoveredAmount: "4.50" })).toBe("4.50");
   });
 
+  it("subtracts active reward coverage from order and popular-item sales while retaining purchased quantity", () => {
+    const coveredBeverage: Order["beverages"][number] & { loyaltyCoveredAmount: string } = {
+      id: "covered-beverage", orderId: "covered-order", sourceMenuItemId: "item-latte", nameSnapshot: "Latte", quantity: 1,
+      priceSnapshot: "4.50", loyaltyCoveredAmount: "4.50", selectedCustomizationsSnapshot: [], specialInstructions: null,
+      status: "completed", completedAt: null, cancelledAt: null, cancellationReason: null
+    };
+    const report = aggregateSalesReport({
+      filter: { startDate: "2026-06-02", endDate: "2026-06-02", period: "daily", statuses: ["completed"], menuCategoryId: null, menuItemId: null },
+      orders: [reportOrder({ id: "covered-order", beverages: [coveredBeverage] })],
+      generatedAt: "2026-06-02T12:00:00.000Z"
+    });
+
+    expect(report.overall).toMatchObject({ totalSales: "0.00", orderCount: 0 });
+    expect(report.popularItems[0]).toMatchObject({ itemName: "Latte", quantitySold: 1, salesAmount: "0.00" });
+  });
+
   it("builds daily, weekly, and monthly report periods from business dates", () => {
     expect(
       buildReportPeriods({

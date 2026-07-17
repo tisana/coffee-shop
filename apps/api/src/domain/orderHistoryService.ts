@@ -1,16 +1,17 @@
 import { and, asc, eq, ilike, inArray } from "drizzle-orm";
 
 import type { OrderHistoryQuery } from "@coffee-shop/shared/contracts/api";
-import type { Order } from "@coffee-shop/shared/domain/types";
+import type { OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import { db } from "../storage/db";
 import { orderBeverages, orders } from "../storage/schema";
 import { currentBusinessDate } from "./businessDate";
-import { mapOrder } from "./orderMapper";
+import { getOrderLoyaltyDetails } from "./loyaltyOrderService";
+import { mapOrderWithLoyalty } from "./orderMapper";
 
 export async function listCurrentDayOrderHistory(
   query: OrderHistoryQuery
-): Promise<Order[]> {
+): Promise<OrderWithLoyalty[]> {
   const filters = [eq(orders.businessDate, currentBusinessDate())];
 
   if (query.dailyOrderNumber !== undefined) {
@@ -52,5 +53,7 @@ export async function listCurrentDayOrderHistory(
     beveragesByOrderId.set(beverage.orderId, existing);
   }
 
-  return orderRows.map((order) => mapOrder(order, beveragesByOrderId.get(order.id) ?? []));
+  return Promise.all(orderRows.map(async (order) =>
+    mapOrderWithLoyalty(order, beveragesByOrderId.get(order.id) ?? [], await getOrderLoyaltyDetails(db, order.id))
+  ));
 }

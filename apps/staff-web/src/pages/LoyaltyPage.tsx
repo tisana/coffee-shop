@@ -67,7 +67,7 @@ export function LoyaltyPage() {
         {selectedCustomer ? <LoyaltyCustomerProfile customer={selectedCustomer} onSave={handleSave} phoneRegion={phoneRegion} points={points} /> : <p className="empty-state">Select a customer to view the profile.</p>}
       </div>
       <LoyaltyProgramSettings rule={rule} onSave={async (input) => { const saved = await replaceLoyaltyEarningRule(input); setRule(saved); return saved; }} />
-      <LoyaltyRewardSettings rewards={rewards} onCreate={async (input) => { const reward = await createLoyaltyReward(input); setRewards((current) => [...current, reward]); return reward; }} onRetire={async (rewardId) => { const reward = await updateLoyaltyReward(rewardId, { active: false }); setRewards((current) => current.map((candidate) => candidate.id === reward.id ? reward : candidate)); return reward; }} />
+      <LoyaltyRewardSettings rewards={rewards} onCreate={async (input) => { const reward = await createLoyaltyReward(input); setRewards((current) => [...current, reward]); return reward; }} onUpdate={async (rewardId, input) => { const reward = await updateLoyaltyReward(rewardId, input); setRewards((current) => current.map((candidate) => candidate.id === reward.id ? reward : candidate)); return reward; }} onRetire={async (rewardId) => { const reward = await updateLoyaltyReward(rewardId, { active: false }); setRewards((current) => current.map((candidate) => candidate.id === reward.id ? reward : candidate)); return reward; }} />
     </section>
   );
 }

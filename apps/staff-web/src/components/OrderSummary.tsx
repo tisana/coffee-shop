@@ -13,6 +13,8 @@ export interface DraftBeverage {
 interface OrderSummaryProps {
   beverages: DraftBeverage[];
   submitting: boolean;
+  rewardPointsCost?: number;
+  rewardCoverage?: string;
   onRemove: (id: string) => void;
   onSubmit: () => void;
 }
@@ -59,7 +61,7 @@ export function getDraftOrderTotal(beverages: DraftBeverage[]): string {
     .toFixed(2);
 }
 
-export function OrderSummary({ beverages, submitting, onRemove, onSubmit }: OrderSummaryProps) {
+export function OrderSummary({ beverages, submitting, rewardPointsCost = 0, rewardCoverage = "0.00", onRemove, onSubmit }: OrderSummaryProps) {
   return (
     <aside className="summary-panel" aria-label="Order summary">
       <div className="summary-heading">
@@ -103,9 +105,10 @@ export function OrderSummary({ beverages, submitting, onRemove, onSubmit }: Orde
       )}
 
       <div className="summary-total">
-        <span>Total</span>
+        <span>Gross total</span>
         <strong>${getDraftOrderTotal(beverages)}</strong>
       </div>
+      {Number(rewardCoverage) > 0 ? <div className="summary-total loyalty-order-summary"><span>Reward coverage ({rewardPointsCost} pts)</span><strong>-${rewardCoverage}</strong><span>Payable</span><strong>${Math.max(0, Number(getDraftOrderTotal(beverages)) - Number(rewardCoverage)).toFixed(2)}</strong></div> : null}
 
       <button type="button" disabled={submitting || beverages.length === 0} onClick={onSubmit}>
         {submitting ? "Creating and queueing" : "Create and queue order"}

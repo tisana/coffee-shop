@@ -1,12 +1,12 @@
 import { Coffee, ReceiptText } from "lucide-react";
 
-import type { Order } from "@coffee-shop/shared/domain/types";
+import type { OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 interface OrderHistoryListProps {
-  orders: Order[];
+  orders: OrderWithLoyalty[];
 }
 
-const statusLabels: Record<Order["status"], string> = {
+const statusLabels: Record<OrderWithLoyalty["status"], string> = {
   created: "Created",
   queued: "Waiting",
   in_progress: "In progress",
@@ -44,8 +44,9 @@ export function OrderHistoryList({ orders }: OrderHistoryListProps) {
               <ReceiptText size={18} aria-hidden="true" />
               Received {formatReceivedTime(order.createdAt)}
             </span>
-            <strong>${order.total}</strong>
+            <strong>${order.payableTotal}</strong>
           </div>
+          {order.loyalty?.rewards.length ? <div className="loyalty-order-summary"><span>Gross ${order.total}</span><span>Reward coverage -${order.loyaltyRewardDiscountTotal}</span><span>{order.loyalty.rewards.map((reward) => `${reward.name} (${reward.pointsCost} pts)`).join(", ")}</span></div> : null}
 
           <ul className="queue-beverage-list">
             {order.beverages.map((beverage) => (

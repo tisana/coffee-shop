@@ -237,3 +237,17 @@ git diff --check
 ```
 
 The focused API suite covered reward creation, earliest-expiring allocation, original-expiration returns, free-beverage creation-time coverage, point debits, standalone/order cancellation returns, and net report line calculations. The counter fetches the current balance and reward list, serializes reward selections, shows the payable total after redemption, and offers pre-pickup reward cancellation. The remaining unchecked US3 tasks retain the required concurrency, contract, detailed component, and Playwright coverage for a subsequent verification pass.
+
+### Phase 5 Completion Evidence (2026-07-18)
+
+```powershell
+npm run test --workspace @coffee-shop/api -- tests/unit/loyaltyConfigurationService.test.ts tests/unit/loyaltyLedgerService.test.ts tests/unit/reportingService.test.ts tests/unit/app.test.ts tests/integration/loyalty-redemption-concurrency.test.ts tests/integration/loyalty.customer.contract.test.ts tests/integration/loyalty-order-lifecycle.test.ts tests/integration/order-history.contract.test.ts tests/integration/reports.contract.test.ts
+npm run test --workspace @coffee-shop/staff-web -- src/components/LoyaltyRewardComponents.test.tsx
+npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
+npm run typecheck
+npm run lint
+npm run build
+git diff --check
+```
+
+Evidence covers immutable reward benefits with editable metadata, active-list retirement, earliest-expiring allocation and insufficient balances, simultaneous redemption protection, order-time reward selection and duplicate cancellation conflicts, complete-unit and selected-adjustment coverage, non-stacking, standalone/target/full-order returns, loyalty-aware history and report values, per-unit staff selection, reward display and cancellation, and the staff configuration browser flow.

@@ -18,6 +18,7 @@ import { loginRequestSchema } from "./validators";
 const loginRateLimit = rateLimit({
   windowMs: 60_000,
   limit: 5,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_request, response) => {

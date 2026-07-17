@@ -2,6 +2,8 @@ import request from "supertest";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../src/app";
+import { db } from "../../src/storage/db";
+import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
 import { cleanupLoyaltyFixtureData, createLoggedInAgent, createTestMenuFixture } from "./testFixtures";
 
 describe("loyalty customer contract", () => {
@@ -197,5 +199,32 @@ describe("loyalty customer contract", () => {
     const retired = await agent.patch(`/loyalty/rewards/${created.body.id}`).send({ active: false });
     expect(retired.status).toBe(200);
     expect(retired.body).toMatchObject({ id: created.body.id, active: false, benefitType: "free_beverage" });
+  });
+
+  it("creates a reward redemption with an order and returns it through the staff cancellation endpoint", async () => {
+    const { agent } = await createLoggedInAgent();
+    const menu = await createTestMenuFixture();
+    const customer = await agent.post("/loyalty/customers").send({ name: "Redeem Ari", phone: "088-234-5678" });
+    const reward = await agent.post("/loyalty/rewards").send({
+      name: "Free beverage", pointsCost: 5, benefitType: "free_beverage", benefitDescription: "One beverage free"
+    });
+    await db.insert(loyaltyPointLedgerEntries).values({
+      customerId: customer.body.id, eventType: "earned", pointsDelta: 5, earnedBusinessDate: "2026-07-01", reason: "Seed points."
+    });
+
+    const order = await agent.post("/orders").send({
+      loyalty: { customerId: customer.body.id, rewards: [{ rewardOptionId: reward.body.id, targetBeverageIndex: 0 }] },
+      beverages: [{ menuItemId: menu.menuItemId, quantity: 1, selectedCustomizations: [{ customizationGroupId: menu.groupId, customizationChoiceIds: [menu.wholeMilkChoiceId] }] }]
+    });
+    expect(order.status).toBe(201);
+    expect(order.body).toMatchObject({ payableTotal: "0.00", loyalty: { rewards: [expect.objectContaining({ name: "Free beverage", status: "active" })] } });
+
+    const redemptionId = order.body.loyalty.rewards[0].id as string;
+    const cancelled = await agent.post(`/orders/${order.body.id}/loyalty-rewards/${redemptionId}/cancel`).send({});
+    expect(cancelled.status).toBe(200);
+    expect(cancelled.body).toMatchObject({ payableTotal: order.body.total, loyalty: { rewards: [expect.objectContaining({ id: redemptionId, status: "returned" })] } });
+
+    const duplicateCancel = await agent.post(`/orders/${order.body.id}/loyalty-rewards/${redemptionId}/cancel`).send({});
+    expect(duplicateCancel.status).toBe(409);
   });
 });

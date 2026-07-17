@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createOrderForStaff } from "../../src/domain/orderCreationService";
-import { cancelOrder, completeOrder } from "../../src/domain/orderFulfillmentService";
+import { cancelOrder, cancelOrderLoyaltyReward, completeOrder } from "../../src/domain/orderFulfillmentService";
 import { cancelOrderBeverage, completeOrderBeverage } from "../../src/domain/beverageService";
 import { claimQueuedOrder } from "../../src/domain/queueClaimService";
 import { submitOrderToQueue } from "../../src/domain/queueSubmissionService";
@@ -84,5 +84,42 @@ describe("loyalty order lifecycle", () => {
 
     await cancelOrder(created.id);
     expect(await getLoyaltyPoints(customer.id)).toMatchObject({ summary: { available: 5, returned: 5 }, history: expect.arrayContaining([expect.objectContaining({ eventType: "returned", expirationBusinessDate: "2026-08-31" })]) });
+  });
+
+  it("covers only the selected size adjustment and returns points when staff cancels that reward", async () => {
+    const { staff } = await createTestStaff();
+    const menu = await createTestMenuFixture();
+    const customer = await createLoyaltyCustomer({ name: "Size Reward Ari", phone: "082-345-6789" });
+    const reward = await createLoyaltyRewardOption(staff.id, { name: "Size upgrade", pointsCost: 5, benefitType: "size_upgrade", benefitDescription: "Large size free" });
+    await db.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 5, earnedBusinessDate: "2026-07-01", expirationBusinessDate: "2026-08-31", reason: "Seed credit." });
+
+    const created = await createOrderForStaff(staff.id, { loyalty: { customerId: customer.id, rewards: [{ rewardOptionId: reward.id, targetBeverageIndex: 0, targetCustomizationChoiceId: menu.oatMilkChoiceId }] }, beverages: [{ menuItemId: menu.menuItemId, quantity: 1, selectedCustomizations: [{ customizationGroupId: menu.groupId, customizationChoiceIds: [menu.oatMilkChoiceId] }] }] });
+    const applied = created.loyalty?.rewards[0];
+    expect(applied).toMatchObject({ name: "Size upgrade", benefitType: "size_upgrade", coveredAmount: "0.75", status: "active" });
+    if (!applied) throw new Error("Expected reward.");
+
+    const returned = await cancelOrderLoyaltyReward(created.id, applied.id, staff.id);
+    expect(returned).toMatchObject({ loyaltyRewardDiscountTotal: "0.00", payableTotal: created.total, loyalty: { rewards: [expect.objectContaining({ id: applied.id, status: "returned" })] } });
+    expect((await getLoyaltyPoints(customer.id)).summary).toMatchObject({ available: 5, returned: 5 });
+  });
+
+  it("rejects stacked rewards on one beverage unit and returns its points when that target is cancelled", async () => {
+    const { staff } = await createTestStaff();
+    const menu = await createTestMenuFixture();
+    const customer = await createLoyaltyCustomer({ name: "Target Cancel Ari", phone: "089-234-5678" });
+    const reward = await createLoyaltyRewardOption(staff.id, { name: "Free drink", pointsCost: 5, benefitType: "free_beverage", benefitDescription: "One drink free" });
+    await db.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 10, earnedBusinessDate: "2026-07-01", expirationBusinessDate: "2026-08-31", reason: "Seed credits." });
+    const request = { loyalty: { customerId: customer.id, rewards: [{ rewardOptionId: reward.id, targetBeverageIndex: 0 }] }, beverages: [{ menuItemId: menu.menuItemId, quantity: 1, selectedCustomizations: [{ customizationGroupId: menu.groupId, customizationChoiceIds: [menu.wholeMilkChoiceId] }] }] };
+
+    await expect(createOrderForStaff(staff.id, { ...request, loyalty: { ...request.loyalty, rewards: [...request.loyalty.rewards, ...request.loyalty.rewards] } })).rejects.toMatchObject({ message: "A beverage unit cannot receive more than one reward." });
+
+    const created = await createOrderForStaff(staff.id, request);
+    const queued = await submitOrderToQueue(created.id);
+    const inProgress = await claimQueuedOrder(queued.id, staff.id);
+    const beverage = inProgress.beverages[0];
+    if (!beverage) throw new Error("Expected rewarded beverage.");
+    await cancelOrderBeverage(created.id, beverage.id, "Customer changed drink");
+
+    expect((await getLoyaltyPoints(customer.id)).summary).toMatchObject({ available: 10, returned: 5 });
   });
 });
