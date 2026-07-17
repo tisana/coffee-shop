@@ -1,9 +1,12 @@
 import type {
+  LoyaltyEarningRuleInput,
+  LoyaltyEarningRuleResponse,
   LoyaltyCustomerInput,
   LoyaltyCustomerSearchResponse,
+  LoyaltyPointsResponse,
   LoyaltyCustomerUpdate
 } from "@coffee-shop/shared/contracts/api";
-import type { LoyaltyCustomer } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyCustomer, LoyaltyEarningRule } from "@coffee-shop/shared/domain/types";
 
 import { apiClient } from "./apiClient";
 
@@ -37,4 +40,17 @@ export function updateLoyaltyCustomer(
     method: "PATCH",
     body: JSON.stringify(input)
   });
+}
+
+export async function getLoyaltyEarningRule(): Promise<LoyaltyEarningRule | null> {
+  const response = await apiClient.request<LoyaltyEarningRuleResponse>("/loyalty/config/earning-rule");
+  return response.rule;
+}
+
+export function replaceLoyaltyEarningRule(input: LoyaltyEarningRuleInput): Promise<LoyaltyEarningRule> {
+  return apiClient.request("/loyalty/config/earning-rule", { method: "PUT", body: JSON.stringify(input) });
+}
+
+export function getLoyaltyPoints(customerId: string): Promise<LoyaltyPointsResponse> {
+  return apiClient.request(`/loyalty/customers/${customerId}/points`);
 }

@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import type {
-  Order,
+  OrderWithLoyalty,
   SelectedCustomization,
   SelectedCustomizationSnapshot
 } from "@coffee-shop/shared/domain/types";
@@ -17,7 +17,8 @@ import {
   orders
 } from "../storage/schema";
 import { currentBusinessDate } from "./businessDate";
-import { mapOrder } from "./orderMapper";
+import { associateCustomerWithOrder, getOrderLoyaltyDetails } from "./loyaltyOrderService";
+import { mapOrderWithLoyalty } from "./orderMapper";
 
 export interface CreateOrderInput {
   pickupName?: string | undefined;
@@ -27,6 +28,7 @@ export interface CreateOrderInput {
     selectedCustomizations?: SelectedCustomization[];
     specialInstructions?: string | undefined;
   }>;
+  loyalty?: { customerId: string } | undefined;
 }
 
 interface BeverageSnapshotInput {
@@ -158,7 +160,7 @@ async function buildBeverageSnapshot(
 export async function createOrderForStaff(
   staffId: string,
   input: CreateOrderInput
-): Promise<Order> {
+): Promise<OrderWithLoyalty> {
   return withTransaction(async (tx) => {
     const businessDate = currentBusinessDate();
     const [sequence] = await tx
@@ -221,11 +223,15 @@ export async function createOrderForStaff(
       )
       .returning();
 
-    return mapOrder(order, insertedBeverages);
+    const loyalty = input.loyalty
+      ? await associateCustomerWithOrder(tx, order.id, input.loyalty.customerId, staffId)
+      : null;
+
+    return mapOrderWithLoyalty(order, insertedBeverages, loyalty);
   });
 }
 
-export async function getOrderById(orderId: string): Promise<Order | null> {
+export async function getOrderById(orderId: string): Promise<OrderWithLoyalty | null> {
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
 
   if (!order) {
@@ -237,5 +243,5 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     .from(orderBeverages)
     .where(eq(orderBeverages.orderId, order.id));
 
-  return mapOrder(order, beverages);
+  return mapOrderWithLoyalty(order, beverages, await getOrderLoyaltyDetails(db, order.id));
 }

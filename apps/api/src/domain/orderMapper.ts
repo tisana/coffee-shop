@@ -1,4 +1,4 @@
-import type { Order, OrderBeverage } from "@coffee-shop/shared/domain/types";
+import type { Order, OrderBeverage, OrderLoyaltyDetails, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import type { orderBeverages, orders } from "../storage/schema";
 
@@ -51,5 +51,18 @@ export function mapOrder(row: OrderRow, beverages: OrderBeverageRow[]): Order {
     pickedUpAt: toIsoDateTime(row.pickedUpAt),
     cancelledAt: toIsoDateTime(row.cancelledAt),
     beverages: beverages.map(mapOrderBeverage)
+  };
+}
+
+export function mapOrderWithLoyalty(
+  row: OrderRow,
+  beverages: OrderBeverageRow[],
+  loyalty: OrderLoyaltyDetails | null
+): OrderWithLoyalty {
+  return {
+    ...mapOrder(row, beverages),
+    loyaltyRewardDiscountTotal: row.loyaltyRewardDiscountTotal,
+    payableTotal: (Number(row.total) - Number(row.loyaltyRewardDiscountTotal)).toFixed(2),
+    loyalty
   };
 }

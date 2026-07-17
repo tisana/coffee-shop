@@ -100,29 +100,29 @@
 
 ### Tests for User Story 2 (write first)
 
-- [ ] T035 [P] [US2] Write failing rule-versioning, threshold validation, amount calculation, beverage calculation, and no-carryover unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
-- [ ] T036 [P] [US2] Write failing earned, balance summary, readable history, idempotent post, and earning-reversal unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
-- [ ] T037 [P] [US2] Extend failing contract tests for active earning rule get/replace, customer point summary, create-time order association payloads, and absence of a post-creation association API in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
-- [ ] T038 [P] [US2] Write failing amount, beverage, immutable create-time association, no-customer order, partial-cancellation, full-cancellation, completed-order reversal, and duplicate-completion integration tests in `apps/api/tests/integration/loyalty-order-lifecycle.test.ts`
-- [ ] T039 [P] [US2] Write failing component tests for earning rule controls, balance totals, point history, and counter customer selection in `apps/staff-web/src/components/LoyaltyEarningComponents.test.tsx`
-- [ ] T040 [P] [US2] Extend the failing Playwright journey for customer association, amount earning, beverage earning, partial cancellation, and history in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
+- [X] T035 [P] [US2] Write failing rule-versioning, threshold validation, amount calculation, beverage calculation, and no-carryover unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
+- [X] T036 [P] [US2] Write failing earned, balance summary, readable history, idempotent post, and earning-reversal unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
+- [X] T037 [P] [US2] Extend failing contract tests for active earning rule get/replace, customer point summary, create-time order association payloads, and absence of a post-creation association API in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
+- [X] T038 [P] [US2] Write failing amount, beverage, immutable create-time association, no-customer order, partial-cancellation, full-cancellation, completed-order reversal, and duplicate-completion integration tests in `apps/api/tests/integration/loyalty-order-lifecycle.test.ts`
+- [X] T039 [P] [US2] Write failing component tests for earning rule controls, balance totals, point history, and counter customer selection in `apps/staff-web/src/components/LoyaltyEarningComponents.test.tsx`
+- [X] T040 [P] [US2] Extend the failing Playwright journey for customer association, amount earning, beverage earning, partial cancellation, and history in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Implement active earning rule reads and transactional retire-and-insert version replacement in `apps/api/src/domain/loyaltyConfigurationService.ts`
-- [ ] T042 [US2] Implement amount and beverage calculations, earned and adjusted ledger posting, available/lifetime totals, readable order labels, and idempotency keys in `apps/api/src/domain/loyaltyLedgerService.ts`
-- [ ] T043 [US2] Implement immutable create-time order association and eligible amount/beverage calculation from non-cancelled purchased snapshots in `apps/api/src/domain/loyaltyOrderService.ts`
-- [ ] T044 [US2] Add earning rule, customer point response, and order loyalty association validation schemas in `apps/api/src/routes/validators.ts`
-- [ ] T045 [US2] Add protected earning rule get/replace and customer point summary/history endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
-- [ ] T046 [US2] Extend order creation to validate a registered customer and insert the immutable loyalty order association atomically, with no post-creation reassignment path, in `apps/api/src/domain/orderCreationService.ts`
-- [ ] T047 [US2] Map loyalty customer identity, point effects, gross total, zero reward coverage, and payable total into order responses in `apps/api/src/domain/orderMapper.ts`
-- [ ] T048 [US2] Post configured earning in the same transaction as the successful `in_progress -> completed` transition in `apps/api/src/domain/orderFulfillmentService.ts`
-- [ ] T049 [US2] Append one adjusted earning reversal when a completed loyalty order is fully cancelled before pickup in `apps/api/src/domain/orderFulfillmentService.ts`
-- [ ] T050 [P] [US2] Implement earning rule and customer point summary/history client calls in `apps/staff-web/src/services/loyaltyApi.ts`
-- [ ] T051 [US2] Implement amount/beverage segmented controls, thresholds, points, active rule display, and save conflicts in `apps/staff-web/src/components/LoyaltyProgramSettings.tsx` and mount the settings workspace in `apps/staff-web/src/pages/LoyaltyPage.tsx`
-- [ ] T052 [US2] Extend the customer profile with available, lifetime earned, redeemed, returned, expired, adjusted totals and order-labelled point history in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
-- [ ] T053 [US2] Embed the compact customer picker in the counter flow and include the selected customer in order creation in `apps/staff-web/src/pages/CounterOrderPage.tsx`
-- [ ] T054 [US2] Run focused rule, ledger, lifecycle, contract, component, and Playwright US2 checks and record earning evidence in `specs/003-loyalty-program/quickstart.md`
+- [X] T041 [US2] Implement active earning rule reads and transactional retire-and-insert version replacement in `apps/api/src/domain/loyaltyConfigurationService.ts`
+- [X] T042 [US2] Implement amount and beverage calculations, earned and adjusted ledger posting, available/lifetime totals, readable order labels, and idempotency keys in `apps/api/src/domain/loyaltyLedgerService.ts`
+- [X] T043 [US2] Implement immutable create-time order association and eligible amount/beverage calculation from non-cancelled purchased snapshots in `apps/api/src/domain/loyaltyOrderService.ts`
+- [X] T044 [US2] Add earning rule, customer point response, and order loyalty association validation schemas in `apps/api/src/routes/validators.ts`
+- [X] T045 [US2] Add protected earning rule get/replace and customer point summary/history endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
+- [X] T046 [US2] Extend order creation to validate a registered customer and insert the immutable loyalty order association atomically, with no post-creation reassignment path, in `apps/api/src/domain/orderCreationService.ts`
+- [X] T047 [US2] Map loyalty customer identity, point effects, gross total, zero reward coverage, and payable total into order responses in `apps/api/src/domain/orderMapper.ts`
+- [X] T048 [US2] Post configured earning in the same transaction as the successful `in_progress -> completed` transition in `apps/api/src/domain/orderFulfillmentService.ts`
+- [X] T049 [US2] Append one adjusted earning reversal when a completed loyalty order is fully cancelled before pickup in `apps/api/src/domain/orderFulfillmentService.ts`
+- [X] T050 [P] [US2] Implement earning rule and customer point summary/history client calls in `apps/staff-web/src/services/loyaltyApi.ts`
+- [X] T051 [US2] Implement amount/beverage segmented controls, thresholds, points, active rule display, and save conflicts in `apps/staff-web/src/components/LoyaltyProgramSettings.tsx` and mount the settings workspace in `apps/staff-web/src/pages/LoyaltyPage.tsx`
+- [X] T052 [US2] Extend the customer profile with available, lifetime earned, redeemed, returned, expired, adjusted totals and order-labelled point history in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
+- [X] T053 [US2] Embed the compact customer picker in the counter flow and include the selected customer in order creation in `apps/staff-web/src/pages/CounterOrderPage.tsx`
+- [X] T054 [US2] Run focused rule, ledger, lifecycle, contract, component, and Playwright US2 checks and record earning evidence in `specs/003-loyalty-program/quickstart.md`
 
 **Checkpoint**: User Stories 1 and 2 work independently; an associated completed order produces an auditable point balance without requiring reward or expiration configuration.
 

@@ -24,18 +24,24 @@ export const selectedCustomizationSchema = z.object({
   customizationChoiceIds: z.array(idSchema).min(1)
 });
 
+const orderBeveragesInputSchema = z
+  .array(
+    z.object({
+      menuItemId: idSchema,
+      quantity: z.coerce.number().int().min(1),
+      selectedCustomizations: z.array(selectedCustomizationSchema).default([]),
+      specialInstructions: optionalTextSchema
+    })
+  )
+  .min(1);
+
 export const createOrderRequestSchema = z.object({
   pickupName: z.string().trim().min(1).max(120).optional(),
-  beverages: z
-    .array(
-      z.object({
-        menuItemId: idSchema,
-        quantity: z.coerce.number().int().min(1),
-        selectedCustomizations: z.array(selectedCustomizationSchema).default([]),
-        specialInstructions: optionalTextSchema
-      })
-    )
-    .min(1)
+  beverages: orderBeveragesInputSchema
+});
+
+export const createOrderWithLoyaltyRequestSchema = createOrderRequestSchema.extend({
+  loyalty: z.object({ customerId: idSchema }).optional()
 });
 
 export const customizationChoiceInputSchema = z.object({
@@ -187,3 +193,17 @@ export const loyaltyCustomerSearchQuerySchema = z.object({
   query: z.string().trim().min(1).max(120),
   limit: z.coerce.number().int().min(1).max(50).default(20)
 });
+
+export const loyaltyEarningRuleInputSchema = z
+  .object({
+    earningType: z.enum(["purchase_amount", "beverage_count"]),
+    amountThreshold: moneySchema.optional(),
+    beverageCountThreshold: z.coerce.number().int().min(1).optional(),
+    pointsAwarded: z.coerce.number().int().min(1)
+  })
+  .superRefine((value, context) => {
+    const amountRule = value.earningType === "purchase_amount";
+    if ((amountRule && (value.amountThreshold === undefined || value.beverageCountThreshold !== undefined)) || (!amountRule && (value.beverageCountThreshold === undefined || value.amountThreshold !== undefined))) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Exactly one threshold must match the earning type." });
+    }
+  });

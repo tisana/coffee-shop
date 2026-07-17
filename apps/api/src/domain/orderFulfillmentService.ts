@@ -8,6 +8,7 @@ import { withTransaction } from "../storage/db";
 import { orderBeverages, orders } from "../storage/schema";
 import { getOrderById } from "./orderCreationService";
 import { getQueueOrderById } from "./queueService";
+import { postOrderEarning, reverseOrderEarning } from "./loyaltyLedgerService";
 import {
   assertCanCancelOrder,
   assertCanCompleteOrder,
@@ -67,6 +68,8 @@ export async function completeOrder(orderId: string): Promise<QueueOrder> {
         status: order.status
       });
     }
+
+    await postOrderEarning(tx, order.id, order.createdByStaffId);
   });
 
   return getQueueOrderOrThrow(orderId);
@@ -127,6 +130,8 @@ export async function cancelOrder(orderId: string): Promise<Order> {
         status: order.status
       });
     }
+
+    await reverseOrderEarning(tx, order.id, order.createdByStaffId);
   });
 
   return getOrderOrThrow(orderId);

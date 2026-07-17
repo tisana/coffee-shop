@@ -1,10 +1,9 @@
 import type {
-  CreateOrderRequest,
-  CreateOrderResponse,
+  CreateOrderWithLoyaltyRequest,
   MenuCategoriesResponse
 } from "@coffee-shop/shared/contracts/api";
 
-import type { Order } from "@coffee-shop/shared/domain/types";
+import type { Order, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import { apiClient } from "./apiClient";
 
@@ -12,8 +11,8 @@ export async function getOrderTakingMenu(): Promise<MenuCategoriesResponse> {
   return apiClient.request<MenuCategoriesResponse>("/menu/categories");
 }
 
-export async function createCounterOrder(request: CreateOrderRequest): Promise<CreateOrderResponse> {
-  return apiClient.request<CreateOrderResponse>("/orders", {
+export async function createCounterOrder(request: CreateOrderWithLoyaltyRequest): Promise<OrderWithLoyalty> {
+  return apiClient.request<OrderWithLoyalty>("/orders", {
     method: "POST",
     body: JSON.stringify(request)
   });

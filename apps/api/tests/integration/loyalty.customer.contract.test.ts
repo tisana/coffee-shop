@@ -2,7 +2,7 @@ import request from "supertest";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createApp } from "../../src/app";
-import { cleanupLoyaltyFixtureData, createLoggedInAgent } from "./testFixtures";
+import { cleanupLoyaltyFixtureData, createLoggedInAgent, createTestMenuFixture } from "./testFixtures";
 
 describe("loyalty customer contract", () => {
   afterEach(async () => {
@@ -137,5 +137,45 @@ describe("loyalty customer contract", () => {
     });
     expect(ownAddress.status).toBe(200);
     expect(ownAddress.body.email).toBe("ari@example.test");
+  });
+
+  it("versions earning rules and exposes an associated customer's point balance", async () => {
+    const { agent } = await createLoggedInAgent();
+    const customer = await agent.post("/loyalty/customers").send({
+      name: "Points Ari",
+      phone: "084-234-5678"
+    });
+
+    const replace = await agent.put("/loyalty/config/earning-rule").send({
+      earningType: "purchase_amount",
+      amountThreshold: "10.00",
+      pointsAwarded: 1
+    });
+    expect(replace.status).toBe(200);
+    expect(replace.body).toMatchObject({ earningType: "purchase_amount", amountThreshold: "10.00" });
+
+    const active = await agent.get("/loyalty/config/earning-rule");
+    expect(active.status).toBe(200);
+    expect(active.body.rule).toMatchObject({ id: replace.body.id, active: true });
+
+    const points = await agent.get(`/loyalty/customers/${customer.body.id}/points`);
+    expect(points.status).toBe(200);
+    expect(points.body).toMatchObject({
+      customer: { id: customer.body.id },
+      summary: { available: 0, lifetimeEarned: 0 },
+      history: []
+    });
+
+    const menu = await createTestMenuFixture();
+    const order = await agent.post("/orders").send({
+      beverages: [{
+        menuItemId: menu.menuItemId,
+        quantity: 1,
+        selectedCustomizations: [{ customizationGroupId: menu.groupId, customizationChoiceIds: [menu.wholeMilkChoiceId] }]
+      }],
+      loyalty: { customerId: customer.body.id }
+    });
+    expect(order.status).toBe(201);
+    expect(order.body.loyalty).toMatchObject({ customer: { id: customer.body.id }, rewards: [] });
   });
 });

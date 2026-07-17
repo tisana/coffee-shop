@@ -8,11 +8,14 @@ import {
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
 } from "../domain/loyaltyCustomerService";
+import { getActiveEarningRule, replaceActiveEarningRule } from "../domain/loyaltyConfigurationService";
+import { getLoyaltyPoints } from "../domain/loyaltyLedgerService";
 import {
   loyaltyCustomerInputSchema,
   loyaltyCustomerParamsSchema,
   loyaltyCustomerSearchQuerySchema,
-  loyaltyCustomerUpdateSchema
+  loyaltyCustomerUpdateSchema,
+  loyaltyEarningRuleInputSchema
 } from "./validators";
 
 export function createLoyaltyCustomerRoutes(): Router {
@@ -49,6 +52,33 @@ export function createLoyaltyCustomerRoutes(): Router {
     try {
       const { customerId } = loyaltyCustomerParamsSchema.parse(request.params);
       response.json(await getLoyaltyCustomer(customerId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/loyalty/customers/:customerId/points", requireStaff, async (request, response, next) => {
+    try {
+      const { customerId } = loyaltyCustomerParamsSchema.parse(request.params);
+      response.json(await getLoyaltyPoints(customerId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/loyalty/config/earning-rule", requireStaff, async (_request, response, next) => {
+    try {
+      response.json({ rule: await getActiveEarningRule() });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.put("/loyalty/config/earning-rule", requireStaff, async (request, response, next) => {
+    try {
+      const staff = request.staff;
+      if (!staff) throw new Error("Staff middleware did not attach staff.");
+      response.json(await replaceActiveEarningRule(staff.id, loyaltyEarningRuleInputSchema.parse(request.body)));
     } catch (error) {
       next(error);
     }

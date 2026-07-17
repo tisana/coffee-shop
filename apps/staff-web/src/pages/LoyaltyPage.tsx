@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { LoyaltyCustomerInput, LoyaltyCustomerUpdate } from "@coffee-shop/shared/contracts/api";
-import type { LoyaltyCustomer } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyCustomerInput, LoyaltyCustomerUpdate, LoyaltyPointsResponse } from "@coffee-shop/shared/contracts/api";
+import type { LoyaltyCustomer, LoyaltyEarningRule } from "@coffee-shop/shared/domain/types";
 
 import { LoyaltyCustomerPicker } from "../components/LoyaltyCustomerPicker";
 import { LoyaltyCustomerProfile } from "../components/LoyaltyCustomerProfile";
+import { LoyaltyProgramSettings } from "../components/LoyaltyProgramSettings";
 import {
   createLoyaltyCustomer,
   getLoyaltyPhoneRegion,
+  getLoyaltyEarningRule,
+  getLoyaltyPoints,
+  replaceLoyaltyEarningRule,
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
 } from "../services/loyaltyApi";
@@ -15,12 +19,17 @@ import {
 export function LoyaltyPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<LoyaltyCustomer | null>(null);
   const [phoneRegion, setPhoneRegion] = useState<string | null>(null);
+  const [rule, setRule] = useState<LoyaltyEarningRule | null>(null);
+  const [points, setPoints] = useState<LoyaltyPointsResponse | null>(null);
 
   useEffect(() => {
     getLoyaltyPhoneRegion()
       .then((response) => setPhoneRegion(response.region))
       .catch(() => setPhoneRegion(null));
   }, []);
+
+  useEffect(() => { getLoyaltyEarningRule().then(setRule).catch(() => setRule(null)); }, []);
+  useEffect(() => { if (!selectedCustomer) { setPoints(null); return; } getLoyaltyPoints(selectedCustomer.id).then(setPoints).catch(() => setPoints(null)); }, [selectedCustomer]);
 
   const handleRegister = useCallback(async (input: LoyaltyCustomerInput) => {
     const customer = await createLoyaltyCustomer(input);
@@ -52,8 +61,9 @@ export function LoyaltyPage() {
           onRegister={handleRegister}
           phoneRegion={phoneRegion}
         />
-        {selectedCustomer ? <LoyaltyCustomerProfile customer={selectedCustomer} onSave={handleSave} phoneRegion={phoneRegion} /> : <p className="empty-state">Select a customer to view the profile.</p>}
+        {selectedCustomer ? <LoyaltyCustomerProfile customer={selectedCustomer} onSave={handleSave} phoneRegion={phoneRegion} points={points} /> : <p className="empty-state">Select a customer to view the profile.</p>}
       </div>
+      <LoyaltyProgramSettings rule={rule} onSave={async (input) => { const saved = await replaceLoyaltyEarningRule(input); setRule(saved); return saved; }} />
     </section>
   );
 }
