@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Search } from "lucide-react";
 
 import type { OrderHistoryQuery } from "@coffee-shop/shared/contracts/api";
-import type { Order, OrderStatus } from "@coffee-shop/shared/domain/types";
+import type { OrderStatus, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import { OrderHistoryList } from "../components/OrderHistoryList";
 import { ApiClientError } from "../services/apiClient";
@@ -18,7 +18,7 @@ const statusOptions: Array<{ value: OrderStatus; label: string }> = [
 ];
 
 export function DailyActivityPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithLoyalty[]>([]);
   const [dailyOrderNumber, setDailyOrderNumber] = useState("");
   const [status, setStatus] = useState("");
   const [pickupName, setPickupName] = useState("");

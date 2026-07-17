@@ -18,7 +18,7 @@ import type {
   StaffUser,
 } from "../domain/types";
 
-export type QueueOrder = Order & {
+export type QueueOrder = OrderWithLoyalty & {
   assignedBaristaDisplayName: string | null;
 };
 
@@ -208,7 +208,7 @@ export interface OrderHistoryQuery {
 }
 
 export interface OrderHistoryResponse {
-  orders: Order[];
+  orders: OrderWithLoyalty[];
 }
 
 export type ReportPeriodType = "daily" | "weekly" | "monthly";

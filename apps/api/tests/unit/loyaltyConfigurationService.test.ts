@@ -5,7 +5,8 @@ import {
   createLoyaltyRewardOption,
   getActiveEarningRule,
   listLoyaltyRewardOptions,
-  replaceActiveEarningRule
+  replaceActiveEarningRule,
+  updateLoyaltyRewardOption
 } from "../../src/domain/loyaltyConfigurationService";
 import { cleanupLoyaltyFixtureData, createTestStaff } from "../integration/testFixtures";
 
@@ -45,5 +46,32 @@ describe("loyalty earning configuration", () => {
 
     expect(reward).toMatchObject({ name: "Free drink", pointsCost: 10, benefitType: "free_beverage", active: true });
     await expect(listLoyaltyRewardOptions(true)).resolves.toEqual([expect.objectContaining({ id: reward.id })]);
+  });
+
+  it("updates mutable reward details, filters retired rewards, and retains the original benefit type", async () => {
+    const { staff } = await createTestStaff();
+    const reward = await createLoyaltyRewardOption(staff.id, {
+      name: "Free drink",
+      pointsCost: 10,
+      benefitType: "free_beverage",
+      benefitDescription: "One drink on us"
+    });
+
+    const updated = await updateLoyaltyRewardOption(staff.id, reward.id, {
+      name: "Free cold drink",
+      pointsCost: 12,
+      benefitDescription: "One cold drink on us",
+      active: false
+    });
+
+    expect(updated).toMatchObject({
+      name: "Free cold drink",
+      pointsCost: 12,
+      benefitDescription: "One cold drink on us",
+      benefitType: "free_beverage",
+      active: false
+    });
+    await expect(listLoyaltyRewardOptions(true)).resolves.toEqual([]);
+    await expect(listLoyaltyRewardOptions()).resolves.toEqual([expect.objectContaining({ id: reward.id, active: false })]);
   });
 });

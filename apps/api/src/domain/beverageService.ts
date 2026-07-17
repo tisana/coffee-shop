@@ -57,7 +57,6 @@ export async function completeOrderBeverage(
       });
     }
 
-    await returnRewardsForTarget(tx, order.createdByStaffId, order.id, beverage.id, "Reward target beverage cancelled before pickup.");
   });
 
   return getQueueOrderOrThrow(orderId);
@@ -102,6 +101,8 @@ export async function cancelOrderBeverage(
         status: beverage.status
       });
     }
+
+    await returnRewardsForTarget(tx, order.createdByStaffId, order.id, beverage.id, "Reward target beverage cancelled before pickup.");
   });
 
   return getQueueOrderOrThrow(orderId);

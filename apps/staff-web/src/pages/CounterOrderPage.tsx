@@ -411,6 +411,18 @@ export function CounterOrderPage() {
       <OrderSummary
         beverages={beverages}
         submitting={submitting}
+        rewardPointsCost={rewardSelections.reduce((total, selection) => total + (loyaltyRewards.find((reward) => reward.id === selection.rewardOptionId)?.pointsCost ?? 0), 0)}
+        rewardCoverage={rewardSelections.reduce((total, selection) => {
+          const reward = loyaltyRewards.find((candidate) => candidate.id === selection.rewardOptionId);
+          const beverage = beverages[selection.targetBeverageIndex];
+          if (!reward || !beverage) return total;
+          if (reward.benefitType === "free_beverage") {
+            const choiceIds = new Set(beverage.selectedCustomizations.flatMap((group) => group.customizationChoiceIds));
+            return total + Number(beverage.menuItem.price) + beverage.menuItem.customizationGroups.flatMap((group) => group.choices).filter((choice) => choiceIds.has(choice.id)).reduce((sum, choice) => sum + Number(choice.priceAdjustment), 0);
+          }
+          const choice = beverage.menuItem.customizationGroups.flatMap((group) => group.choices).find((candidate) => candidate.id === selection.targetCustomizationChoiceId);
+          return total + Number(choice?.priceAdjustment ?? 0);
+        }, 0).toFixed(2)}
         onRemove={(id) => setBeverages((current) => current.filter((item) => item.id !== id))}
         onSubmit={submitOrder}
       />

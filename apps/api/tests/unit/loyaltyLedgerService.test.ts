@@ -34,4 +34,14 @@ describe("loyalty point ledger", () => {
       expect.objectContaining({ pointsDelta: 2, expirationBusinessDate: "2026-09-30" })
     ]));
   });
+
+  it("rejects a redemption when the customer does not have enough points", async () => {
+    const customer = await createLoyaltyCustomer({ name: "Insufficient Ari", phone: "083-234-5678" });
+    await withTransaction(async (tx) => {
+      await tx.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 4, earnedBusinessDate: "2026-07-01", reason: "Four points." });
+      await expect(redeemPoints(tx, customer.id, null, 5, "Too expensive reward.")).rejects.toMatchObject({ message: "Customer does not have enough points for this reward." });
+    });
+
+    await expect(getLoyaltyPoints(customer.id)).resolves.toMatchObject({ summary: { available: 4, redeemed: 0 } });
+  });
 });

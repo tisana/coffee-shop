@@ -121,3 +121,34 @@ test("staff registers, looks up, and edits a loyalty customer from the existing 
   await expect(profile.getByRole("heading", { name: "Ari Srisuk" })).toBeVisible();
   await expect(profile.getByLabel("Email address")).toHaveValue("NINA@example.test");
 });
+
+test("staff configures and retires a reward from the loyalty page", async ({ page }) => {
+  await page.route("**/api/**", async (route) => {
+    const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+    if (await fulfillCsrfToken(route, path)) return;
+    if (path === "/loyalty/rewards" && route.request().method() === "POST") {
+      await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ id: "reward-new", name: "Free latte", pointsCost: 10, benefitType: "free_beverage", benefitDescription: "One latte free", active: true, effectiveAt: "2026-07-01T00:00:00.000Z", updatedAt: "2026-07-01T00:00:00.000Z" }) });
+      return;
+    }
+    if (path === "/loyalty/rewards/reward-new" && route.request().method() === "PATCH") {
+      const input = route.request().postDataJSON() as { name?: string; pointsCost?: number; benefitDescription?: string; active?: boolean };
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "reward-new", name: input.name ?? "Free latte", pointsCost: input.pointsCost ?? 10, benefitType: "free_beverage", benefitDescription: input.benefitDescription ?? "One latte free", active: input.active ?? true, effectiveAt: "2026-07-01T00:00:00.000Z", updatedAt: "2026-07-01T00:00:00.000Z" }) });
+      return;
+    }
+    if (await fulfillLoyaltyApiRoute(route, { rewards: [] })) return;
+    await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: "NOT_FOUND", message: `Unhandled test route ${path}` }) });
+  });
+
+  await page.goto("/#loyalty");
+  await page.getByLabel("Name").fill("Free latte");
+  await page.getByLabel("Points cost").fill("10");
+  await page.getByLabel("Description").fill("One latte free");
+  await page.getByRole("button", { name: "Add reward" }).click();
+  await expect(page.getByText("Free latte")).toBeVisible();
+  await page.getByRole("button", { name: "Edit Free latte" }).click();
+  await page.getByLabel("Edit name").fill("Free iced latte");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Free iced latte")).toBeVisible();
+  await page.getByRole("button", { name: "Retire" }).click();
+  await expect(page.getByText("Retired")).toBeVisible();
+});

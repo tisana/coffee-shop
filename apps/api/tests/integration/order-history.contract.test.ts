@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { randomUUID } from "node:crypto";
 
 import { completeOrderBeverage } from "../../src/domain/beverageService";
 import { cancelOrder, completeOrder, confirmOrderPickup } from "../../src/domain/orderFulfillmentService";
 import { createOrderForStaff } from "../../src/domain/orderCreationService";
+import { createLoyaltyCustomer } from "../../src/domain/loyaltyCustomerService";
+import { createLoyaltyRewardOption } from "../../src/domain/loyaltyConfigurationService";
+import { db } from "../../src/storage/db";
+import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
 import { claimQueuedOrder } from "../../src/domain/queueClaimService";
 import { submitOrderToQueue } from "../../src/domain/queueSubmissionService";
 import { createApp } from "../../src/app";
@@ -124,5 +129,18 @@ describe("US5 order history contract", () => {
       code: "BAD_REQUEST",
       message: "Request validation failed."
     });
+  });
+
+  it("includes loyalty reward snapshots and payable totals for a loyalty order", async () => {
+    const { agent, staff } = await createLoggedInAgent();
+    const menu = await createTestMenuFixture();
+    const customer = await createLoyaltyCustomer({ name: "History Reward Ari", phone: `08${randomUUID().replace(/\D/g, "").slice(0, 8)}` });
+    const reward = await createLoyaltyRewardOption(staff.id, { name: "History reward", pointsCost: 5, benefitType: "free_beverage", benefitDescription: "One drink free" });
+    await db.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 5, earnedBusinessDate: "2026-07-01", reason: "Seed credit." });
+    const order = await createOrderForStaff(staff.id, { loyalty: { customerId: customer.id, rewards: [{ rewardOptionId: reward.id, targetBeverageIndex: 0 }] }, beverages: [{ menuItemId: menu.menuItemId, quantity: 1, selectedCustomizations: [{ customizationGroupId: menu.groupId, customizationChoiceIds: [menu.wholeMilkChoiceId] }] }] });
+
+    const response = await agent.get("/orders/history").query({ dailyOrderNumber: order.dailyOrderNumber });
+    expect(response.status).toBe(200);
+    expect(response.body.orders[0]).toMatchObject({ id: order.id, payableTotal: "0.00", loyalty: { customer: { id: customer.id }, rewards: [expect.objectContaining({ name: "History reward", status: "active" })] } });
   });
 });
