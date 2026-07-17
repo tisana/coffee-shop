@@ -41,7 +41,14 @@ export const createOrderRequestSchema = z.object({
 });
 
 export const createOrderWithLoyaltyRequestSchema = createOrderRequestSchema.extend({
-  loyalty: z.object({ customerId: idSchema }).optional()
+  loyalty: z.object({
+    customerId: idSchema,
+    rewards: z.array(z.object({
+      rewardOptionId: idSchema,
+      targetBeverageIndex: z.coerce.number().int().min(0),
+      targetCustomizationChoiceId: idSchema.optional()
+    })).default([])
+  }).optional()
 });
 
 export const customizationChoiceInputSchema = z.object({
@@ -207,3 +214,26 @@ export const loyaltyEarningRuleInputSchema = z
       context.addIssue({ code: z.ZodIssueCode.custom, message: "Exactly one threshold must match the earning type." });
     }
   });
+
+export const loyaltyRewardOptionInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  pointsCost: z.coerce.number().int().min(1),
+  benefitType: z.enum(["free_beverage", "size_upgrade"]),
+  benefitDescription: z.string().trim().min(1).max(500),
+  active: z.boolean().optional()
+});
+
+export const loyaltyRewardOptionUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  pointsCost: z.coerce.number().int().min(1).optional(),
+  benefitDescription: z.string().trim().min(1).max(500).optional(),
+  active: z.boolean().optional()
+}).refine((value) => Object.keys(value).length > 0, "At least one reward field is required.");
+
+export const loyaltyRewardParamsSchema = z.object({ rewardId: idSchema });
+
+export const loyaltyRewardSelectionSchema = z.object({
+  rewardOptionId: idSchema,
+  targetBeverageIndex: z.coerce.number().int().min(0),
+  targetCustomizationChoiceId: idSchema.optional()
+});

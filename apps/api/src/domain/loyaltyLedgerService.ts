@@ -1,10 +1,10 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 
 import type { LoyaltyPointsResponse } from "@coffee-shop/shared/contracts/api";
 
-import { notFound } from "../routes/errors";
+import { badRequest, notFound } from "../routes/errors";
 import { type Transaction, db } from "../storage/db";
-import { loyaltyCustomers, loyaltyPointLedgerEntries, loyaltyOrderAssociations, orders, orderBeverages } from "../storage/schema";
+import { loyaltyCustomers, loyaltyPointAllocations, loyaltyPointLedgerEntries, loyaltyOrderAssociations, loyaltyRewardRedemptions, orders, orderBeverages } from "../storage/schema";
 import { currentBusinessDate } from "./businessDate";
 import { calculateEarningPoints, getActiveEarningRule } from "./loyaltyConfigurationService";
 
@@ -25,11 +25,14 @@ export async function postOrderEarning(tx: Transaction, orderId: string, staffId
   const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   if (!order) return;
   const beverages = await tx.select().from(orderBeverages).where(eq(orderBeverages.orderId, orderId));
+  const activeRewards = await tx.select().from(loyaltyRewardRedemptions)
+    .where(and(eq(loyaltyRewardRedemptions.orderId, orderId), eq(loyaltyRewardRedemptions.status, "active")));
   const activeBeverages = beverages.filter((beverage) => beverage.status !== "cancelled");
-  const eligibleAmount = activeBeverages
-    .reduce((total, beverage) => total + Number(beverage.priceSnapshot) * beverage.quantity, 0)
-    .toFixed(2);
-  const eligibleBeverageCount = activeBeverages.reduce((total, beverage) => total + beverage.quantity, 0);
+  const eligibleAmount = (
+    activeBeverages.reduce((total, beverage) => total + Number(beverage.priceSnapshot) * beverage.quantity, 0) -
+    activeRewards.reduce((total, reward) => total + Number(reward.coveredAmountSnapshot), 0)
+  ).toFixed(2);
+  const eligibleBeverageCount = activeBeverages.reduce((total, beverage) => total + beverage.quantity, 0) - activeRewards.reduce((total, reward) => total + reward.coveredBeverageQuantity, 0);
   const points = calculateEarningPoints(rule, { amount: eligibleAmount, beverageCount: eligibleBeverageCount });
   if (points <= 0) return;
 
@@ -72,6 +75,49 @@ export async function reverseOrderEarning(tx: Transaction, orderId: string, staf
     reason: "Reversed earned points after order cancellation.",
     createdByStaffId: staffId
   });
+}
+
+export async function redeemPoints(
+  tx: Transaction, customerId: string, rewardRedemptionId: string | null, pointsCost: number, reason: string, staffId?: string
+): Promise<string> {
+  const credits = await tx.select().from(loyaltyPointLedgerEntries)
+    .where(eq(loyaltyPointLedgerEntries.customerId, customerId))
+    .orderBy(asc(loyaltyPointLedgerEntries.expirationBusinessDate), asc(loyaltyPointLedgerEntries.occurredAt));
+  const creditEntries = credits.filter((entry) => entry.pointsDelta > 0 && (entry.eventType === "earned" || entry.eventType === "returned"));
+  const allocations = creditEntries.length === 0 ? [] : await tx.select().from(loyaltyPointAllocations)
+    .where(inArray(loyaltyPointAllocations.creditEntryId, creditEntries.map((entry) => entry.id)));
+  const usedByCredit = new Map<string, number>();
+  for (const allocation of allocations) usedByCredit.set(allocation.creditEntryId, (usedByCredit.get(allocation.creditEntryId) ?? 0) + allocation.points);
+  let remaining = pointsCost;
+  const selections: Array<{ creditId: string; points: number }> = [];
+  for (const credit of creditEntries) {
+    const available = credit.pointsDelta - (usedByCredit.get(credit.id) ?? 0);
+    const points = Math.min(available, remaining);
+    if (points > 0) selections.push({ creditId: credit.id, points });
+    remaining -= points;
+    if (remaining === 0) break;
+  }
+  if (remaining > 0) throw badRequest("Customer does not have enough points for this reward.");
+  const [debit] = await tx.insert(loyaltyPointLedgerEntries).values({ customerId, eventType: "redeemed", pointsDelta: -pointsCost, rewardRedemptionId: rewardRedemptionId ?? undefined, reason, createdByStaffId: staffId }).returning();
+  if (!debit) throw new Error("Unable to redeem loyalty points.");
+  if (selections.length > 0) await tx.insert(loyaltyPointAllocations).values(selections.map((selection) => ({ customerId, creditEntryId: selection.creditId, debitEntryId: debit.id, points: selection.points })));
+  return debit.id;
+}
+
+export async function returnRedeemedPoints(
+  tx: Transaction, customerId: string, debitEntryId: string, rewardRedemptionId: string | null, reason: string, staffId?: string
+): Promise<void> {
+  if (rewardRedemptionId) {
+    const existingReturns = await tx.select({ id: loyaltyPointLedgerEntries.id }).from(loyaltyPointLedgerEntries)
+      .where(eq(loyaltyPointLedgerEntries.rewardRedemptionId, rewardRedemptionId));
+    if (existingReturns.some((entry) => entry.id !== debitEntryId)) return;
+  }
+  const allocations = await tx.select({ allocation: loyaltyPointAllocations, credit: loyaltyPointLedgerEntries })
+    .from(loyaltyPointAllocations).innerJoin(loyaltyPointLedgerEntries, eq(loyaltyPointAllocations.creditEntryId, loyaltyPointLedgerEntries.id))
+    .where(eq(loyaltyPointAllocations.debitEntryId, debitEntryId));
+  for (const { allocation, credit } of allocations) {
+    await tx.insert(loyaltyPointLedgerEntries).values({ customerId, eventType: "returned", pointsDelta: allocation.points, rewardRedemptionId: rewardRedemptionId ?? undefined, earnedBusinessDate: currentBusinessDate(), expirationBusinessDate: credit.expirationBusinessDate, reason, createdByStaffId: staffId });
+  }
 }
 
 export async function getLoyaltyPoints(customerId: string): Promise<LoyaltyPointsResponse> {

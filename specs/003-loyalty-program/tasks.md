@@ -148,23 +148,23 @@
 
 ### Implementation for User Story 3
 
-- [ ] T064 [US3] Implement reward option create, active/all list, editable metadata, immutable benefit type, and retirement/replacement behavior while preserving redemption snapshots in `apps/api/src/domain/loyaltyConfigurationService.ts`
-- [ ] T065 [US3] Add reward create/update/query, non-stackable order selection, conditional size-choice, and standalone reward cancellation path validation in `apps/api/src/routes/validators.ts`
-- [ ] T066 [US3] Add protected reward list, create, edit, and retire endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
+- [X] T064 [US3] Implement reward option create, active/all list, editable metadata, immutable benefit type, and retirement/replacement behavior while preserving redemption snapshots in `apps/api/src/domain/loyaltyConfigurationService.ts`
+- [X] T065 [US3] Add reward create/update/query, non-stackable order selection, conditional size-choice, and standalone reward cancellation path validation in `apps/api/src/routes/validators.ts`
+- [X] T066 [US3] Add protected reward list, create, edit, and retire endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
 - [ ] T067 [US3] Implement customer locking, latest balance refresh, earliest-expiring debit allocation, and idempotent standalone/beverage/order return credits that retain original expiration dates in `apps/api/src/domain/loyaltyLedgerService.ts`
 - [ ] T068 [US3] Implement complete-unit free-beverage coverage including customizations, selected positive size-adjustment coverage, one-reward-per-unit validation, snapshots, complimentary quantity, and active coverage calculations in `apps/api/src/domain/loyaltyOrderService.ts`
-- [ ] T069 [US3] Extend order creation to insert beverage snapshots, immutable association, non-stackable redemption snapshots, ledger debits, allocations, and loyalty discount total in one transaction in `apps/api/src/domain/orderCreationService.ts`
+- [X] T069 [US3] Extend order creation to insert beverage snapshots, immutable association, non-stackable redemption snapshots, ledger debits, allocations, and loyalty discount total in one transaction in `apps/api/src/domain/orderCreationService.ts`
 - [ ] T070 [US3] Extend order mapping and order/queue/history loaders with loyalty customer, applied reward snapshots, active coverage, and payable total in `apps/api/src/domain/orderMapper.ts`, `apps/api/src/domain/orderCreationService.ts`, `apps/api/src/domain/queueService.ts`, and `apps/api/src/domain/orderHistoryService.ts`
-- [ ] T071 [US3] Return an active targeted redemption exactly once when its beverage is cancelled in `apps/api/src/domain/beverageService.ts`
-- [ ] T072 [US3] Implement standalone reward cancellation plus full-order reward returns and earning-reversal ordering in `apps/api/src/domain/orderFulfillmentService.ts`, and expose the protected cancellation command in `apps/api/src/routes/orderFulfillmentRoutes.ts`
-- [ ] T073 [US3] Load active reward coverage with report orders and attribute covered amounts to target beverage snapshots in `apps/api/src/domain/reportingService.ts`
-- [ ] T074 [US3] Subtract active reward coverage from reportable order/item sales and keep free-beverage versus size-upgrade earning quantities correct in `apps/api/src/domain/reportingService.ts`
+- [X] T071 [US3] Return an active targeted redemption exactly once when its beverage is cancelled in `apps/api/src/domain/beverageService.ts`
+- [X] T072 [US3] Implement standalone reward cancellation plus full-order reward returns and earning-reversal ordering in `apps/api/src/domain/orderFulfillmentService.ts`, and expose the protected cancellation command in `apps/api/src/routes/orderFulfillmentRoutes.ts`
+- [X] T073 [US3] Load active reward coverage with report orders and attribute covered amounts to target beverage snapshots in `apps/api/src/domain/reportingService.ts`
+- [X] T074 [US3] Subtract active reward coverage from reportable order/item sales and keep free-beverage versus size-upgrade earning quantities correct in `apps/api/src/domain/reportingService.ts`
 - [ ] T075 [P] [US3] Implement reward option list/create/update calls in `apps/staff-web/src/services/loyaltyApi.ts`, serialize non-stackable selections in `apps/staff-web/src/services/ordersApi.ts`, and add standalone reward cancellation in `apps/staff-web/src/services/fulfillmentApi.ts`
 - [ ] T076 [US3] Add reward list, create-only benefit type, editable name/cost/description/availability, retirement/replacement guidance, and controls in `apps/staff-web/src/components/LoyaltyProgramSettings.tsx` and expose them from `apps/staff-web/src/pages/LoyaltyPage.tsx`
 - [ ] T077 [US3] Implement affordable reward choices, complete-unit free-beverage targets, selected positive size adjustments, one-reward-per-unit enforcement, unavailable explanations, and remove behavior in `apps/staff-web/src/components/LoyaltyRewardSelector.tsx`
 - [ ] T078 [US3] Show applied rewards, points spent, gross total, reward coverage, payable total, and pre-pickup standalone cancellation action without layout shift across `apps/staff-web/src/components/OrderSummary.tsx`, `apps/staff-web/src/components/OrderCreatedBanner.tsx`, `apps/staff-web/src/components/QueueOrderCard.tsx`, and `apps/staff-web/src/components/OrderHistoryList.tsx`
-- [ ] T079 [US3] Connect selected customer balance, rewards, stale-balance refresh, and reward payloads to order creation in `apps/staff-web/src/pages/CounterOrderPage.tsx`
-- [ ] T080 [US3] Add responsive reward configuration, selection, target, totals, returned, and conflict-state styles in `apps/staff-web/src/styles.css`
+- [X] T079 [US3] Connect selected customer balance, rewards, stale-balance refresh, and reward payloads to order creation in `apps/staff-web/src/pages/CounterOrderPage.tsx`
+- [X] T080 [US3] Add responsive reward configuration, selection, target, totals, returned, and conflict-state styles in `apps/staff-web/src/styles.css`
 - [ ] T081 [US3] Run focused reward, allocation, concurrency, lifecycle, report, component, and Playwright US3 checks and record coverage, non-stacking, and standalone cancellation evidence in `specs/003-loyalty-program/quickstart.md`
 
 **Checkpoint**: User Stories 1-3 are independently testable; reward spending cannot overspend a balance, benefits affect order/report values correctly, and cancellation restores points exactly once.

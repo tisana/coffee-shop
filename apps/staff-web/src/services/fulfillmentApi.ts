@@ -1,5 +1,5 @@
 import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
-import type { Order } from "@coffee-shop/shared/domain/types";
+import type { Order, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import { apiClient } from "./apiClient";
 
@@ -30,4 +30,8 @@ export async function confirmPickup(orderId: string): Promise<Order> {
   return apiClient.request<Order>(`/orders/${orderId}/pickup`, {
     method: "POST"
   });
+}
+
+export async function cancelLoyaltyReward(orderId: string, rewardId: string): Promise<OrderWithLoyalty> {
+  return apiClient.request<OrderWithLoyalty>(`/orders/${orderId}/loyalty-rewards/${rewardId}/cancel`, { method: "POST" });
 }

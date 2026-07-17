@@ -6,7 +6,8 @@ import type {
   LoyaltyPointsResponse,
   LoyaltyCustomerUpdate
 } from "@coffee-shop/shared/contracts/api";
-import type { LoyaltyCustomer, LoyaltyEarningRule } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyCustomer, LoyaltyEarningRule, LoyaltyRewardOption } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyRewardOptionInput, LoyaltyRewardOptionUpdate, LoyaltyRewardsResponse } from "@coffee-shop/shared/contracts/api";
 
 import { apiClient } from "./apiClient";
 
@@ -53,4 +54,17 @@ export function replaceLoyaltyEarningRule(input: LoyaltyEarningRuleInput): Promi
 
 export function getLoyaltyPoints(customerId: string): Promise<LoyaltyPointsResponse> {
   return apiClient.request(`/loyalty/customers/${customerId}/points`);
+}
+
+export async function getLoyaltyRewards(): Promise<LoyaltyRewardOption[]> {
+  const response = await apiClient.request<LoyaltyRewardsResponse>("/loyalty/rewards");
+  return response.rewards;
+}
+
+export function createLoyaltyReward(input: LoyaltyRewardOptionInput): Promise<LoyaltyRewardOption> {
+  return apiClient.request("/loyalty/rewards", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateLoyaltyReward(rewardId: string, input: LoyaltyRewardOptionUpdate): Promise<LoyaltyRewardOption> {
+  return apiClient.request(`/loyalty/rewards/${rewardId}`, { method: "PATCH", body: JSON.stringify(input) });
 }

@@ -8,6 +8,9 @@ import { submitOrderToQueue } from "../../src/domain/queueSubmissionService";
 import { replaceActiveEarningRule } from "../../src/domain/loyaltyConfigurationService";
 import { createLoyaltyCustomer } from "../../src/domain/loyaltyCustomerService";
 import { getLoyaltyPoints } from "../../src/domain/loyaltyLedgerService";
+import { createLoyaltyRewardOption } from "../../src/domain/loyaltyConfigurationService";
+import { db } from "../../src/storage/db";
+import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
 import { cleanupLoyaltyFixtureData, createTestMenuFixture, createTestStaff } from "./testFixtures";
 
 describe("loyalty order lifecycle", () => {
@@ -66,5 +69,20 @@ describe("loyalty order lifecycle", () => {
     await completeOrder(created.id);
 
     expect((await getLoyaltyPoints(customer.id)).summary).toMatchObject({ available: 2, lifetimeEarned: 2 });
+  });
+
+  it("redeems an active free-beverage reward during creation and returns its point bucket when the order is cancelled", async () => {
+    const { staff } = await createTestStaff();
+    const menu = await createTestMenuFixture();
+    const customer = await createLoyaltyCustomer({ name: "Reward Ari", phone: "087-234-5678" });
+    const reward = await createLoyaltyRewardOption(staff.id, { name: "Free drink", pointsCost: 5, benefitType: "free_beverage", benefitDescription: "One drink free" });
+    await db.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 5, earnedBusinessDate: "2026-07-01", expirationBusinessDate: "2026-08-31", reason: "Seed credit." });
+
+    const created = await createOrderForStaff(staff.id, { loyalty: { customerId: customer.id, rewards: [{ rewardOptionId: reward.id, targetBeverageIndex: 0 }] }, beverages: [{ menuItemId: menu.menuItemId, quantity: 1, selectedCustomizations: [{ customizationGroupId: menu.groupId, customizationChoiceIds: [menu.wholeMilkChoiceId] }] }] });
+    expect(created).toMatchObject({ loyaltyRewardDiscountTotal: "4.50", payableTotal: "0.00", loyalty: { rewards: [expect.objectContaining({ name: "Free drink", status: "active" })] } });
+    expect((await getLoyaltyPoints(customer.id)).summary.available).toBe(0);
+
+    await cancelOrder(created.id);
+    expect(await getLoyaltyPoints(customer.id)).toMatchObject({ summary: { available: 5, returned: 5 }, history: expect.arrayContaining([expect.objectContaining({ eventType: "returned", expirationBusinessDate: "2026-08-31" })]) });
   });
 });

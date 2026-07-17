@@ -1559,6 +1559,25 @@ nav a[aria-current="page"] {
   background: #f0eee8;
 }
 
+.loyalty-reward-selector,
+.loyalty-reward-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.loyalty-reward-selector label,
+.loyalty-reward-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.loyalty-reward-list {
+  list-style: none;
+  padding: 0;
+}
+
 .loyalty-page,
 .loyalty-page-grid,
 .loyalty-customer-picker,

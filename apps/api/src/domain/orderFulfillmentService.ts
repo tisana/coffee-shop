@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import type { QueueOrder } from "@coffee-shop/shared/contracts/api";
-import type { Order } from "@coffee-shop/shared/domain/types";
+import type { Order, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import { conflict, notFound } from "../routes/errors";
 import { withTransaction } from "../storage/db";
@@ -9,6 +9,8 @@ import { orderBeverages, orders } from "../storage/schema";
 import { getOrderById } from "./orderCreationService";
 import { getQueueOrderById } from "./queueService";
 import { postOrderEarning, reverseOrderEarning } from "./loyaltyLedgerService";
+import { returnRewardsForOrder } from "./loyaltyRewardService";
+import { cancelLoyaltyReward } from "./loyaltyRewardService";
 import {
   assertCanCancelOrder,
   assertCanCompleteOrder,
@@ -132,7 +134,20 @@ export async function cancelOrder(orderId: string): Promise<Order> {
     }
 
     await reverseOrderEarning(tx, order.id, order.createdByStaffId);
+    await returnRewardsForOrder(tx, order.createdByStaffId, order.id, "Order cancelled before pickup.");
   });
 
   return getOrderOrThrow(orderId);
+}
+
+export async function cancelOrderLoyaltyReward(orderId: string, redemptionId: string, staffId: string): Promise<OrderWithLoyalty> {
+  await withTransaction(async (tx) => {
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    if (!order) throw notFound("Order not found.");
+    assertCanCancelOrder(order.status);
+    await cancelLoyaltyReward(tx, staffId, orderId, redemptionId);
+  });
+  const order = await getOrderById(orderId);
+  if (!order) throw notFound("Order not found.");
+  return order;
 }

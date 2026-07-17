@@ -5,6 +5,7 @@ import type {
   SelectedCustomization,
   SelectedCustomizationSnapshot
 } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyRewardSelection } from "@coffee-shop/shared/contracts/api";
 
 import { badRequest } from "../routes/errors";
 import { type Transaction, db, withTransaction } from "../storage/db";
@@ -19,6 +20,7 @@ import {
 import { currentBusinessDate } from "./businessDate";
 import { associateCustomerWithOrder, getOrderLoyaltyDetails } from "./loyaltyOrderService";
 import { mapOrderWithLoyalty } from "./orderMapper";
+import { applyRewardSelections } from "./loyaltyRewardService";
 
 export interface CreateOrderInput {
   pickupName?: string | undefined;
@@ -28,7 +30,7 @@ export interface CreateOrderInput {
     selectedCustomizations?: SelectedCustomization[];
     specialInstructions?: string | undefined;
   }>;
-  loyalty?: { customerId: string } | undefined;
+  loyalty?: { customerId: string; rewards?: LoyaltyRewardSelection[] | undefined } | undefined;
 }
 
 interface BeverageSnapshotInput {
@@ -227,7 +229,16 @@ export async function createOrderForStaff(
       ? await associateCustomerWithOrder(tx, order.id, input.loyalty.customerId, staffId)
       : null;
 
-    return mapOrderWithLoyalty(order, insertedBeverages, loyalty);
+    if (loyalty && input.loyalty?.rewards) {
+      await applyRewardSelections(tx, staffId, order.id, loyalty.customer.id, insertedBeverages.map((beverage) => ({
+        ...beverage,
+        createdAt: "", queuedAt: null, inProgressAt: null, completedAt: beverage.completedAt?.toISOString() ?? null,
+        cancelledAt: beverage.cancelledAt?.toISOString() ?? null
+      })), input.loyalty.rewards);
+    }
+    const [orderWithDiscount] = await tx.select().from(orders).where(eq(orders.id, order.id)).limit(1);
+
+    return mapOrderWithLoyalty(orderWithDiscount ?? order, insertedBeverages, await getOrderLoyaltyDetails(tx, order.id));
   });
 }
 

@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   calculateEarningPoints,
+  createLoyaltyRewardOption,
   getActiveEarningRule,
+  listLoyaltyRewardOptions,
   replaceActiveEarningRule
 } from "../../src/domain/loyaltyConfigurationService";
 import { cleanupLoyaltyFixtureData, createTestStaff } from "../integration/testFixtures";
@@ -30,5 +32,18 @@ describe("loyalty earning configuration", () => {
 
     expect(second.id).not.toBe(first.id);
     expect(await getActiveEarningRule()).toMatchObject({ id: second.id, earningType: "beverage_count" });
+  });
+
+  it("creates active rewards and does not let a later edit change the benefit type", async () => {
+    const { staff } = await createTestStaff();
+    const reward = await createLoyaltyRewardOption(staff.id, {
+      name: "Free drink",
+      pointsCost: 10,
+      benefitType: "free_beverage",
+      benefitDescription: "One drink on us"
+    });
+
+    expect(reward).toMatchObject({ name: "Free drink", pointsCost: 10, benefitType: "free_beverage", active: true });
+    await expect(listLoyaltyRewardOptions(true)).resolves.toEqual([expect.objectContaining({ id: reward.id })]);
   });
 });

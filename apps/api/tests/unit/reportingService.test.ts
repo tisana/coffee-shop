@@ -56,6 +56,7 @@ describe("reporting service foundation helpers", () => {
     expect(addMoney("0.10", "0.20")).toBe("0.30");
     expect(calculateBeverageLineTotal({ priceSnapshot: "5.25", quantity: 2 })).toBe("10.50");
     expect(calculateBeverageLineTotal({ priceSnapshot: "3.33", quantity: 3 })).toBe("9.99");
+    expect(calculateBeverageLineTotal({ priceSnapshot: "4.50", quantity: 2, loyaltyCoveredAmount: "4.50" })).toBe("4.50");
   });
 
   it("builds daily, weekly, and monthly report periods from business dates", () => {

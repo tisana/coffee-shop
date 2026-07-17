@@ -7,6 +7,7 @@ import { withTransaction } from "../storage/db";
 import { orderBeverages, orders } from "../storage/schema";
 import { getQueueOrderById } from "./queueService";
 import { assertCanCancelBeverage, assertCanCompleteBeverage } from "./orderStateMachine";
+import { returnRewardsForTarget } from "./loyaltyRewardService";
 
 async function getQueueOrderOrThrow(orderId: string): Promise<QueueOrder> {
   const order = await getQueueOrderById(orderId);
@@ -55,6 +56,8 @@ export async function completeOrderBeverage(
         status: beverage.status
       });
     }
+
+    await returnRewardsForTarget(tx, order.createdByStaffId, order.id, beverage.id, "Reward target beverage cancelled before pickup.");
   });
 
   return getQueueOrderOrThrow(orderId);

@@ -2,11 +2,11 @@ import { Router } from "express";
 
 import { requireStaff } from "../auth/requireStaff";
 import { cancelOrderBeverage, completeOrderBeverage } from "../domain/beverageService";
-import { cancelOrder, completeOrder, confirmOrderPickup } from "../domain/orderFulfillmentService";
+import { cancelOrder, cancelOrderLoyaltyReward, completeOrder, confirmOrderPickup } from "../domain/orderFulfillmentService";
 import {
   beverageCancelRequestSchema,
   beverageParamsSchema,
-  orderIdParamsSchema
+  loyaltyRewardParamsSchema, orderIdParamsSchema
 } from "./validators";
 
 export function createOrderFulfillmentRoutes(): Router {
@@ -37,6 +37,17 @@ export function createOrderFulfillmentRoutes(): Router {
       const params = orderIdParamsSchema.parse(request.params);
       const order = await cancelOrder(params.orderId);
       response.json(order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/orders/:orderId/loyalty-rewards/:rewardId/cancel", requireStaff, async (request, response, next) => {
+    try {
+      const { orderId } = orderIdParamsSchema.parse(request.params);
+      const { rewardId } = loyaltyRewardParamsSchema.parse(request.params);
+      if (!request.staff) throw new Error("Staff middleware did not attach staff.");
+      response.json(await cancelOrderLoyaltyReward(orderId, rewardId, request.staff.id));
     } catch (error) {
       next(error);
     }

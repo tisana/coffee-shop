@@ -17,7 +17,7 @@ import type {
 import type { Order, OrderBeverage, OrderStatus } from "@coffee-shop/shared/domain/types";
 
 import { db } from "../storage/db";
-import { menuCategories, menuItems, orderBeverages, orders } from "../storage/schema";
+import { loyaltyRewardRedemptions, menuCategories, menuItems, orderBeverages, orders } from "../storage/schema";
 import { currentBusinessDate } from "./businessDate";
 import { mapOrder } from "./orderMapper";
 
@@ -39,6 +39,7 @@ export interface ReportPeriodInput {
 export interface BeverageLineTotalInput {
   priceSnapshot: string;
   quantity: number;
+  loyaltyCoveredAmount?: string | undefined;
 }
 
 export interface SalesReportAggregationInput {
@@ -73,7 +74,7 @@ export function addMoney(left: string, right: string): string {
 }
 
 export function calculateBeverageLineTotal(input: BeverageLineTotalInput): string {
-  return (parseMoney(input.priceSnapshot) * input.quantity).toFixed(2);
+  return Math.max(0, parseMoney(input.priceSnapshot) * input.quantity - parseMoney(input.loyaltyCoveredAmount ?? "0.00")).toFixed(2);
 }
 
 export function compareReportDates(left: string, right: string): number {
@@ -226,7 +227,15 @@ async function listReportOrders(filter: ReportFilter): Promise<Order[]> {
     beveragesByOrderId.set(beverage.orderId, existing);
   }
 
-  return orderRows.map((order) => mapOrder(order, beveragesByOrderId.get(order.id) ?? []));
+  const activeRewards = await db.select().from(loyaltyRewardRedemptions).where(
+    and(inArray(loyaltyRewardRedemptions.orderId, orderRows.map((order) => order.id)), eq(loyaltyRewardRedemptions.status, "active"))
+  );
+  const coverageByBeverageId = new Map<string, number>();
+  for (const reward of activeRewards) coverageByBeverageId.set(reward.targetOrderBeverageId, (coverageByBeverageId.get(reward.targetOrderBeverageId) ?? 0) + Number(reward.coveredAmountSnapshot));
+  return orderRows.map((order) => {
+    const mapped = mapOrder(order, beveragesByOrderId.get(order.id) ?? []);
+    return { ...mapped, beverages: mapped.beverages.map((beverage) => ({ ...beverage, loyaltyCoveredAmount: (coverageByBeverageId.get(beverage.id) ?? 0).toFixed(2) })) };
+  });
 }
 
 async function resolveMatchingMenuItemIds(filter: ReportFilter): Promise<ReadonlySet<string> | undefined> {
@@ -579,7 +588,7 @@ function isReportableBeverage(
 }
 
 function calculateBeverageLineTotalCents(input: BeverageLineTotalInput): number {
-  return moneyToCents(input.priceSnapshot) * input.quantity;
+  return moneyToCents(calculateBeverageLineTotal(input));
 }
 
 function moneyToCents(value: string): number {
