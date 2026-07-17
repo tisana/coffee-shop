@@ -4,17 +4,20 @@ import { Minus, Plus } from "lucide-react";
 import type {
   MenuCategory,
   MenuItem,
-  Order,
+  OrderWithLoyalty, LoyaltyRewardOption,
   SelectedCustomization
 } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyPointsResponse, LoyaltyRewardSelection } from "@coffee-shop/shared/contracts/api";
 
 import { CustomizationSelector } from "../components/CustomizationSelector";
 import { type DraftBeverage, OrderSummary } from "../components/OrderSummary";
 import { OrderCreatedBanner } from "../components/OrderCreatedBanner";
 import { LoyaltyCustomerPicker } from "../components/LoyaltyCustomerPicker";
+import { LoyaltyRewardSelector } from "../components/LoyaltyRewardSelector";
 import { ApiClientError } from "../services/apiClient";
+import { cancelLoyaltyReward } from "../services/fulfillmentApi";
 import { createCounterOrder, getOrderTakingMenu, submitOrderToQueue } from "../services/ordersApi";
-import { createLoyaltyCustomer, getLoyaltyPhoneRegion, searchLoyaltyCustomers } from "../services/loyaltyApi";
+import { createLoyaltyCustomer, getLoyaltyPhoneRegion, getLoyaltyPoints, getLoyaltyRewards, searchLoyaltyCustomers } from "../services/loyaltyApi";
 
 const menuImages: Record<string, string> = {
   Americano:
@@ -82,13 +85,16 @@ export function CounterOrderPage() {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [pickupName, setPickupName] = useState("");
   const [beverages, setBeverages] = useState<DraftBeverage[]>([]);
-  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<OrderWithLoyalty | null>(null);
   const [loadingMenu, setLoadingMenu] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [queueing, setQueueing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<import("@coffee-shop/shared/domain/types").LoyaltyCustomer | null>(null);
   const [phoneRegion, setPhoneRegion] = useState<string | null>(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState<LoyaltyPointsResponse | null>(null);
+  const [loyaltyRewards, setLoyaltyRewards] = useState<LoyaltyRewardOption[]>([]);
+  const [rewardSelections, setRewardSelections] = useState<LoyaltyRewardSelection[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -123,6 +129,8 @@ export function CounterOrderPage() {
   }, []);
 
   useEffect(() => { getLoyaltyPhoneRegion().then((response) => setPhoneRegion(response.region)).catch(() => setPhoneRegion(null)); }, []);
+  useEffect(() => { getLoyaltyRewards().then(setLoyaltyRewards).catch(() => setLoyaltyRewards([])); }, []);
+  useEffect(() => { if (!selectedCustomer) { setLoyaltyPoints(null); setRewardSelections([]); return; } getLoyaltyPoints(selectedCustomer.id).then(setLoyaltyPoints).catch(() => setLoyaltyPoints(null)); }, [selectedCustomer]);
 
   const allMenuItems = useMemo(
     () => categories.flatMap((category) => category.menuItems),
@@ -223,7 +231,7 @@ export function CounterOrderPage() {
             ? { specialInstructions: beverage.specialInstructions }
             : {})
         })),
-        ...(selectedCustomer ? { loyalty: { customerId: selectedCustomer.id } } : {})
+        ...(selectedCustomer ? { loyalty: { customerId: selectedCustomer.id, rewards: rewardSelections } } : {})
       });
       setCreatedOrder(await submitOrderToQueue(order.id));
       setBeverages([]);
@@ -263,7 +271,7 @@ export function CounterOrderPage() {
         </header>
 
         {createdOrder ? (
-          <OrderCreatedBanner order={createdOrder} queueing={queueing} onQueue={queueCreatedOrder} />
+          <OrderCreatedBanner order={createdOrder} queueing={queueing} onQueue={queueCreatedOrder} onCancelReward={(rewardId) => { setQueueing(true); cancelLoyaltyReward(createdOrder.id, rewardId).then(setCreatedOrder).catch((caught) => setError(caught instanceof ApiClientError ? caught.message : "Unable to cancel loyalty reward.")).finally(() => setQueueing(false)); }} />
         ) : null}
 
         {error ? <p className="form-error">{error}</p> : null}
@@ -278,6 +286,7 @@ export function CounterOrderPage() {
         </label>
 
         <LoyaltyCustomerPicker selectedCustomer={selectedCustomer} searchCustomers={searchLoyaltyCustomers} onSelect={setSelectedCustomer} onClear={() => setSelectedCustomer(null)} onRegister={createLoyaltyCustomer} phoneRegion={phoneRegion} />
+        {selectedCustomer && loyaltyPoints ? <LoyaltyRewardSelector beverages={beverages} rewards={loyaltyRewards} availablePoints={loyaltyPoints.summary.available} selections={rewardSelections} onChange={setRewardSelections} /> : null}
 
         {loadingMenu ? (
           <p className="empty-state">Loading menu.</p>

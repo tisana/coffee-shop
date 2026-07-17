@@ -178,4 +178,24 @@ describe("loyalty customer contract", () => {
     expect(order.status).toBe(201);
     expect(order.body.loyalty).toMatchObject({ customer: { id: customer.body.id }, rewards: [] });
   });
+
+  it("creates, lists, and retires staff-managed reward options", async () => {
+    const { agent } = await createLoggedInAgent();
+    const created = await agent.post("/loyalty/rewards").send({
+      name: "Free beverage",
+      pointsCost: 10,
+      benefitType: "free_beverage",
+      benefitDescription: "One beverage free"
+    });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ active: true, benefitType: "free_beverage" });
+
+    const listed = await agent.get("/loyalty/rewards");
+    expect(listed.status).toBe(200);
+    expect(listed.body.rewards).toEqual(expect.arrayContaining([expect.objectContaining({ id: created.body.id })]));
+
+    const retired = await agent.patch(`/loyalty/rewards/${created.body.id}`).send({ active: false });
+    expect(retired.status).toBe(200);
+    expect(retired.body).toMatchObject({ id: created.body.id, active: false, benefitType: "free_beverage" });
+  });
 });

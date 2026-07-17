@@ -3,7 +3,7 @@ import type {
   MenuCategoriesResponse
 } from "@coffee-shop/shared/contracts/api";
 
-import type { Order, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
+import type { OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
 import { apiClient } from "./apiClient";
 
@@ -18,8 +18,8 @@ export async function createCounterOrder(request: CreateOrderWithLoyaltyRequest)
   });
 }
 
-export async function submitOrderToQueue(orderId: string): Promise<Order> {
-  return apiClient.request<Order>(`/orders/${orderId}/queue`, {
+export async function submitOrderToQueue(orderId: string): Promise<OrderWithLoyalty> {
+  return apiClient.request<OrderWithLoyalty>(`/orders/${orderId}/queue`, {
     method: "POST"
   });
 }

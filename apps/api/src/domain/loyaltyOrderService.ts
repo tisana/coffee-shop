@@ -4,7 +4,7 @@ import type { OrderLoyaltyDetails } from "@coffee-shop/shared/domain/types";
 
 import { badRequest } from "../routes/errors";
 import { type Database, type Transaction } from "../storage/db";
-import { loyaltyCustomers, loyaltyOrderAssociations } from "../storage/schema";
+import { loyaltyCustomers, loyaltyOrderAssociations, loyaltyRewardRedemptions } from "../storage/schema";
 
 type Queryable = Database | Transaction;
 
@@ -51,6 +51,8 @@ export async function getOrderLoyaltyDetails(
   }
 
   const { customer } = association;
+  const redemptions = await queryable.select().from(loyaltyRewardRedemptions)
+    .where(eq(loyaltyRewardRedemptions.orderId, orderId));
   return {
     customer: {
       id: customer.id,
@@ -60,6 +62,6 @@ export async function getOrderLoyaltyDetails(
       enrolledAt: customer.enrolledAt.toISOString(),
       updatedAt: customer.updatedAt.toISOString()
     },
-    rewards: []
+    rewards: redemptions.map((reward) => ({ id: reward.id, name: reward.rewardNameSnapshot, pointsCost: reward.pointsCostSnapshot, benefitType: reward.benefitTypeSnapshot, targetDescription: reward.targetDescriptionSnapshot, coveredAmount: reward.coveredAmountSnapshot, status: reward.status }))
   };
 }

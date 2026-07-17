@@ -222,3 +222,18 @@ git diff --check
 ```
 
 The focused API suite passed 9 tests: earning-rule version replacement, whole-point amount and beverage calculations, no carryover, create-time association, completed-order idempotency, partial beverage cancellation, completed-order reversal, point totals, history labels, and protected rule/point endpoints. The staff component suite passed 8 tests and the browser suite passed 2 tests for rule configuration and point history. The complete workspace suite passed 114 tests across 36 files before the final import-only cleanup; the final focused checks, lint, typecheck, build, and diff validation then passed.
+
+## Phase 5 Verification Evidence
+
+On 2026-07-17, the implemented reward path was verified with:
+
+```powershell
+npm run test --workspace @coffee-shop/api -- tests/unit/loyaltyConfigurationService.test.ts tests/unit/loyaltyLedgerService.test.ts tests/unit/reportingService.test.ts tests/integration/loyalty-order-lifecycle.test.ts
+npm run test --workspace @coffee-shop/staff-web -- src/components/LoyaltyEarningComponents.test.tsx
+npm run typecheck
+npm run lint
+npm run build
+git diff --check
+```
+
+The focused API suite covered reward creation, earliest-expiring allocation, original-expiration returns, free-beverage creation-time coverage, point debits, standalone/order cancellation returns, and net report line calculations. The counter fetches the current balance and reward list, serializes reward selections, shows the payable total after redemption, and offers pre-pickup reward cancellation. The remaining unchecked US3 tasks retain the required concurrency, contract, detailed component, and Playwright coverage for a subsequent verification pass.

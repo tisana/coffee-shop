@@ -8,14 +8,14 @@ import {
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
 } from "../domain/loyaltyCustomerService";
-import { getActiveEarningRule, replaceActiveEarningRule } from "../domain/loyaltyConfigurationService";
+import { createLoyaltyRewardOption, getActiveEarningRule, listLoyaltyRewardOptions, replaceActiveEarningRule, updateLoyaltyRewardOption } from "../domain/loyaltyConfigurationService";
 import { getLoyaltyPoints } from "../domain/loyaltyLedgerService";
 import {
   loyaltyCustomerInputSchema,
   loyaltyCustomerParamsSchema,
   loyaltyCustomerSearchQuerySchema,
   loyaltyCustomerUpdateSchema,
-  loyaltyEarningRuleInputSchema
+  loyaltyEarningRuleInputSchema, loyaltyRewardOptionInputSchema, loyaltyRewardOptionUpdateSchema, loyaltyRewardParamsSchema
 } from "./validators";
 
 export function createLoyaltyCustomerRoutes(): Router {
@@ -82,6 +82,16 @@ export function createLoyaltyCustomerRoutes(): Router {
     } catch (error) {
       next(error);
     }
+  });
+
+  router.get("/loyalty/rewards", requireStaff, async (_request, response, next) => {
+    try { response.json({ rewards: await listLoyaltyRewardOptions() }); } catch (error) { next(error); }
+  });
+  router.post("/loyalty/rewards", requireStaff, async (request, response, next) => {
+    try { if (!request.staff) throw new Error("Staff middleware did not attach staff."); response.status(201).json(await createLoyaltyRewardOption(request.staff.id, loyaltyRewardOptionInputSchema.parse(request.body))); } catch (error) { next(error); }
+  });
+  router.patch("/loyalty/rewards/:rewardId", requireStaff, async (request, response, next) => {
+    try { if (!request.staff) throw new Error("Staff middleware did not attach staff."); const { rewardId } = loyaltyRewardParamsSchema.parse(request.params); response.json(await updateLoyaltyRewardOption(request.staff.id, rewardId, loyaltyRewardOptionUpdateSchema.parse(request.body))); } catch (error) { next(error); }
   });
 
   router.patch("/loyalty/customers/:customerId", requireStaff, async (request, response, next) => {
