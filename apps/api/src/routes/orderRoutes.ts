@@ -2,14 +2,14 @@ import { Router } from "express";
 
 import { requireStaff } from "../auth/requireStaff";
 import { createOrderForStaff } from "../domain/orderCreationService";
-import { createOrderRequestSchema } from "./validators";
+import { createOrderWithLoyaltyRequestSchema } from "./validators";
 
 export function createOrderRoutes(): Router {
   const router = Router();
 
   router.post("/orders", requireStaff, async (request, response, next) => {
     try {
-      const body = createOrderRequestSchema.parse(request.body);
+      const body = createOrderWithLoyaltyRequestSchema.parse(request.body);
       const staff = request.staff;
 
       if (!staff) {

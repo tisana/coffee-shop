@@ -2,6 +2,26 @@ import { expect, test } from "@playwright/test";
 
 import { fulfillCsrfToken, fulfillLoyaltyApiRoute } from "./testApiMocks";
 
+test("staff configures an earning rule and reads customer point history", async ({ page }) => {
+  await page.route("**/api/**", async (route) => {
+    const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+    if (await fulfillCsrfToken(route, path)) return;
+    if (path === "/loyalty/config/earning-rule" && route.request().method() === "PUT") {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "rule-amount", earningType: "purchase_amount", amountThreshold: "10.00", beverageCountThreshold: null, pointsAwarded: 1, active: true, effectiveAt: "2026-07-01T09:00:00.000Z", retiredAt: null }) });
+      return;
+    }
+    if (await fulfillLoyaltyApiRoute(route)) return;
+    await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: "NOT_FOUND", message: `Unhandled test route ${path}` }) });
+  });
+
+  await page.goto("/#loyalty");
+  await page.getByRole("button", { name: "Save earning rule" }).click();
+  await expect(page.getByText("Active: 1 point per $10.00 purchase amount.")).toBeVisible();
+  await page.getByLabel("Search customers").fill("Ari");
+  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await expect(page.getByLabel("Point history")).toContainText("2026-07-01 #17");
+});
+
 test("staff registers, looks up, and edits a loyalty customer from the existing staff shell", async ({ page }) => {
   let ninaEmailRegistered = false;
 

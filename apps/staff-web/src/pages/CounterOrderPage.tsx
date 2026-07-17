@@ -11,8 +11,10 @@ import type {
 import { CustomizationSelector } from "../components/CustomizationSelector";
 import { type DraftBeverage, OrderSummary } from "../components/OrderSummary";
 import { OrderCreatedBanner } from "../components/OrderCreatedBanner";
+import { LoyaltyCustomerPicker } from "../components/LoyaltyCustomerPicker";
 import { ApiClientError } from "../services/apiClient";
 import { createCounterOrder, getOrderTakingMenu, submitOrderToQueue } from "../services/ordersApi";
+import { createLoyaltyCustomer, getLoyaltyPhoneRegion, searchLoyaltyCustomers } from "../services/loyaltyApi";
 
 const menuImages: Record<string, string> = {
   Americano:
@@ -85,6 +87,8 @@ export function CounterOrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [queueing, setQueueing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<import("@coffee-shop/shared/domain/types").LoyaltyCustomer | null>(null);
+  const [phoneRegion, setPhoneRegion] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -117,6 +121,8 @@ export function CounterOrderPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => { getLoyaltyPhoneRegion().then((response) => setPhoneRegion(response.region)).catch(() => setPhoneRegion(null)); }, []);
 
   const allMenuItems = useMemo(
     () => categories.flatMap((category) => category.menuItems),
@@ -216,7 +222,8 @@ export function CounterOrderPage() {
           ...(beverage.specialInstructions
             ? { specialInstructions: beverage.specialInstructions }
             : {})
-        }))
+        })),
+        ...(selectedCustomer ? { loyalty: { customerId: selectedCustomer.id } } : {})
       });
       setCreatedOrder(await submitOrderToQueue(order.id));
       setBeverages([]);
@@ -269,6 +276,8 @@ export function CounterOrderPage() {
             onChange={(event) => setPickupName(event.target.value)}
           />
         </label>
+
+        <LoyaltyCustomerPicker selectedCustomer={selectedCustomer} searchCustomers={searchLoyaltyCustomers} onSelect={setSelectedCustomer} onClear={() => setSelectedCustomer(null)} onRegister={createLoyaltyCustomer} phoneRegion={phoneRegion} />
 
         {loadingMenu ? (
           <p className="empty-state">Loading menu.</p>

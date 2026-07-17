@@ -7,9 +7,10 @@ interface LoyaltyCustomerProfileProps {
   customer: LoyaltyCustomer;
   onSave: (customerId: string, input: LoyaltyCustomerUpdate) => Promise<LoyaltyCustomer>;
   phoneRegion?: string | null;
+  points?: import("@coffee-shop/shared/contracts/api").LoyaltyPointsResponse | null;
 }
 
-export function LoyaltyCustomerProfile({ customer, onSave, phoneRegion }: LoyaltyCustomerProfileProps) {
+export function LoyaltyCustomerProfile({ customer, onSave, phoneRegion, points }: LoyaltyCustomerProfileProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(customer.name);
   const [phone, setPhone] = useState(customer.phone);
@@ -81,6 +82,11 @@ export function LoyaltyCustomerProfile({ customer, onSave, phoneRegion }: Loyalt
       )}
 
       {error ? <p className="form-error">{error}</p> : null}
+      {points ? <section className="loyalty-point-history" aria-label="Point history">
+        <h3>Points</h3>
+        <dl className="loyalty-point-summary"><div><dt>Available points</dt><dd>{points.summary.available}</dd></div><div><dt>Lifetime earned</dt><dd>{points.summary.lifetimeEarned}</dd></div><div><dt>Redeemed</dt><dd>{points.summary.redeemed}</dd></div><div><dt>Returned</dt><dd>{points.summary.returned}</dd></div><div><dt>Expired</dt><dd>{points.summary.expired}</dd></div><div><dt>Adjusted</dt><dd>{points.summary.adjusted}</dd></div></dl>
+        {points.history.length === 0 ? <p className="empty-state">No point history yet.</p> : <ul>{points.history.map((entry) => <li key={entry.id}><strong>{entry.pointsDelta > 0 ? "+" : ""}{entry.pointsDelta} points</strong><span>{entry.orderLabel ?? entry.reason}</span></li>)}</ul>}
+      </section> : null}
     </section>
   );
 }

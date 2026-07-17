@@ -5,17 +5,18 @@ import type { OrderStatus } from "@coffee-shop/shared/domain/types";
 
 import { db } from "../storage/db";
 import { orderBeverages, orders, staffUsers } from "../storage/schema";
-import { mapOrder } from "./orderMapper";
+import { getOrderLoyaltyDetails } from "./loyaltyOrderService";
+import { mapOrderWithLoyalty } from "./orderMapper";
 
 const activeQueueStatuses: OrderStatus[] = ["queued", "in_progress", "completed"];
 
-function mapQueueOrder(
+async function mapQueueOrder(
   row: typeof orders.$inferSelect,
   beverages: Array<typeof orderBeverages.$inferSelect>,
   assignedBaristaDisplayName: string | null
-): QueueOrder {
+): Promise<QueueOrder> {
   return {
-    ...mapOrder(row, beverages),
+    ...mapOrderWithLoyalty(row, beverages, await getOrderLoyaltyDetails(db, row.id)),
     assignedBaristaDisplayName
   };
 }
@@ -52,9 +53,9 @@ export async function listActiveQueueOrders(): Promise<QueueOrder[]> {
     beveragesByOrderId.set(beverage.orderId, existing);
   }
 
-  return activeOrders.map(({ order, assignedBaristaDisplayName }) =>
+  return Promise.all(activeOrders.map(({ order, assignedBaristaDisplayName }) =>
     mapQueueOrder(order, beveragesByOrderId.get(order.id) ?? [], assignedBaristaDisplayName)
-  );
+  ));
 }
 
 export async function getQueueOrderById(orderId: string): Promise<QueueOrder | null> {

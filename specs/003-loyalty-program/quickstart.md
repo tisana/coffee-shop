@@ -205,3 +205,20 @@ git diff --check
 ```
 
 The API suite passed 12 tests, covering malformed-email `400` validation before conflicts; trim-preserved casing; named phone/email `409` responses; same-customer email updates; unchanged records after rejected updates; whitespace cleanup; blank-to-null conversion; collision preflight; and case-insensitive uniqueness races. The component suite passed 6 tests and retained rejected registration/profile values. The focused Playwright journey passed in 1.5 seconds and confirmed duplicate-email create/edit feedback plus native malformed-email rejection without leaving the existing staff shell.
+
+## Phase 4 Verification Evidence
+
+On 2026-07-17, the earning and order-association checks passed:
+
+```powershell
+npm run test --workspace @coffee-shop/api -- loyalty.customer.contract.test.ts loyaltyConfigurationService.test.ts loyaltyLedgerService.test.ts loyalty-order-lifecycle.test.ts
+npm run test --workspace @coffee-shop/staff-web -- LoyaltyEarningComponents.test.tsx LoyaltyCustomerComponents.test.tsx
+npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
+npm test
+npm run lint
+npm run typecheck
+npm run build
+git diff --check
+```
+
+The focused API suite passed 9 tests: earning-rule version replacement, whole-point amount and beverage calculations, no carryover, create-time association, completed-order idempotency, partial beverage cancellation, completed-order reversal, point totals, history labels, and protected rule/point endpoints. The staff component suite passed 8 tests and the browser suite passed 2 tests for rule configuration and point history. The complete workspace suite passed 114 tests across 36 files before the final import-only cleanup; the final focused checks, lint, typecheck, build, and diff validation then passed.
