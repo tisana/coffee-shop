@@ -179,25 +179,25 @@
 
 ### Tests for User Story 4 (write first)
 
-- [ ] T082 [P] [US4] Write failing policy versioning, disabled policy, positive month validation, July-to-October cutoff, year rollover, and shop business-date unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
-- [ ] T083 [P] [US4] Write failing lazy expiration, partial unspent expiration, idempotent repeated reads, redemption cutoff, returned-after-cutoff, and historical policy unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
-- [ ] T084 [P] [US4] Extend failing contract tests for expiration policy get/replace and point summary materialization as of the shop business date in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
-- [ ] T085 [P] [US4] Write failing component tests for enabled/disabled expiration controls, month input, active cutoff explanation, expired totals, and expired history in `apps/staff-web/src/components/LoyaltyExpirationComponents.test.tsx`
-- [ ] T086 [P] [US4] Extend the failing Playwright journey for October 31 availability, November 1 expiration, blocked redemption, and visible history in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
+- [X] T082 [P] [US4] Write failing policy versioning, disabled policy, positive month validation, July-to-October cutoff, year rollover, and shop business-date unit tests in `apps/api/tests/unit/loyaltyConfigurationService.test.ts`
+- [X] T083 [P] [US4] Write failing lazy expiration, partial unspent expiration, idempotent repeated reads, redemption cutoff, returned-after-cutoff, and historical policy unit tests in `apps/api/tests/unit/loyaltyLedgerService.test.ts`
+- [X] T084 [P] [US4] Extend failing contract tests for expiration policy get/replace and point summary materialization as of the shop business date in `apps/api/tests/integration/loyalty.customer.contract.test.ts`
+- [X] T085 [P] [US4] Write failing component tests for enabled/disabled expiration controls, month input, active cutoff explanation, expired totals, and expired history in `apps/staff-web/src/components/LoyaltyExpirationComponents.test.tsx`
+- [X] T086 [P] [US4] Extend the failing Playwright journey for October 31 availability, November 1 expiration, blocked redemption, and visible history in `apps/staff-web/tests/e2e/loyalty-program.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T087 [US4] Implement expiration policy reads, transactional version replacement, and end-of-future-month cutoff calculation in `apps/api/src/domain/loyaltyConfigurationService.ts`
-- [ ] T088 [US4] Add expiration policy input validation and enforce enabled/month consistency in `apps/api/src/routes/validators.ts`
-- [ ] T089 [US4] Add protected expiration policy get and replace endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
-- [ ] T090 [US4] Assign the active policy version and calculated expiration business date when earned points post in `apps/api/src/domain/loyaltyLedgerService.ts`
-- [ ] T091 [US4] Materialize unspent expired debits and allocations transactionally before point reads and redemptions without duplicate events in `apps/api/src/domain/loyaltyLedgerService.ts`
-- [ ] T092 [US4] Invoke expiration refresh before returning customer totals/history and expose the `asOfBusinessDate` in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
-- [ ] T093 [P] [US4] Implement expiration policy get/replace client calls in `apps/staff-web/src/services/loyaltyApi.ts`
-- [ ] T094 [US4] Add disabled/enabled controls, calendar-month input, active policy display, and cutoff explanation in `apps/staff-web/src/components/LoyaltyProgramSettings.tsx` and expose them from `apps/staff-web/src/pages/LoyaltyPage.tsx`
-- [ ] T095 [US4] Render expired totals and expiration-date history distinctly while keeping returned and adjusted entries understandable in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
-- [ ] T096 [US4] Add expiration policy and history state styles that remain readable in the staff shell in `apps/staff-web/src/styles.css`
-- [ ] T097 [US4] Run focused policy, ledger, contract, component, and Playwright US4 checks and record calendar-cutoff evidence in `specs/003-loyalty-program/quickstart.md`
+- [X] T087 [US4] Implement expiration policy reads, transactional version replacement, and end-of-future-month cutoff calculation in `apps/api/src/domain/loyaltyConfigurationService.ts`
+- [X] T088 [US4] Add expiration policy input validation and enforce enabled/month consistency in `apps/api/src/routes/validators.ts`
+- [X] T089 [US4] Add protected expiration policy get and replace endpoints in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
+- [X] T090 [US4] Assign the active policy version and calculated expiration business date when earned points post in `apps/api/src/domain/loyaltyLedgerService.ts`
+- [X] T091 [US4] Materialize unspent expired debits and allocations transactionally before point reads and redemptions without duplicate events in `apps/api/src/domain/loyaltyLedgerService.ts`
+- [X] T092 [US4] Invoke expiration refresh before returning customer totals/history and expose the `asOfBusinessDate` in `apps/api/src/routes/loyaltyCustomerRoutes.ts`
+- [X] T093 [P] [US4] Implement expiration policy get/replace client calls in `apps/staff-web/src/services/loyaltyApi.ts`
+- [X] T094 [US4] Add disabled/enabled controls, calendar-month input, active policy display, and cutoff explanation in `apps/staff-web/src/components/LoyaltyProgramSettings.tsx` and expose them from `apps/staff-web/src/pages/LoyaltyPage.tsx`
+- [X] T095 [US4] Render expired totals and expiration-date history distinctly while keeping returned and adjusted entries understandable in `apps/staff-web/src/components/LoyaltyCustomerProfile.tsx`
+- [X] T096 [US4] Add expiration policy and history state styles that remain readable in the staff shell in `apps/staff-web/src/styles.css`
+- [X] T097 [US4] Run focused policy, ledger, contract, component, and Playwright US4 checks and record calendar-cutoff evidence in `specs/003-loyalty-program/quickstart.md`
 
 **Checkpoint**: All four stories work and the clarified calendar-month cutoff is enforced consistently in balances, history, and redemption.
 

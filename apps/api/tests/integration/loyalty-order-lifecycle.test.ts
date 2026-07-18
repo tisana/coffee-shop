@@ -1,17 +1,19 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 
 import { createOrderForStaff } from "../../src/domain/orderCreationService";
 import { cancelOrder, cancelOrderLoyaltyReward, completeOrder } from "../../src/domain/orderFulfillmentService";
 import { cancelOrderBeverage, completeOrderBeverage } from "../../src/domain/beverageService";
 import { claimQueuedOrder } from "../../src/domain/queueClaimService";
 import { submitOrderToQueue } from "../../src/domain/queueSubmissionService";
-import { replaceActiveEarningRule } from "../../src/domain/loyaltyConfigurationService";
+import { calculateExpirationBusinessDate, replaceActiveEarningRule, replaceActiveExpirationPolicy } from "../../src/domain/loyaltyConfigurationService";
 import { createLoyaltyCustomer } from "../../src/domain/loyaltyCustomerService";
 import { getLoyaltyPoints } from "../../src/domain/loyaltyLedgerService";
 import { createLoyaltyRewardOption } from "../../src/domain/loyaltyConfigurationService";
 import { db } from "../../src/storage/db";
 import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
 import { cleanupLoyaltyFixtureData, createTestMenuFixture, createTestStaff } from "./testFixtures";
+import { currentBusinessDate } from "../../src/domain/businessDate";
 
 describe("loyalty order lifecycle", () => {
   afterEach(cleanupLoyaltyFixtureData);
@@ -25,6 +27,7 @@ describe("loyalty order lifecycle", () => {
       amountThreshold: "4.00",
       pointsAwarded: 1
     });
+    const expirationPolicy = await replaceActiveExpirationPolicy(staff.id, { enabled: true, expirationMonths: 3 });
 
     const created = await createOrderForStaff(staff.id, {
       loyalty: { customerId: customer.id },
@@ -45,6 +48,12 @@ describe("loyalty order lifecycle", () => {
     await completeOrder(created.id);
     await completeOrder(created.id).catch(() => undefined);
     expect((await getLoyaltyPoints(customer.id)).summary).toMatchObject({ available: 2, lifetimeEarned: 2 });
+    const [earned] = await db.select().from(loyaltyPointLedgerEntries).where(eq(loyaltyPointLedgerEntries.orderId, created.id));
+    expect(earned).toMatchObject({
+      eventType: "earned",
+      expirationPolicyId: expirationPolicy.id,
+      expirationBusinessDate: calculateExpirationBusinessDate(currentBusinessDate(), 3)
+    });
 
     await cancelOrder(created.id);
     await cancelOrder(created.id).catch(() => undefined);

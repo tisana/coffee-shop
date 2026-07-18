@@ -215,6 +215,20 @@ export const loyaltyEarningRuleInputSchema = z
     }
   });
 
+export const loyaltyExpirationPolicyInputSchema = z
+  .object({
+    enabled: z.boolean(),
+    expirationMonths: z.coerce.number().int().min(1).optional()
+  })
+  .superRefine((value, context) => {
+    if (value.enabled && value.expirationMonths === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["expirationMonths"], message: "Expiration months are required when expiration is enabled." });
+    }
+    if (!value.enabled && value.expirationMonths !== undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["expirationMonths"], message: "Expiration months must be omitted when expiration is disabled." });
+    }
+  });
+
 export const loyaltyRewardOptionInputSchema = z.object({
   name: z.string().trim().min(1).max(120),
   pointsCost: z.coerce.number().int().min(1),

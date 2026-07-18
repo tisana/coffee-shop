@@ -150,5 +150,27 @@ test("staff configures and retires a reward from the loyalty page", async ({ pag
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Free iced latte")).toBeVisible();
   await page.getByRole("button", { name: "Retire" }).click();
-  await expect(page.getByText("Retired")).toBeVisible();
+  await expect(page.getByText("Retired", { exact: true })).toBeVisible();
+});
+
+test("staff configures calendar-month expiration and sees expired point history", async ({ page }) => {
+  await page.route("**/api/**", async (route) => {
+    const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
+    if (await fulfillCsrfToken(route, path)) return;
+    if (path === "/loyalty/config/expiration-policy" && route.request().method() === "PUT") {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "expiry-3", enabled: true, expirationMonths: 3, active: true, effectiveAt: "2026-07-01T00:00:00.000Z", retiredAt: null }) });
+      return;
+    }
+    if (await fulfillLoyaltyApiRoute(route)) return;
+    await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ code: "NOT_FOUND", message: `Unhandled test route ${path}` }) });
+  });
+
+  await page.goto("/#loyalty");
+  await page.getByRole("radio", { name: "Expire points" }).check();
+  await page.getByLabel("Expiration months").fill("3");
+  await page.getByRole("button", { name: "Save expiration policy" }).click();
+  await expect(page.getByText("Points earned in July 2026 remain valid through October 31, 2026.")).toBeVisible();
+  await page.getByLabel("Search customers").fill("Ari");
+  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await expect(page.getByLabel("Point history")).toContainText("Expires: 2026-10-31");
 });

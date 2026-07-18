@@ -1,12 +1,14 @@
 import type {
   LoyaltyEarningRuleInput,
   LoyaltyEarningRuleResponse,
+  LoyaltyExpirationPolicyInput,
+  LoyaltyExpirationPolicyResponse,
   LoyaltyCustomerInput,
   LoyaltyCustomerSearchResponse,
   LoyaltyPointsResponse,
   LoyaltyCustomerUpdate
 } from "@coffee-shop/shared/contracts/api";
-import type { LoyaltyCustomer, LoyaltyEarningRule, LoyaltyRewardOption } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyCustomer, LoyaltyEarningRule, LoyaltyExpirationPolicy, LoyaltyRewardOption } from "@coffee-shop/shared/domain/types";
 import type { LoyaltyRewardOptionInput, LoyaltyRewardOptionUpdate, LoyaltyRewardsResponse } from "@coffee-shop/shared/contracts/api";
 
 import { apiClient } from "./apiClient";
@@ -50,6 +52,15 @@ export async function getLoyaltyEarningRule(): Promise<LoyaltyEarningRule | null
 
 export function replaceLoyaltyEarningRule(input: LoyaltyEarningRuleInput): Promise<LoyaltyEarningRule> {
   return apiClient.request("/loyalty/config/earning-rule", { method: "PUT", body: JSON.stringify(input) });
+}
+
+export async function getLoyaltyExpirationPolicy(): Promise<LoyaltyExpirationPolicy | null> {
+  const response = await apiClient.request<LoyaltyExpirationPolicyResponse>("/loyalty/config/expiration-policy");
+  return response.policy;
+}
+
+export function replaceLoyaltyExpirationPolicy(input: LoyaltyExpirationPolicyInput): Promise<LoyaltyExpirationPolicy> {
+  return apiClient.request("/loyalty/config/expiration-policy", { method: "PUT", body: JSON.stringify(input) });
 }
 
 export function getLoyaltyPoints(customerId: string): Promise<LoyaltyPointsResponse> {

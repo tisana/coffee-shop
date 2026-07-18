@@ -181,6 +181,24 @@ describe("loyalty customer contract", () => {
     expect(order.body.loyalty).toMatchObject({ customer: { id: customer.body.id }, rewards: [] });
   });
 
+  it("gets and replaces the expiration policy with validated enabled-month combinations", async () => {
+    const { agent } = await createLoggedInAgent();
+    const initial = await agent.get("/loyalty/config/expiration-policy");
+    expect(initial.status).toBe(200);
+    expect(initial.body).toEqual({ policy: null });
+
+    const invalid = await agent.put("/loyalty/config/expiration-policy").send({ enabled: true });
+    expect(invalid.status).toBe(400);
+
+    const created = await agent.put("/loyalty/config/expiration-policy").send({ enabled: true, expirationMonths: 3 });
+    expect(created.status).toBe(200);
+    expect(created.body).toMatchObject({ enabled: true, expirationMonths: 3, active: true });
+
+    const disabled = await agent.put("/loyalty/config/expiration-policy").send({ enabled: false });
+    expect(disabled.status).toBe(200);
+    expect(disabled.body).toMatchObject({ enabled: false, expirationMonths: null, active: true });
+  });
+
   it("creates, lists, and retires staff-managed reward options", async () => {
     const { agent } = await createLoggedInAgent();
     const created = await agent.post("/loyalty/rewards").send({

@@ -1,13 +1,14 @@
 import { asc, desc, eq } from "drizzle-orm";
 
-import type { LoyaltyEarningRuleInput, LoyaltyRewardOptionInput, LoyaltyRewardOptionUpdate } from "@coffee-shop/shared/contracts/api";
-import type { LoyaltyEarningRule, LoyaltyRewardOption } from "@coffee-shop/shared/domain/types";
+import type { LoyaltyEarningRuleInput, LoyaltyExpirationPolicyInput, LoyaltyRewardOptionInput, LoyaltyRewardOptionUpdate } from "@coffee-shop/shared/contracts/api";
+import type { LoyaltyEarningRule, LoyaltyExpirationPolicy, LoyaltyRewardOption } from "@coffee-shop/shared/domain/types";
 
 import { badRequest } from "../routes/errors";
 import { db, withTransaction } from "../storage/db";
-import { loyaltyEarningRules, loyaltyRewardOptions } from "../storage/schema";
+import { loyaltyEarningRules, loyaltyExpirationPolicies, loyaltyRewardOptions } from "../storage/schema";
 
 type EarningRuleRow = typeof loyaltyEarningRules.$inferSelect;
+type ExpirationPolicyRow = typeof loyaltyExpirationPolicies.$inferSelect;
 type RewardOptionRow = typeof loyaltyRewardOptions.$inferSelect;
 
 export function calculateEarningPoints(
@@ -66,6 +67,58 @@ export async function replaceActiveEarningRule(
   });
 }
 
+export function calculateExpirationBusinessDate(earnedBusinessDate: string, expirationMonths: number): string {
+  const [year, month] = earnedBusinessDate.split("-").map(Number);
+  if (!year || !month || !Number.isInteger(expirationMonths) || expirationMonths <= 0) {
+    throw badRequest("Expiration requires a valid business date and positive whole months.");
+  }
+  const expirationMonthIndex = month - 1 + expirationMonths;
+  const expirationYear = year + Math.floor(expirationMonthIndex / 12);
+  const expirationMonth = expirationMonthIndex % 12;
+  const cutoff = new Date(Date.UTC(expirationYear, expirationMonth + 1, 0));
+  return cutoff.toISOString().slice(0, 10);
+}
+
+export async function getActiveExpirationPolicy(): Promise<LoyaltyExpirationPolicy | null> {
+  const [policy] = await db
+    .select()
+    .from(loyaltyExpirationPolicies)
+    .where(eq(loyaltyExpirationPolicies.active, true))
+    .orderBy(desc(loyaltyExpirationPolicies.effectiveAt))
+    .limit(1);
+
+  return policy ? toExpirationPolicy(policy) : null;
+}
+
+export async function replaceActiveExpirationPolicy(
+  staffId: string,
+  input: LoyaltyExpirationPolicyInput
+): Promise<LoyaltyExpirationPolicy> {
+  assertExpirationPolicy(input);
+
+  return withTransaction(async (tx) => {
+    const now = new Date();
+    await tx
+      .update(loyaltyExpirationPolicies)
+      .set({ active: false, retiredAt: now })
+      .where(eq(loyaltyExpirationPolicies.active, true));
+
+    const [policy] = await tx
+      .insert(loyaltyExpirationPolicies)
+      .values({
+        enabled: input.enabled,
+        expirationMonths: input.enabled ? input.expirationMonths : null,
+        active: true,
+        effectiveAt: now,
+        createdByStaffId: staffId
+      })
+      .returning();
+
+    if (!policy) throw new Error("Unable to save loyalty expiration policy.");
+    return toExpirationPolicy(policy);
+  });
+}
+
 export async function listLoyaltyRewardOptions(activeOnly = false): Promise<LoyaltyRewardOption[]> {
   const query = db.select().from(loyaltyRewardOptions).orderBy(asc(loyaltyRewardOptions.effectiveAt));
   const rows = activeOnly ? await query.where(eq(loyaltyRewardOptions.active, true)) : await query;
@@ -106,6 +159,16 @@ function assertEarningRule(input: LoyaltyEarningRuleInput): void {
   }
 }
 
+function assertExpirationPolicy(input: LoyaltyExpirationPolicyInput): void {
+  const validMonths = Number.isInteger(input.expirationMonths) && (input.expirationMonths ?? 0) > 0;
+  if (input.enabled && !validMonths) {
+    throw badRequest("Enabled expiration requires positive whole months.");
+  }
+  if (!input.enabled && input.expirationMonths !== undefined) {
+    throw badRequest("Expiration months must be omitted when expiration is disabled.");
+  }
+}
+
 function assertRewardInput(input: LoyaltyRewardOptionInput): void {
   if (!input.name.trim() || !input.benefitDescription.trim() || !Number.isInteger(input.pointsCost) || input.pointsCost <= 0) {
     throw badRequest("Reward name, description, and a positive whole point cost are required.");
@@ -122,6 +185,17 @@ function toEarningRule(rule: EarningRuleRow): LoyaltyEarningRule {
     active: rule.active,
     effectiveAt: rule.effectiveAt.toISOString(),
     retiredAt: rule.retiredAt?.toISOString() ?? null
+  };
+}
+
+function toExpirationPolicy(policy: ExpirationPolicyRow): LoyaltyExpirationPolicy {
+  return {
+    id: policy.id,
+    enabled: policy.enabled,
+    expirationMonths: policy.expirationMonths,
+    active: policy.active,
+    effectiveAt: policy.effectiveAt.toISOString(),
+    retiredAt: policy.retiredAt?.toISOString() ?? null
   };
 }
 

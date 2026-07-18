@@ -85,7 +85,7 @@ export function LoyaltyCustomerProfile({ customer, onSave, phoneRegion, points }
       {points ? <section className="loyalty-point-history" aria-label="Point history">
         <h3>Points</h3>
         <dl className="loyalty-point-summary"><div><dt>Available points</dt><dd>{points.summary.available}</dd></div><div><dt>Lifetime earned</dt><dd>{points.summary.lifetimeEarned}</dd></div><div><dt>Redeemed</dt><dd>{points.summary.redeemed}</dd></div><div><dt>Returned</dt><dd>{points.summary.returned}</dd></div><div><dt>Expired</dt><dd>{points.summary.expired}</dd></div><div><dt>Adjusted</dt><dd>{points.summary.adjusted}</dd></div></dl>
-        {points.history.length === 0 ? <p className="empty-state">No point history yet.</p> : <ul>{points.history.map((entry) => <li key={entry.id}><strong>{entry.pointsDelta > 0 ? "+" : ""}{entry.pointsDelta} points</strong><span>{entry.orderLabel ?? entry.reason}</span></li>)}</ul>}
+        {points.history.length === 0 ? <p className="empty-state">No point history yet.</p> : <ul>{points.history.map((entry) => <li key={entry.id} className={entry.eventType === "expired" ? "loyalty-point-history-expired" : undefined}><strong>{entry.pointsDelta > 0 ? "+" : ""}{entry.pointsDelta} points</strong><span>{entry.orderLabel ?? entry.reason}{entry.expirationBusinessDate ? ` | Expires: ${entry.expirationBusinessDate}` : ""}</span></li>)}</ul>}
       </section> : null}
     </section>
   );

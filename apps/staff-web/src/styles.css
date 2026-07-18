@@ -1720,6 +1720,11 @@ nav a[aria-current="page"] {
   padding-top: 8px;
 }
 
+.loyalty-point-history-expired strong,
+.loyalty-point-history-expired span {
+  color: #9c241b;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     --sidebar-width: auto;
