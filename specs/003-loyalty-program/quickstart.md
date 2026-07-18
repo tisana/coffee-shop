@@ -251,3 +251,19 @@ git diff --check
 ```
 
 Evidence covers immutable reward benefits with editable metadata, active-list retirement, earliest-expiring allocation and insufficient balances, simultaneous redemption protection, order-time reward selection and duplicate cancellation conflicts, complete-unit and selected-adjustment coverage, non-stacking, standalone/target/full-order returns, loyalty-aware history and report values, per-unit staff selection, reward display and cancellation, and the staff configuration browser flow.
+
+## Phase 6 Verification Evidence
+
+On 2026-07-18, the calendar-month expiration implementation was verified with:
+
+```powershell
+npm test --workspace @coffee-shop/api -- loyaltyConfigurationService.test.ts loyaltyLedgerService.test.ts loyalty.customer.contract.test.ts loyalty-order-lifecycle.test.ts
+npm test --workspace @coffee-shop/staff-web -- LoyaltyEarningComponents.test.tsx LoyaltyExpirationComponents.test.tsx
+npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
+npm run typecheck
+npm run lint
+npm run build
+git diff --check
+```
+
+The focused API suite passed 23 tests. It verifies enabled and disabled policy versioning, month validation, July-to-October and year-rollover cutoffs, shop business-date resolution, policy assignment to earned credits, lazy expiration of only unspent points after the final cutoff day, idempotent repeated refreshes, blocked redemption after expiration, and immediate re-expiry of returned points that retain an elapsed original cutoff. The component suite passed 4 tests for the staff controls, cutoff explanation, expired total, and dated history. The four-flow Playwright suite passed, including the staff expiration configuration and visible expiration-date history. Typecheck, lint, build, and diff validation passed; the production staff build reported the existing non-fatal Vite chunk-size warning.

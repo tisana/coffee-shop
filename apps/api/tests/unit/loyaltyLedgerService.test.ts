@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createLoyaltyCustomer } from "../../src/domain/loyaltyCustomerService";
-import { getLoyaltyPoints, redeemPoints, returnRedeemedPoints } from "../../src/domain/loyaltyLedgerService";
+import { getLoyaltyPoints, materializeExpiredPoints, redeemPoints, returnRedeemedPoints } from "../../src/domain/loyaltyLedgerService";
 import { cleanupLoyaltyFixtureData } from "../integration/testFixtures";
 import { withTransaction } from "../../src/storage/db";
 import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
@@ -43,5 +43,40 @@ describe("loyalty point ledger", () => {
     });
 
     await expect(getLoyaltyPoints(customer.id)).resolves.toMatchObject({ summary: { available: 4, redeemed: 0 } });
+  });
+
+  it("expires only unspent credits after their month-end cutoff and does not duplicate expiration", async () => {
+    const customer = await createLoyaltyCustomer({ name: "Expiry Ari", phone: "082-234-5678" });
+    await withTransaction(async (tx) => {
+      const [credit] = await tx.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 5, earnedBusinessDate: "2026-07-15", expirationBusinessDate: "2026-10-31", reason: "July credit." }).returning();
+      if (!credit) throw new Error("Expected credit.");
+      await redeemPoints(tx, customer.id, null, 2, "Redeem before cutoff.");
+    });
+
+    await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-10-31"));
+    await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-11-01"));
+    await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-11-01"));
+
+    const points = await getLoyaltyPoints(customer.id);
+    expect(points.history.filter((entry) => entry.eventType === "expired")).toEqual([expect.objectContaining({ pointsDelta: -3, expirationBusinessDate: "2026-10-31" })]);
+    await withTransaction((tx) => expect(redeemPoints(tx, customer.id, null, 1, "Redeem after cutoff.")).rejects.toMatchObject({ message: "Customer does not have enough points for this reward." }));
+  });
+
+  it("expires returned credits that retain an already elapsed original cutoff", async () => {
+    const customer = await createLoyaltyCustomer({ name: "Returned expiry Ari", phone: "081-987-6543" });
+    const debitId = await withTransaction(async (tx) => {
+      const [credit] = await tx.insert(loyaltyPointLedgerEntries).values({ customerId: customer.id, eventType: "earned", pointsDelta: 2, earnedBusinessDate: "2026-07-15", expirationBusinessDate: "2026-10-31", reason: "July credit." }).returning();
+      if (!credit) throw new Error("Expected credit.");
+      return redeemPoints(tx, customer.id, null, 2, "Redeem before cutoff.");
+    });
+
+    await withTransaction((tx) => returnRedeemedPoints(tx, customer.id, debitId, null, "Reward returned after cutoff."));
+    await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-11-01"));
+    const points = await getLoyaltyPoints(customer.id);
+    expect(points.summary.available).toBe(0);
+    expect(points.history).toEqual(expect.arrayContaining([
+      expect.objectContaining({ eventType: "returned", expirationBusinessDate: "2026-10-31" }),
+      expect.objectContaining({ eventType: "expired", pointsDelta: -2, expirationBusinessDate: "2026-10-31" })
+    ]));
   });
 });

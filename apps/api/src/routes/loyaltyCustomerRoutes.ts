@@ -8,14 +8,14 @@ import {
   searchLoyaltyCustomers,
   updateLoyaltyCustomer
 } from "../domain/loyaltyCustomerService";
-import { createLoyaltyRewardOption, getActiveEarningRule, listLoyaltyRewardOptions, replaceActiveEarningRule, updateLoyaltyRewardOption } from "../domain/loyaltyConfigurationService";
+import { createLoyaltyRewardOption, getActiveEarningRule, getActiveExpirationPolicy, listLoyaltyRewardOptions, replaceActiveEarningRule, replaceActiveExpirationPolicy, updateLoyaltyRewardOption } from "../domain/loyaltyConfigurationService";
 import { getLoyaltyPoints } from "../domain/loyaltyLedgerService";
 import {
   loyaltyCustomerInputSchema,
   loyaltyCustomerParamsSchema,
   loyaltyCustomerSearchQuerySchema,
   loyaltyCustomerUpdateSchema,
-  loyaltyEarningRuleInputSchema, loyaltyRewardOptionInputSchema, loyaltyRewardOptionUpdateSchema, loyaltyRewardParamsSchema
+  loyaltyEarningRuleInputSchema, loyaltyExpirationPolicyInputSchema, loyaltyRewardOptionInputSchema, loyaltyRewardOptionUpdateSchema, loyaltyRewardParamsSchema
 } from "./validators";
 
 export function createLoyaltyCustomerRoutes(): Router {
@@ -79,6 +79,24 @@ export function createLoyaltyCustomerRoutes(): Router {
       const staff = request.staff;
       if (!staff) throw new Error("Staff middleware did not attach staff.");
       response.json(await replaceActiveEarningRule(staff.id, loyaltyEarningRuleInputSchema.parse(request.body)));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/loyalty/config/expiration-policy", requireStaff, async (_request, response, next) => {
+    try {
+      response.json({ policy: await getActiveExpirationPolicy() });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.put("/loyalty/config/expiration-policy", requireStaff, async (request, response, next) => {
+    try {
+      const staff = request.staff;
+      if (!staff) throw new Error("Staff middleware did not attach staff.");
+      response.json(await replaceActiveExpirationPolicy(staff.id, loyaltyExpirationPolicyInputSchema.parse(request.body)));
     } catch (error) {
       next(error);
     }
