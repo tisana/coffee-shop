@@ -15,7 +15,7 @@ import {
   loyaltyCustomerParamsSchema,
   loyaltyCustomerSearchQuerySchema,
   loyaltyCustomerUpdateSchema,
-  loyaltyEarningRuleInputSchema, loyaltyExpirationPolicyInputSchema, loyaltyRewardOptionInputSchema, loyaltyRewardOptionUpdateSchema, loyaltyRewardParamsSchema
+  loyaltyEarningRuleInputSchema, loyaltyExpirationPolicyInputSchema, loyaltyRewardListQuerySchema, loyaltyRewardOptionInputSchema, loyaltyRewardOptionUpdateSchema, loyaltyRewardParamsSchema
 } from "./validators";
 
 export function createLoyaltyCustomerRoutes(): Router {
@@ -102,8 +102,11 @@ export function createLoyaltyCustomerRoutes(): Router {
     }
   });
 
-  router.get("/loyalty/rewards", requireStaff, async (_request, response, next) => {
-    try { response.json({ rewards: await listLoyaltyRewardOptions() }); } catch (error) { next(error); }
+  router.get("/loyalty/rewards", requireStaff, async (request, response, next) => {
+    try {
+      const { includeInactive } = loyaltyRewardListQuerySchema.parse(request.query);
+      response.json({ rewards: await listLoyaltyRewardOptions(!includeInactive) });
+    } catch (error) { next(error); }
   });
   router.post("/loyalty/rewards", requireStaff, async (request, response, next) => {
     try { if (!request.staff) throw new Error("Staff middleware did not attach staff."); response.status(201).json(await createLoyaltyRewardOption(request.staff.id, loyaltyRewardOptionInputSchema.parse(request.body))); } catch (error) { next(error); }

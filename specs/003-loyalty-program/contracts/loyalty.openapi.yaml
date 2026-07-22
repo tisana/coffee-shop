@@ -6,6 +6,24 @@ info:
 security:
   - cookieAuth: []
 paths:
+  /loyalty/phone-region:
+    get:
+      summary: Return the configured shop phone region used for local-number entry
+      responses:
+        "200":
+          description: ISO 3166-1 alpha-2 shop phone region
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [region]
+                properties:
+                  region:
+                    type: string
+                    pattern: "^[A-Z]{2}$"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /loyalty/customers:
     get:
       summary: Find loyalty customers by phone or name
@@ -60,6 +78,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "409":
           description: Normalized phone number or case-insensitively matching supplied email already belongs to another customer; the error identifies the conflicting field.
 
@@ -98,6 +118,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -158,6 +180,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /loyalty/config/expiration-policy:
     get:
@@ -196,6 +220,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /loyalty/rewards:
     get:
@@ -240,6 +266,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /loyalty/rewards/{rewardId}:
     parameters:
@@ -268,6 +296,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -292,6 +322,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "409":
           description: Insufficient current points, unavailable reward, stacked target, stale target, or concurrent redemption conflict
 
@@ -323,6 +355,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -351,6 +385,12 @@ components:
             $ref: "#/components/schemas/ApiError"
     Unauthorized:
       description: Staff authorization required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Forbidden:
+      description: Invalid or missing CSRF token
       content:
         application/json:
           schema:
@@ -526,19 +566,37 @@ components:
           minimum: 1
       description: Exactly one threshold must match earningType.
     EarningRule:
-      allOf:
-        - $ref: "#/components/schemas/EarningRuleInput"
-        - type: object
-          required: [id, active, effectiveAt]
-          properties:
-            id:
-              type: string
-              format: uuid
-            active:
-              type: boolean
-            effectiveAt:
-              type: string
+      type: object
+      required: [id, earningType, amountThreshold, beverageCountThreshold, pointsAwarded, active, effectiveAt, retiredAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        earningType:
+          $ref: "#/components/schemas/EarningType"
+        amountThreshold:
+          anyOf:
+            - type: string
+              pattern: "^[0-9]+\\.[0-9]{2}$"
+            - type: "null"
+        beverageCountThreshold:
+          anyOf:
+            - type: integer
+              minimum: 1
+            - type: "null"
+        pointsAwarded:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        effectiveAt:
+          type: string
+          format: date-time
+        retiredAt:
+          anyOf:
+            - type: string
               format: date-time
+            - type: "null"
     ExpirationPolicyInput:
       type: object
       required: [enabled]
@@ -550,19 +608,29 @@ components:
           minimum: 1
       description: expirationMonths is required only when enabled.
     ExpirationPolicy:
-      allOf:
-        - $ref: "#/components/schemas/ExpirationPolicyInput"
-        - type: object
-          required: [id, active, effectiveAt]
-          properties:
-            id:
-              type: string
-              format: uuid
-            active:
-              type: boolean
-            effectiveAt:
-              type: string
+      type: object
+      required: [id, enabled, expirationMonths, active, effectiveAt, retiredAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+        expirationMonths:
+          anyOf:
+            - type: integer
+              minimum: 1
+            - type: "null"
+        active:
+          type: boolean
+        effectiveAt:
+          type: string
+          format: date-time
+        retiredAt:
+          anyOf:
+            - type: string
               format: date-time
+            - type: "null"
     RewardBenefitType:
       type: string
       enum: [free_beverage, size_upgrade]
@@ -609,7 +677,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/RewardOptionInput"
         - type: object
-          required: [id, effectiveAt, updatedAt]
+          required: [id, active, effectiveAt, updatedAt]
           properties:
             id:
               type: string
@@ -726,11 +794,21 @@ components:
           id,
           businessDate,
           dailyOrderNumber,
+          pickupName,
           status,
+          createdByStaffId,
+          assignedBaristaId,
           total,
+          createdAt,
+          queuedAt,
+          inProgressAt,
+          completedAt,
+          pickedUpAt,
+          cancelledAt,
           loyaltyRewardDiscountTotal,
           payableTotal,
           beverages,
+          loyalty,
         ]
       properties:
         id:
@@ -741,9 +819,25 @@ components:
           format: date
         dailyOrderNumber:
           type: integer
+        pickupName:
+          anyOf:
+            - type: string
+            - type: "null"
         status:
           type: string
           enum: [created, queued, in_progress, completed, picked_up, cancelled]
+        createdByStaffId:
+          type: string
+          format: uuid
+        assignedBaristaId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        assignedBaristaDisplayName:
+          anyOf:
+            - type: string
+            - type: "null"
         total:
           type: string
           pattern: "^[0-9]+\\.[0-9]{2}$"
@@ -753,10 +847,38 @@ components:
         payableTotal:
           type: string
           pattern: "^[0-9]+\\.[0-9]{2}$"
+        createdAt:
+          type: string
+          format: date-time
+        queuedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        inProgressAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        completedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        pickedUpAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        cancelledAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
         beverages:
           type: array
           items:
-            type: object
+            $ref: "#/components/schemas/OrderBeverage"
         loyalty:
           anyOf:
             - type: object
@@ -768,6 +890,67 @@ components:
                   type: array
                   items:
                     $ref: "#/components/schemas/AppliedReward"
+            - type: "null"
+    OrderBeverage:
+      type: object
+      required: [id, orderId, sourceMenuItemId, nameSnapshot, quantity, priceSnapshot, selectedCustomizationsSnapshot, specialInstructions, status, completedAt, cancelledAt, cancellationReason]
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        sourceMenuItemId:
+          type: string
+          format: uuid
+        nameSnapshot:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        priceSnapshot:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+        selectedCustomizationsSnapshot:
+          type: array
+          items:
+            type: object
+            required: [groupName, choices]
+            properties:
+              groupName:
+                type: string
+              choices:
+                type: array
+                items:
+                  type: object
+                  required: [choiceName, priceAdjustment]
+                  properties:
+                    choiceName:
+                      type: string
+                    priceAdjustment:
+                      type: string
+                      pattern: "^-?[0-9]+\\.[0-9]{2}$"
+        specialInstructions:
+          anyOf:
+            - type: string
+            - type: "null"
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+        completedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        cancelledAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        cancellationReason:
+          anyOf:
+            - type: string
             - type: "null"
     ApiError:
       type: object

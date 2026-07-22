@@ -4,20 +4,21 @@ import { Minus, Plus } from "lucide-react";
 import type {
   MenuCategory,
   MenuItem,
-  OrderWithLoyalty, LoyaltyRewardOption,
+  OrderWithLoyalty, LoyaltyEarningRule, LoyaltyRewardOption,
   SelectedCustomization
 } from "@coffee-shop/shared/domain/types";
 import type { LoyaltyPointsResponse, LoyaltyRewardSelection } from "@coffee-shop/shared/contracts/api";
 
 import { CustomizationSelector } from "../components/CustomizationSelector";
-import { type DraftBeverage, OrderSummary } from "../components/OrderSummary";
+import { type DraftBeverage, getDraftOrderTotal, OrderSummary } from "../components/OrderSummary";
 import { OrderCreatedBanner } from "../components/OrderCreatedBanner";
 import { LoyaltyCustomerPicker } from "../components/LoyaltyCustomerPicker";
+import { LoyaltyEarningEligibility } from "../components/LoyaltyEarningEligibility";
 import { LoyaltyRewardSelector } from "../components/LoyaltyRewardSelector";
 import { ApiClientError } from "../services/apiClient";
 import { cancelLoyaltyReward } from "../services/fulfillmentApi";
 import { createCounterOrder, getOrderTakingMenu, submitOrderToQueue } from "../services/ordersApi";
-import { createLoyaltyCustomer, getLoyaltyPhoneRegion, getLoyaltyPoints, getLoyaltyRewards, searchLoyaltyCustomers } from "../services/loyaltyApi";
+import { createLoyaltyCustomer, getLoyaltyEarningRule, getLoyaltyPhoneRegion, getLoyaltyPoints, getLoyaltyRewards, searchLoyaltyCustomers } from "../services/loyaltyApi";
 
 const menuImages: Record<string, string> = {
   Americano:
@@ -94,6 +95,8 @@ export function CounterOrderPage() {
   const [phoneRegion, setPhoneRegion] = useState<string | null>(null);
   const [loyaltyPoints, setLoyaltyPoints] = useState<LoyaltyPointsResponse | null>(null);
   const [loyaltyRewards, setLoyaltyRewards] = useState<LoyaltyRewardOption[]>([]);
+  const [loyaltyEarningRule, setLoyaltyEarningRule] = useState<LoyaltyEarningRule | null>(null);
+  const [earningRuleLoaded, setEarningRuleLoaded] = useState(false);
   const [rewardSelections, setRewardSelections] = useState<LoyaltyRewardSelection[]>([]);
 
   useEffect(() => {
@@ -130,6 +133,12 @@ export function CounterOrderPage() {
 
   useEffect(() => { getLoyaltyPhoneRegion().then((response) => setPhoneRegion(response.region)).catch(() => setPhoneRegion(null)); }, []);
   useEffect(() => { getLoyaltyRewards().then(setLoyaltyRewards).catch(() => setLoyaltyRewards([])); }, []);
+  useEffect(() => {
+    getLoyaltyEarningRule()
+      .then(setLoyaltyEarningRule)
+      .catch(() => setLoyaltyEarningRule(null))
+      .finally(() => setEarningRuleLoaded(true));
+  }, []);
   useEffect(() => { if (!selectedCustomer) { setLoyaltyPoints(null); setRewardSelections([]); return; } getLoyaltyPoints(selectedCustomer.id).then(setLoyaltyPoints).catch(() => setLoyaltyPoints(null)); }, [selectedCustomer]);
 
   const allMenuItems = useMemo(
@@ -142,6 +151,25 @@ export function CounterOrderPage() {
     activeCategoryId === "all"
       ? categories
       : categories.filter((category) => category.id === activeCategoryId);
+  const rewardCoverage = useMemo(
+    () => rewardSelections.reduce((total, selection) => {
+      const reward = loyaltyRewards.find((candidate) => candidate.id === selection.rewardOptionId);
+      const beverage = beverages[selection.targetBeverageIndex];
+      if (!reward || !beverage) return total;
+      if (reward.benefitType === "free_beverage") {
+        const choiceIds = new Set(beverage.selectedCustomizations.flatMap((group) => group.customizationChoiceIds));
+        return total + Number(beverage.menuItem.price) + beverage.menuItem.customizationGroups.flatMap((group) => group.choices).filter((choice) => choiceIds.has(choice.id)).reduce((sum, choice) => sum + Number(choice.priceAdjustment), 0);
+      }
+      const choice = beverage.menuItem.customizationGroups.flatMap((group) => group.choices).find((candidate) => candidate.id === selection.targetCustomizationChoiceId);
+      return total + Number(choice?.priceAdjustment ?? 0);
+    }, 0),
+    [beverages, loyaltyRewards, rewardSelections]
+  );
+  const eligibleBeverageCount = Math.max(
+    0,
+    beverages.reduce((total, beverage) => total + beverage.quantity, 0) -
+      rewardSelections.filter((selection) => loyaltyRewards.find((reward) => reward.id === selection.rewardOptionId)?.benefitType === "free_beverage").length
+  );
 
   function selectItem(itemId: string) {
     const item = allMenuItems.find((candidate) => candidate.id === itemId);
@@ -235,8 +263,22 @@ export function CounterOrderPage() {
       });
       setCreatedOrder(await submitOrderToQueue(order.id));
       setBeverages([]);
+      setRewardSelections([]);
+      if (selectedCustomer) {
+        getLoyaltyPoints(selectedCustomer.id)
+          .then(setLoyaltyPoints)
+          .catch(() => setLoyaltyPoints(null));
+      }
     } catch (caught) {
       setError(caught instanceof ApiClientError ? caught.message : "Unable to create order.");
+      if (caught instanceof ApiClientError && caught.status === 409 && selectedCustomer) {
+        setRewardSelections([]);
+        try {
+          setLoyaltyPoints(await getLoyaltyPoints(selectedCustomer.id));
+        } catch {
+          setLoyaltyPoints(null);
+        }
+      }
     } finally {
       setSubmitting(false);
       setQueueing(false);
@@ -287,6 +329,7 @@ export function CounterOrderPage() {
 
         <LoyaltyCustomerPicker selectedCustomer={selectedCustomer} searchCustomers={searchLoyaltyCustomers} onSelect={setSelectedCustomer} onClear={() => setSelectedCustomer(null)} onRegister={createLoyaltyCustomer} phoneRegion={phoneRegion} />
         {selectedCustomer && loyaltyPoints ? <LoyaltyRewardSelector beverages={beverages} rewards={loyaltyRewards} availablePoints={loyaltyPoints.summary.available} selections={rewardSelections} onChange={setRewardSelections} /> : null}
+        {selectedCustomer && earningRuleLoaded ? <LoyaltyEarningEligibility rule={loyaltyEarningRule} eligibleAmount={Math.max(0, Number(getDraftOrderTotal(beverages)) - rewardCoverage)} eligibleBeverageCount={eligibleBeverageCount} /> : null}
 
         {loadingMenu ? (
           <p className="empty-state">Loading menu.</p>
@@ -412,17 +455,7 @@ export function CounterOrderPage() {
         beverages={beverages}
         submitting={submitting}
         rewardPointsCost={rewardSelections.reduce((total, selection) => total + (loyaltyRewards.find((reward) => reward.id === selection.rewardOptionId)?.pointsCost ?? 0), 0)}
-        rewardCoverage={rewardSelections.reduce((total, selection) => {
-          const reward = loyaltyRewards.find((candidate) => candidate.id === selection.rewardOptionId);
-          const beverage = beverages[selection.targetBeverageIndex];
-          if (!reward || !beverage) return total;
-          if (reward.benefitType === "free_beverage") {
-            const choiceIds = new Set(beverage.selectedCustomizations.flatMap((group) => group.customizationChoiceIds));
-            return total + Number(beverage.menuItem.price) + beverage.menuItem.customizationGroups.flatMap((group) => group.choices).filter((choice) => choiceIds.has(choice.id)).reduce((sum, choice) => sum + Number(choice.priceAdjustment), 0);
-          }
-          const choice = beverage.menuItem.customizationGroups.flatMap((group) => group.choices).find((candidate) => candidate.id === selection.targetCustomizationChoiceId);
-          return total + Number(choice?.priceAdjustment ?? 0);
-        }, 0).toFixed(2)}
+        rewardCoverage={rewardCoverage.toFixed(2)}
         onRemove={(id) => setBeverages((current) => current.filter((item) => item.id !== id))}
         onSubmit={submitOrder}
       />

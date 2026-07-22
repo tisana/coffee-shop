@@ -207,14 +207,14 @@
 
 **Purpose**: Close authorization, accessibility, performance, contract parity, and full-suite risks across the complete feature.
 
-- [ ] T098 [P] Add an explicit unauthorized/CSRF matrix for every loyalty mutation and read endpoint in `apps/api/tests/integration/auth-security.test.ts`
-- [ ] T099 [P] Add large-fixture lookup, balance, history, and redemption timing coverage for required indexes and 500 ms API targets in `apps/api/tests/integration/loyalty-performance.test.ts`
-- [ ] T100 [P] Add keyboard, labels, focus, loading, empty, overflow, and responsive regression tests for the loyalty route and counter integration in `apps/staff-web/src/App.test.tsx`
-- [ ] T101 Reconcile implemented request/response fields, errors, security, and nullability against `specs/003-loyalty-program/contracts/loyalty.openapi.yaml`
-- [ ] T102 Run all shared, API, and staff-web unit/integration tests and record any required corrections in `specs/003-loyalty-program/quickstart.md`
-- [ ] T103 Run the focused loyalty Playwright flow and manually verify E.164 registration/lookup, configuration, non-stackable redemption, standalone cancellation, and expiration timing targets in `specs/003-loyalty-program/quickstart.md`
-- [ ] T104 Run `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check`, then record final validation evidence in `specs/003-loyalty-program/quickstart.md`
-- [ ] T105 Perform the final spec, plan, data model, contract, checklist, tasks, and implementation consistency review in `specs/003-loyalty-program/checklists/requirements.md`
+- [X] T098 [P] Add an explicit unauthorized/CSRF matrix for every loyalty mutation and read endpoint in `apps/api/tests/integration/auth-security.test.ts`
+- [X] T099 [P] Add large-fixture lookup, balance, history, and redemption timing coverage for required indexes and 500 ms API targets in `apps/api/tests/integration/loyalty-performance.test.ts`
+- [X] T100 [P] Add keyboard, labels, focus, loading, empty, overflow, and responsive regression tests for the loyalty route and counter integration in `apps/staff-web/src/App.test.tsx`
+- [X] T101 Reconcile implemented request/response fields, errors, security, and nullability against `specs/003-loyalty-program/contracts/loyalty.openapi.yaml`
+- [X] T102 Run all shared, API, and staff-web unit/integration tests and record any required corrections in `specs/003-loyalty-program/quickstart.md`
+- [X] T103 Run the focused loyalty Playwright flow and manually verify E.164 registration/lookup, configuration, non-stackable redemption, standalone cancellation, and expiration timing targets in `specs/003-loyalty-program/quickstart.md`
+- [X] T104 Run `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check`, then record final validation evidence in `specs/003-loyalty-program/quickstart.md`
+- [X] T105 Perform the final spec, plan, data model, contract, checklist, tasks, and implementation consistency review in `specs/003-loyalty-program/checklists/requirements.md`
 
 ---
 
@@ -351,3 +351,16 @@ T086 expiration Playwright journey
 - Do not mutate historical earning, reward, redemption, or expiration records to satisfy a current-state test; append the required event or configuration version.
 - Preserve existing order state transitions, purchased snapshots, report graph/table parity, staff authorization, and business-date behavior while adding loyalty effects.
 - Commit only when explicitly requested or when the `/speckit-git-commit` workflow is invoked.
+
+---
+
+## Phase 8: Convergence
+
+**Purpose**: Close the remaining history-readability, staff explanation, and promised browser-coverage gaps found after implementation of all four user stories.
+
+- [X] T106 Write failing ledger contract and customer-profile tests, then resolve reward redemption snapshots and associated order labels into redeemed and returned point history so historical rewards remain identifiable after configuration changes per FR-019 and SC-008 (partial)
+- [X] T107 Write failing reward-selector component tests, then show a specific unavailable explanation for each blocked reward, including additional points needed and the requirement to select a positive-price size adjustment per Edge Cases and SC-006 (partial)
+- [X] T108 Write failing counter component tests, then show why an attached customer will not earn points when no earning rule is active or the draft order does not meet the active threshold per Edge Cases (partial)
+- [X] T109 Extend `apps/staff-web/tests/e2e/loyalty-program.spec.ts` with customer association, amount-based earning, beverage-based earning, partial beverage cancellation, and resulting history assertions per T040 and Constitution VII (partial)
+- [X] T110 Extend reward component and Playwright coverage for insufficient and stale balances, created/queue/history reward display, successful redemption, standalone reward cancellation, target cancellation, and exact point return per T062, T063, and Constitution VII (partial)
+- [X] T111 Extend `apps/staff-web/tests/e2e/loyalty-program.spec.ts` with deterministic October 31 availability, November 1 lazy expiration, blocked post-cutoff redemption, and retained expired history per T086, US4/AC2, and SC-007 (partial)

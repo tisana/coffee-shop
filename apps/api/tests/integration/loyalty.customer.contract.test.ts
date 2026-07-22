@@ -217,6 +217,29 @@ describe("loyalty customer contract", () => {
     const retired = await agent.patch(`/loyalty/rewards/${created.body.id}`).send({ active: false });
     expect(retired.status).toBe(200);
     expect(retired.body).toMatchObject({ id: created.body.id, active: false, benefitType: "free_beverage" });
+
+    const replacement = await agent.post("/loyalty/rewards").send({
+      name: "Current free beverage",
+      pointsCost: 12,
+      benefitType: "free_beverage",
+      benefitDescription: "One current beverage free"
+    });
+    expect(replacement.status).toBe(201);
+
+    const activeOnly = await agent.get("/loyalty/rewards");
+    expect(activeOnly.status).toBe(200);
+    expect(activeOnly.body.rewards).toEqual([
+      expect.objectContaining({ id: replacement.body.id, active: true })
+    ]);
+
+    const includingInactive = await agent.get("/loyalty/rewards?includeInactive=true");
+    expect(includingInactive.status).toBe(200);
+    expect(includingInactive.body.rewards).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: created.body.id, active: false }),
+        expect.objectContaining({ id: replacement.body.id, active: true })
+      ])
+    );
   });
 
   it("creates a reward redemption with an order and returns it through the staff cancellation endpoint", async () => {
@@ -241,6 +264,26 @@ describe("loyalty customer contract", () => {
     const cancelled = await agent.post(`/orders/${order.body.id}/loyalty-rewards/${redemptionId}/cancel`).send({});
     expect(cancelled.status).toBe(200);
     expect(cancelled.body).toMatchObject({ payableTotal: order.body.total, loyalty: { rewards: [expect.objectContaining({ id: redemptionId, status: "returned" })] } });
+
+    await agent.patch(`/loyalty/rewards/${reward.body.id}`).send({ name: "Renamed future reward" });
+    const points = await agent.get(`/loyalty/customers/${customer.body.id}/points`);
+    expect(points.status).toBe(200);
+    expect(points.body.history).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          eventType: "redeemed",
+          rewardName: "Free beverage",
+          orderId: order.body.id,
+          orderLabel: `${order.body.businessDate} #${order.body.dailyOrderNumber}`
+        }),
+        expect.objectContaining({
+          eventType: "returned",
+          rewardName: "Free beverage",
+          orderId: order.body.id,
+          orderLabel: `${order.body.businessDate} #${order.body.dailyOrderNumber}`
+        })
+      ])
+    );
 
     const duplicateCancel = await agent.post(`/orders/${order.body.id}/loyalty-rewards/${redemptionId}/cancel`).send({});
     expect(duplicateCancel.status).toBe(409);

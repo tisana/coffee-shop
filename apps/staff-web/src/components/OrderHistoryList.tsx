@@ -46,7 +46,7 @@ export function OrderHistoryList({ orders }: OrderHistoryListProps) {
             </span>
             <strong>${order.payableTotal}</strong>
           </div>
-          {order.loyalty?.rewards.length ? <div className="loyalty-order-summary"><span>Gross ${order.total}</span><span>Reward coverage -${order.loyaltyRewardDiscountTotal}</span><span>{order.loyalty.rewards.map((reward) => `${reward.name} (${reward.pointsCost} pts)`).join(", ")}</span></div> : null}
+          {order.loyalty?.rewards.length ? <div className="loyalty-order-summary"><span>Gross ${order.total}</span><span>Reward coverage -${order.loyaltyRewardDiscountTotal}</span><span>{order.loyalty.rewards.map((reward) => `${reward.name} (${reward.pointsCost} pts${reward.status === "returned" ? ", Returned" : ""})`).join(", ")}</span></div> : null}
 
           <ul className="queue-beverage-list">
             {order.beverages.map((beverage) => (

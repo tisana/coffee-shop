@@ -33,7 +33,7 @@ export function LoyaltyPage() {
 
   useEffect(() => { getLoyaltyEarningRule().then(setRule).catch(() => setRule(null)); }, []);
   useEffect(() => { getLoyaltyExpirationPolicy().then(setExpirationPolicy).catch(() => setExpirationPolicy(null)); }, []);
-  useEffect(() => { getLoyaltyRewards().then(setRewards).catch(() => setRewards([])); }, []);
+  useEffect(() => { getLoyaltyRewards(true).then(setRewards).catch(() => setRewards([])); }, []);
   useEffect(() => { if (!selectedCustomer) { setPoints(null); return; } getLoyaltyPoints(selectedCustomer.id).then(setPoints).catch(() => setPoints(null)); }, [selectedCustomer]);
 
   const handleRegister = useCallback(async (input: LoyaltyCustomerInput) => {

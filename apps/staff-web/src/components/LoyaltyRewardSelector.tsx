@@ -66,16 +66,32 @@ export function LoyaltyRewardSelector({ beverages, rewards, availablePoints, sel
           const selected = selectionsForBeverage(index)[unitIndex];
           const reward = activeRewards.find((candidate) => candidate.id === selected?.rewardOptionId);
           const committedPoints = selections.reduce((total, selection, selectionPosition) => selectionPosition === selectionIndex(index, unitIndex) ? total : total + (activeRewards.find((candidate) => candidate.id === selection.rewardOptionId)?.pointsCost ?? 0), 0);
+          const pointsRemaining = Math.max(0, availablePoints - committedPoints);
           const label = beverage.quantity === 1 ? `${beverage.quantity}x ${beverage.menuItem.name}` : `${beverage.quantity}x ${beverage.menuItem.name} (unit ${unitIndex + 1})`;
           const sizeLabel = beverage.quantity === 1 ? `Size adjustment for ${beverage.menuItem.name}` : `Size adjustment for ${beverage.menuItem.name} (unit ${unitIndex + 1})`;
+          const unavailableRewards = activeRewards.flatMap((candidate) => {
+            if (candidate.id === selected?.rewardOptionId) return [];
+            const reasons: string[] = [];
+            const shortfall = Math.max(0, candidate.pointsCost - pointsRemaining);
+            if (shortfall > 0) {
+              reasons.push(`${shortfall} more point${shortfall === 1 ? "" : "s"} needed.`);
+            }
+            if (candidate.benefitType === "size_upgrade" && sizeChoices.length === 0) {
+              reasons.push("Select a positive-price size adjustment first.");
+            }
+            return reasons.length > 0 ? [{ reward: candidate, reasons }] : [];
+          });
           return <div key={`${beverage.id}-${unitIndex}`} className="loyalty-reward-target">
             <label>
               {label}
               <select value={selected?.rewardOptionId ?? ""} onChange={(event) => changeSelection(index, unitIndex, event.target.value)}>
                 <option value="">No reward</option>
-                {activeRewards.map((candidate) => <option key={candidate.id} value={candidate.id} disabled={candidate.id !== selected?.rewardOptionId && (candidate.pointsCost > availablePoints - committedPoints || (candidate.benefitType === "size_upgrade" && sizeChoices.length === 0))}>{candidate.name} ({candidate.pointsCost} pts)</option>)}
+                {activeRewards.map((candidate) => <option key={candidate.id} value={candidate.id} disabled={unavailableRewards.some(({ reward: unavailable }) => unavailable.id === candidate.id)}>{candidate.name} ({candidate.pointsCost} pts)</option>)}
               </select>
             </label>
+            {unavailableRewards.length > 0 ? <ul className="loyalty-reward-unavailable" aria-label={`${label} unavailable rewards`}>
+              {unavailableRewards.map(({ reward: unavailable, reasons }) => <li key={unavailable.id}>{unavailable.name}: {reasons.join(" ")}</li>)}
+            </ul> : null}
             {reward?.benefitType === "size_upgrade" ? <label>
               {sizeLabel}
               <select value={selected?.targetCustomizationChoiceId ?? ""} onChange={(event) => changeSizeChoice(index, unitIndex, event.target.value)}>
@@ -86,7 +102,6 @@ export function LoyaltyRewardSelector({ beverages, rewards, availablePoints, sel
           </div>;
         });
       })}
-      {rewards.length > 0 && activeRewards.every((reward) => reward.pointsCost > availablePoints) ? <p className="empty-state">No rewards are available for this balance.</p> : null}
     </section>
   );
 }

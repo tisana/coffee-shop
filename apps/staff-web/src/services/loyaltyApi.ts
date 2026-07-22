@@ -67,8 +67,10 @@ export function getLoyaltyPoints(customerId: string): Promise<LoyaltyPointsRespo
   return apiClient.request(`/loyalty/customers/${customerId}/points`);
 }
 
-export async function getLoyaltyRewards(): Promise<LoyaltyRewardOption[]> {
-  const response = await apiClient.request<LoyaltyRewardsResponse>("/loyalty/rewards");
+export async function getLoyaltyRewards(includeInactive = false): Promise<LoyaltyRewardOption[]> {
+  const response = await apiClient.request<LoyaltyRewardsResponse>(
+    `/loyalty/rewards${includeInactive ? "?includeInactive=true" : ""}`
+  );
   return response.rewards;
 }
 
