@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import type { LoyaltyEarningRule, MenuCategory, OrderWithLoyalty } from "@coffee-shop/shared/domain/types";
 
@@ -76,6 +76,57 @@ async function fulfillJson(
   });
 }
 
+async function selectLoyaltyCustomer(
+  page: Page,
+  viewHeading: "Counter order" | "Loyalty",
+  query = "Ari",
+  customerName = "Ari Srisuk"
+): Promise<void> {
+  await expect(page.getByRole("heading", { name: viewHeading, exact: true })).toBeVisible();
+  const lookup = page.getByRole("region", { name: "Customer lookup" });
+  const selectedCustomer = lookup.getByText(`Selected: ${customerName}`, { exact: true });
+  if (await selectedCustomer.isVisible()) return;
+
+  const searchResponse = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return response.request().method() === "GET"
+      && url.pathname.endsWith("/loyalty/customers")
+      && url.searchParams.get("query") === query;
+  });
+
+  await lookup.getByLabel("Search customers").fill(query);
+  await searchResponse;
+  await expect(lookup.getByText("Searching customers.")).toBeHidden();
+  const selectButton = lookup.getByRole("button", { name: `Select ${customerName}`, exact: true });
+  await expect(selectButton).toBeVisible();
+  await selectButton.click();
+  await expect(selectedCustomer).toBeVisible();
+}
+
+async function completePendingBeverages(
+  page: Page,
+  dailyOrderNumber: number,
+  beverageName: string
+): Promise<void> {
+  const orderCard = page.locator(".queue-order-card").filter({
+    has: page.getByText(`#${dailyOrderNumber}`, { exact: true })
+  });
+  const allCompleteActions = orderCard.getByRole("button", { name: `Complete ${beverageName}` });
+  let remainingActions = await allCompleteActions.count();
+  expect(remainingActions).toBeGreaterThan(0);
+
+  while (remainingActions > 0) {
+    const enabledAction = orderCard
+      .locator("button:enabled")
+      .filter({ hasText: `Complete ${beverageName}` })
+      .first();
+    await expect(enabledAction).toBeVisible();
+    await enabledAction.click();
+    remainingActions -= 1;
+    await expect(allCompleteActions).toHaveCount(remainingActions);
+  }
+}
+
 test("staff configures an earning rule and reads customer point history", async ({ page }) => {
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, "");
@@ -91,8 +142,7 @@ test("staff configures an earning rule and reads customer point history", async 
   await page.goto("/#loyalty");
   await page.getByRole("button", { name: "Save earning rule" }).click();
   await expect(page.getByText("Active: 1 point per $10.00 purchase amount.")).toBeVisible();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   await expect(page.getByLabel("Point history")).toContainText("2026-07-01 #17");
 });
 
@@ -244,8 +294,7 @@ test("staff configures calendar-month expiration and sees expired point history"
   await page.getByLabel("Expiration months").fill("3");
   await page.getByRole("button", { name: "Save expiration policy" }).click();
   await expect(page.getByText("Points earned in July 2026 remain valid through October 31, 2026.")).toBeVisible();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   await expect(page.getByLabel("Point history")).toContainText("Expires: 2026-10-31");
 });
 
@@ -306,8 +355,7 @@ test("October points expire lazily on November 1 and cannot be redeemed", async 
   });
 
   await page.goto("/#loyalty");
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   const history = page.getByLabel("Point history");
   await expect(history.getByText("Available points").locator("..")).toContainText("10");
   await expect(history).toContainText("Expires: 2026-10-31");
@@ -320,8 +368,7 @@ test("October points expire lazily on November 1 and cannot be redeemed", async 
   await expect(history).toContainText("Earned from order #17.");
 
   await page.getByRole("link", { name: "Counter Order" }).click();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Counter order");
   await page.getByRole("button", { name: "Customize & add" }).click();
   await expect(page.getByRole("option", { name: "Free beverage (10 pts)" })).toHaveAttribute("disabled", "");
   await expect(page.getByText("Free beverage: 10 more points needed.")).toBeVisible();
@@ -490,8 +537,7 @@ test("associated orders earn by amount and by non-cancelled beverage count", asy
   });
 
   await page.goto("/#counter");
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Counter order");
   for (let index = 0; index < 4; index += 1) {
     await page.getByRole("button", { name: "Increase quantity" }).click();
   }
@@ -504,33 +550,30 @@ test("associated orders earn by amount and by non-cancelled beverage count", asy
   await page.getByRole("button", { name: "Mark order #51 ready for pickup" }).click();
 
   await page.getByRole("link", { name: "Loyalty" }).click();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   await expect(page.getByLabel("Point history")).toContainText("Earned 2 points from $26.25 eligible purchase amount.");
 
   await page.getByRole("radio", { name: "Beverage count" }).check();
   await page.getByRole("spinbutton", { name: "Beverage count" }).fill("1");
   await page.getByRole("button", { name: "Save earning rule" }).click();
   await page.getByRole("link", { name: "Counter Order" }).click();
-  await expect(page.getByRole("heading", { name: "Counter order" })).toBeVisible();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Counter order");
   for (let index = 0; index < 3; index += 1) {
     await page.getByRole("button", { name: "Customize & add" }).click();
   }
   await page.getByRole("button", { name: "Create and queue order" }).click();
   await page.getByRole("link", { name: "Orders" }).click();
   await page.getByRole("button", { name: "Claim order #52" }).click();
-  await page.getByRole("button", { name: "Cancel Latte" }).first().click();
-  while (await page.getByRole("button", { name: "Complete Latte" }).count()) {
-    await page.getByRole("button", { name: "Complete Latte" }).first().click();
-  }
+  const order52 = page.locator(".queue-order-card").filter({
+    has: page.getByText("#52", { exact: true })
+  });
+  await order52.getByRole("button", { name: "Cancel Latte" }).first().click();
+  await expect(order52.getByText("Cancelled", { exact: true })).toBeVisible();
+  await completePendingBeverages(page, 52, "Latte");
   await page.getByRole("button", { name: "Mark order #52 ready for pickup" }).click();
 
   await page.getByRole("link", { name: "Loyalty" }).click();
-  await expect(page.getByRole("heading", { name: "Loyalty" })).toBeVisible();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   const history = page.getByLabel("Point history");
   await expect(history).toContainText("2026-07-01 #51");
   await expect(history).toContainText("Earned 2 points from 2 non-cancelled beverages.");
@@ -676,8 +719,7 @@ test("reward redemption, standalone cancellation, and target cancellation return
   });
 
   async function selectCustomerAndAddLatte(): Promise<void> {
-    await page.getByLabel("Search customers").fill("Ari");
-    await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+    await selectLoyaltyCustomer(page, "Counter order");
     await page.getByRole("button", { name: "Customize & add" }).click();
   }
 
@@ -693,8 +735,7 @@ test("reward redemption, standalone cancellation, and target cancellation return
   await expect(createdBanner.getByText("$5.25", { exact: true })).toBeVisible();
 
   await page.getByRole("link", { name: "Loyalty" }).click();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   let history = page.getByLabel("Point history");
   await expect(history.getByText("Available points").locator("..")).toContainText("12");
   await expect(history).toContainText("Returned points after standalone reward cancellation.");
@@ -714,8 +755,7 @@ test("reward redemption, standalone cancellation, and target cancellation return
   await expect(page.getByText("Free beverage (Returned): Latte | Payable $5.25")).toBeVisible();
 
   await page.getByRole("link", { name: "Loyalty" }).click();
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Loyalty");
   history = page.getByLabel("Point history");
   await expect(history.getByText("Available points").locator("..")).toContainText("12");
   await expect(history.getByText("Returned").locator("..").first()).toContainText("20");
@@ -748,8 +788,7 @@ test("a stale redemption conflict refreshes the balance and disables the reward"
   });
 
   await page.goto("/#counter");
-  await page.getByLabel("Search customers").fill("Ari");
-  await page.getByRole("button", { name: "Select Ari Srisuk" }).click();
+  await selectLoyaltyCustomer(page, "Counter order");
   await page.getByRole("button", { name: "Customize & add" }).click();
   await page.getByLabel("1x Latte").selectOption(reward.id);
   await page.getByRole("button", { name: "Create and queue order" }).click();
