@@ -96,4 +96,82 @@ describe("Phase 8 auth security hardening", () => {
       message: "Staff authorization required."
     });
   });
+
+  it("requires an authorized staff session for every loyalty read and mutation", async () => {
+    const app = createApp();
+    const anonymousAgent = request.agent(app);
+    const csrfToken = await getCsrfToken(anonymousAgent);
+    const customerId = "0a1b2c3d-4e5f-4000-8000-000000000001";
+    const rewardId = "0a1b2c3d-4e5f-4000-8000-000000000005";
+    const orderId = "0a1b2c3d-4e5f-4000-8000-000000000006";
+    const redemptionId = "0a1b2c3d-4e5f-4000-8000-000000000008";
+    const reads = [
+      "/loyalty/phone-region",
+      "/loyalty/customers?query=Ari",
+      `/loyalty/customers/${customerId}`,
+      `/loyalty/customers/${customerId}/points`,
+      "/loyalty/config/earning-rule",
+      "/loyalty/config/expiration-policy",
+      "/loyalty/rewards"
+    ];
+    const mutations = [
+      { method: "post", path: "/loyalty/customers" },
+      { method: "patch", path: `/loyalty/customers/${customerId}` },
+      { method: "put", path: "/loyalty/config/earning-rule" },
+      { method: "put", path: "/loyalty/config/expiration-policy" },
+      { method: "post", path: "/loyalty/rewards" },
+      { method: "patch", path: `/loyalty/rewards/${rewardId}` },
+      { method: "post", path: "/orders" },
+      { method: "post", path: `/orders/${orderId}/loyalty-rewards/${redemptionId}/cancel` }
+    ] as const;
+
+    for (const path of reads) {
+      const response = await request(app).get(path);
+      expect(response.status, path).toBe(401);
+      expect(response.body, path).toMatchObject({ code: "UNAUTHORIZED" });
+    }
+
+    for (const mutation of mutations) {
+      const response = await anonymousAgent[mutation.method](mutation.path)
+        .set("X-CSRF-Token", csrfToken)
+        .send({});
+      expect(response.status, `${mutation.method.toUpperCase()} ${mutation.path}`).toBe(401);
+      expect(response.body, mutation.path).toMatchObject({ code: "UNAUTHORIZED" });
+    }
+  });
+
+  it("requires a valid CSRF token for every authenticated loyalty mutation", async () => {
+    const { staff, password } = await createTestStaff();
+    const agent = request.agent(createApp());
+    const csrfToken = await getCsrfToken(agent);
+    await agent
+      .post("/auth/login")
+      .set("X-CSRF-Token", csrfToken)
+      .send({ username: staff.username, password })
+      .expect(204);
+
+    const customerId = "0a1b2c3d-4e5f-4000-8000-000000000001";
+    const rewardId = "0a1b2c3d-4e5f-4000-8000-000000000005";
+    const orderId = "0a1b2c3d-4e5f-4000-8000-000000000006";
+    const redemptionId = "0a1b2c3d-4e5f-4000-8000-000000000008";
+    const mutations = [
+      { method: "post", path: "/loyalty/customers" },
+      { method: "patch", path: `/loyalty/customers/${customerId}` },
+      { method: "put", path: "/loyalty/config/earning-rule" },
+      { method: "put", path: "/loyalty/config/expiration-policy" },
+      { method: "post", path: "/loyalty/rewards" },
+      { method: "patch", path: `/loyalty/rewards/${rewardId}` },
+      { method: "post", path: "/orders" },
+      { method: "post", path: `/orders/${orderId}/loyalty-rewards/${redemptionId}/cancel` }
+    ] as const;
+
+    for (const mutation of mutations) {
+      const response = await agent[mutation.method](mutation.path).send({});
+      expect(response.status, `${mutation.method.toUpperCase()} ${mutation.path}`).toBe(403);
+      expect(response.body, mutation.path).toMatchObject({
+        code: "FORBIDDEN",
+        message: "Invalid or missing CSRF token."
+      });
+    }
+  });
 });

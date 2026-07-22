@@ -267,3 +267,26 @@ git diff --check
 ```
 
 The focused API suite passed 23 tests. It verifies enabled and disabled policy versioning, month validation, July-to-October and year-rollover cutoffs, shop business-date resolution, policy assignment to earned credits, lazy expiration of only unspent points after the final cutoff day, idempotent repeated refreshes, blocked redemption after expiration, and immediate re-expiry of returned points that retain an elapsed original cutoff. The component suite passed 4 tests for the staff controls, cutoff explanation, expired total, and dated history. The four-flow Playwright suite passed, including the staff expiration configuration and visible expiration-date history. Typecheck, lint, build, and diff validation passed; the production staff build reported the existing non-fatal Vite chunk-size warning.
+
+## Phase 7 and Convergence Verification Evidence
+
+On 2026-07-22, the final cross-cutting and convergence checks passed against a migrated PostgreSQL 17 fixture:
+
+```powershell
+npm test --workspace @coffee-shop/api -- auth-security.test.ts loyalty-performance.test.ts loyalty.customer.contract.test.ts
+npm test
+npm run test:e2e --workspace @coffee-shop/staff-web -- loyalty-program.spec.ts
+npm run typecheck
+npm run lint
+npm run build
+python -c 'import yaml; d=yaml.safe_load(open(r"specs/003-loyalty-program/contracts/loyalty.openapi.yaml", encoding="utf-8")); print("paths=%d,schemas=%d" % (len(d["paths"]), len(d["components"]["schemas"])))'
+git diff --check
+```
+
+The focused API release suite passed 3 files and 12 tests. It covers every loyalty read and mutation without staff authorization, every mutation without a valid CSRF token, active-only reward listing with explicit inactive inclusion, reward snapshot and associated-order point history after reward configuration changes, and 2,000-customer/1,000-entry lookup, balance, history, and redemption fixtures with each measured API operation asserted below 500 ms.
+
+The complete workspace suite passed 40 files and 150 tests: API 27 files/94 tests, staff web 12 files/54 tests, and shared 1 file/2 tests. The staff component coverage includes keyboard focus, labels, loading and empty shell states, mobile shell structure, exact unavailable reward explanations, earning eligibility explanations, historical reward readability, active-only standalone cancellation, and returned reward labels across created, queue, and history surfaces.
+
+The final loyalty Playwright suite passed 9 flows in 26.6 seconds. The individual observed flows completed well inside the specification targets: registration/lookup/edit in 3.2 seconds, reward configuration in 1.8 seconds, expiration configuration in 1.8 seconds, amount plus beverage earning with partial cancellation in 4.2 seconds, redemption plus standalone and target cancellation in 3.6 seconds, stale-balance refresh in 1.4 seconds, and mobile focus/overflow checks in under 1 second. The flows verify non-stackable redemption decisions, exact point returns, October 31 availability, November 1 lazy expiration, blocked post-cutoff redemption, retained expired history, and no document-level horizontal overflow at a 390 by 844 viewport.
+
+OpenAPI reconciliation added the implemented phone-region read, CSRF `403` mutation responses, exact rule/policy nullability, complete order and beverage response fields, and active/inactive reward list semantics. The parsed contract contains 10 paths and 24 schemas. Typecheck and lint completed without errors. The production build completed with the existing non-fatal staff bundle warning for a chunk larger than 500 kB.

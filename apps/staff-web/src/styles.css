@@ -1578,6 +1578,30 @@ nav a[aria-current="page"] {
   padding: 0;
 }
 
+.loyalty-reward-unavailable {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  color: #8b2f25;
+  font-size: 12px;
+  list-style: none;
+}
+
+.loyalty-earning-eligibility {
+  margin: 0;
+  border-left: 3px solid #b85c38;
+  padding: 10px 12px;
+  color: #5f3423;
+  background: #fff4ed;
+}
+
+.loyalty-earning-eligible {
+  border-left-color: #24734f;
+  color: #174e38;
+  background: #edf7f1;
+}
+
 .loyalty-page,
 .loyalty-page-grid,
 .loyalty-customer-picker,

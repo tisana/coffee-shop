@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, or, sql } from "drizzle-orm";
 
 import type { LoyaltyPointsResponse } from "@coffee-shop/shared/contracts/api";
 
@@ -171,11 +171,25 @@ export async function getLoyaltyPoints(customerId: string): Promise<LoyaltyPoint
     if (!customer) throw notFound("Loyalty customer not found.");
 
     const entries = await tx
-    .select({ entry: loyaltyPointLedgerEntries, order: orders })
-    .from(loyaltyPointLedgerEntries)
-    .leftJoin(orders, eq(loyaltyPointLedgerEntries.orderId, orders.id))
-    .where(eq(loyaltyPointLedgerEntries.customerId, customerId))
-    .orderBy(asc(loyaltyPointLedgerEntries.occurredAt));
+      .select({
+        entry: loyaltyPointLedgerEntries,
+        redemption: loyaltyRewardRedemptions,
+        order: orders
+      })
+      .from(loyaltyPointLedgerEntries)
+      .leftJoin(
+        loyaltyRewardRedemptions,
+        eq(loyaltyPointLedgerEntries.rewardRedemptionId, loyaltyRewardRedemptions.id)
+      )
+      .leftJoin(
+        orders,
+        or(
+          eq(loyaltyPointLedgerEntries.orderId, orders.id),
+          eq(loyaltyRewardRedemptions.orderId, orders.id)
+        )
+      )
+      .where(eq(loyaltyPointLedgerEntries.customerId, customerId))
+      .orderBy(asc(loyaltyPointLedgerEntries.occurredAt));
     const deltas = entries.map(({ entry }) => entry.pointsDelta);
     const sum = (predicate: (entry: (typeof entries)[number]["entry"]) => boolean) => entries.filter(({ entry }) => predicate(entry)).reduce((total, { entry }) => total + entry.pointsDelta, 0);
 
@@ -190,16 +204,16 @@ export async function getLoyaltyPoints(customerId: string): Promise<LoyaltyPoint
         expired: Math.max(0, -sum((entry) => entry.eventType === "expired")),
         adjusted: sum((entry) => entry.eventType === "adjusted")
       },
-      history: entries.map(({ entry, order }) => ({
+      history: entries.map(({ entry, order, redemption }) => ({
         id: entry.id,
         eventType: entry.eventType,
         pointsDelta: entry.pointsDelta,
         reason: entry.reason,
         businessDate: entry.earnedBusinessDate,
         expirationBusinessDate: entry.expirationBusinessDate,
-        orderId: entry.orderId,
+        orderId: entry.orderId ?? redemption?.orderId ?? null,
         orderLabel: order ? `${order.businessDate} #${order.dailyOrderNumber}` : null,
-        rewardName: null,
+        rewardName: redemption?.rewardNameSnapshot ?? null,
         occurredAt: entry.occurredAt.toISOString()
       }))
     };

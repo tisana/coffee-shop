@@ -25,7 +25,7 @@ export function OrderCreatedBanner({ order, queueing, onQueue, onCancelReward }:
               : "Order still needs to be sent to the brew queue."}
         </p>
       </div>
-      {order.loyalty?.rewards.length ? <div className="loyalty-order-totals"><span>{order.loyalty.rewards.map((reward) => reward.name).join(", ")}</span><strong>${order.payableTotal}</strong>{order.loyalty.rewards.filter((reward) => reward.status === "active").map((reward) => <button key={reward.id} type="button" onClick={() => onCancelReward(reward.id)}>Cancel {reward.name}</button>)}</div> : null}
+      {order.loyalty?.rewards.length ? <div className="loyalty-order-totals"><span>{order.loyalty.rewards.map((reward) => reward.status === "returned" ? `${reward.name} (Returned)` : reward.name).join(", ")}</span><strong>${order.payableTotal}</strong>{order.loyalty.rewards.filter((reward) => reward.status === "active").map((reward) => <button key={reward.id} type="button" onClick={() => onCancelReward(reward.id)}>Cancel {reward.name}</button>)}</div> : null}
       {isQueued ? (
         <span className="queued-status">Queued</span>
       ) : (

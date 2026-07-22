@@ -108,7 +108,7 @@ export function QueueOrderCard({
           </li>
         ))}
       </ul>
-      {order.loyalty?.rewards.length ? <p className="loyalty-order-summary">{order.loyalty.rewards.map((reward) => `${reward.name}: ${reward.targetDescription}`).join("; ")} | Payable ${order.payableTotal}</p> : null}
+      {order.loyalty?.rewards.length ? <p className="loyalty-order-summary">{order.loyalty.rewards.map((reward) => `${reward.name}${reward.status === "returned" ? " (Returned)" : ""}: ${reward.targetDescription}`).join("; ")} | Payable ${order.payableTotal}</p> : null}
 
       <div className="queue-card-actions">
         <span>

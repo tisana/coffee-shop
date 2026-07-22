@@ -244,6 +244,13 @@ export const loyaltyRewardOptionUpdateSchema = z.object({
   active: z.boolean().optional()
 }).refine((value) => Object.keys(value).length > 0, "At least one reward field is required.");
 
+export const loyaltyRewardListQuerySchema = z.object({
+  includeInactive: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => value === "true")
+});
+
 export const loyaltyRewardParamsSchema = z.object({ rewardId: idSchema });
 
 export const loyaltyRewardSelectionSchema = z.object({

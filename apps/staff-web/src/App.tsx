@@ -122,7 +122,10 @@ export function App() {
         <header className="topbar">
           <label className="global-search">
             <Search size={23} aria-hidden="true" />
-            <input placeholder="Search menu items, orders, customers..." />
+            <input
+              aria-label="Search staff workspace"
+              placeholder="Search menu items, orders, customers..."
+            />
           </label>
           <div className="topbar-actions">
             <button type="button" className="notification-button" aria-label="Notifications">
