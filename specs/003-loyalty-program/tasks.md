@@ -364,3 +364,10 @@ T086 expiration Playwright journey
 - [X] T109 Extend `apps/staff-web/tests/e2e/loyalty-program.spec.ts` with customer association, amount-based earning, beverage-based earning, partial beverage cancellation, and resulting history assertions per T040 and Constitution VII (partial)
 - [X] T110 Extend reward component and Playwright coverage for insufficient and stale balances, created/queue/history reward display, successful redemption, standalone reward cancellation, target cancellation, and exact point return per T062, T063, and Constitution VII (partial)
 - [X] T111 Extend `apps/staff-web/tests/e2e/loyalty-program.spec.ts` with deterministic October 31 availability, November 1 lazy expiration, blocked post-cutoff redemption, and retained expired history per T086, US4/AC2, and SC-007 (partial)
+
+## Phase 9: Convergence
+
+**Purpose**: Restore deterministic browser verification for customer selection and queue beverage completion after the full loyalty Playwright run exposed rerender races.
+
+- [X] T112 CRITICAL Add a stable customer-selection helper in `apps/staff-web/tests/e2e/loyalty-program.spec.ts` that waits for debounced search completion, selects the intended result without a detached-element race, and confirms the selected customer before continuing in the expiration and reward-return journeys per Constitution VII, T110, and T111 (contradicts)
+- [X] T113 CRITICAL Replace the transient `count()` beverage-completion loop in `apps/staff-web/tests/e2e/loyalty-program.spec.ts` with order-card-scoped enabled actions and explicit post-action state waits, then prove the full nine-journey loyalty Playwright file passes deterministically per Constitution VII and T109 (contradicts)
