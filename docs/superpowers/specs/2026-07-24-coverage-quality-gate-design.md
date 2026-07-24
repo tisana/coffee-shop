@@ -8,7 +8,7 @@ Make automated source coverage visible and enforce a stable minimum quality floo
 
 - Add Vitest's V8 coverage provider as a root development dependency.
 - Configure each workspace to collect coverage only from production source files, excluding test files, generated output, configuration, and browser E2E specs.
-- Add a root `test:coverage` command that runs every workspace with coverage enabled and produces terminal, HTML, and LCOV reports in each workspace's ignored `coverage/` directory.
+- Add a root `test:coverage` command that runs every workspace coverage command sequentially and produces terminal, HTML, and LCOV reports in each workspace's ignored `coverage/` directory. The explicit sequence avoids the observed Windows `npm --workspaces` API-process abort.
 - Make the existing root `test` command run the enforced coverage check so local and CI callers use the same gate.
 - Use global statement, branch, function, and line thresholds derived from the first measured baseline, rounded down to the nearest whole percent. This prevents regressions immediately; the thresholds can be intentionally raised in subsequent changes.
 

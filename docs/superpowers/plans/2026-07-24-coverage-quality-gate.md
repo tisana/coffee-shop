@@ -50,7 +50,7 @@ Modify the root `package.json` scripts and development dependencies to contain:
 {
   "scripts": {
     "test": "npm run test:coverage",
-    "test:coverage": "npm run test:coverage --workspaces --if-present"
+    "test:coverage": "npm run test:coverage --workspace @coffee-shop/api && npm run test:coverage --workspace @coffee-shop/staff-web && npm run test:coverage --workspace @coffee-shop/shared"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.8"
