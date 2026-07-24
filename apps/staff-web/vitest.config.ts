@@ -18,6 +18,13 @@ export default defineConfig({
     environment: "jsdom",
     exclude: ["**/node_modules/**", "**/dist/**", "tests/e2e/**"],
     globals: true,
-    pool: "threads"
+    pool: "threads",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.d.ts", "src/test/**", "tests/e2e/**"],
+      thresholds: { statements: 38, branches: 35, functions: 38, lines: 40 }
+    }
   }
 });

@@ -22,6 +22,13 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     pool: "threads",
     fileParallelism: false,
-    testTimeout: 10_000
+    testTimeout: 10_000,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.test.ts", "src/**/*.d.ts"],
+      thresholds: { statements: 78, branches: 69, functions: 81, lines: 80 }
+    }
   }
 });

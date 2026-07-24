@@ -17,7 +17,8 @@
     "dev:console": "concurrently -n api,staff-web -c blue,green \"npm run dev --workspace @coffee-shop/api\" \"npm run dev --workspace @coffee-shop/staff-web\"",
     "logs:clean": "node scripts/clean-logs.mjs",
     "build": "npm run build --workspace @coffee-shop/shared && npm run build --workspace @coffee-shop/api && npm run build --workspace @coffee-shop/staff-web",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test:coverage",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspace @coffee-shop/staff-web",
     "typecheck": "npm run build --workspace @coffee-shop/shared && npm run typecheck --workspace @coffee-shop/api && npm run typecheck --workspace @coffee-shop/staff-web",
     "lint": "eslint .",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.8",
     "concurrently": "^10.0.3",
     "eslint": "^9.0.0",
     "globals": "^15.0.0",
