@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "dev": "node scripts/run-logged-dev.mjs",
+    "dev:worktree": "node scripts/run-worktree-dev.mjs",
     "dev:console": "concurrently -n api,staff-web -c blue,green \"npm run dev --workspace @coffee-shop/api\" \"npm run dev --workspace @coffee-shop/staff-web\"",
     "logs:clean": "node scripts/clean-logs.mjs",
     "build": "npm run build --workspace @coffee-shop/shared && npm run build --workspace @coffee-shop/api && npm run build --workspace @coffee-shop/staff-web",

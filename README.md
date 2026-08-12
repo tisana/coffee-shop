@@ -61,6 +61,31 @@ npm run dev --workspace @coffee-shop/api
 npm run dev --workspace @coffee-shop/staff-web
 ```
 
+## Git worktrees
+
+Before creating a worktree, verify that `.worktrees/` is ignored. Then create
+a branch-linked worktree from the repository root:
+
+```powershell
+git worktree add .worktrees/<branch-name> -b <branch-name>
+```
+
+Install dependencies in every new worktree:
+
+```powershell
+npm install
+```
+
+Start its API and staff web app with paired, automatically selected ports:
+
+```powershell
+npm run dev:worktree
+```
+
+Set `WORKTREE_API_PORT` and `WORKTREE_WEB_PORT` to use known ports or avoid a
+collision. PostgreSQL remains shared across worktrees, so only one session
+should run migrations, seeds, or `db:reset` at a time.
+
 ## Validate
 
 ```powershell
