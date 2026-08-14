@@ -103,7 +103,18 @@ describe("LoginPage", () => {
     const submit = within(main).getByRole("button", { name: "Sign in" });
     fireEvent.click(submit);
 
-    const error = await within(main).findByText("Invalid staff credentials.");
+    const error = await waitFor(() => {
+      const errorParagraph = within(main)
+        .getAllByRole("paragraph")
+        .find(
+          (paragraph) => paragraph.textContent === "Invalid staff credentials.",
+        );
+      if (!errorParagraph) {
+        throw new Error("Rejected login error paragraph has not rendered.");
+      }
+      return errorParagraph;
+    });
+    expect(error).toHaveTextContent("Invalid staff credentials.");
     expect(error).toBeVisible();
     expect(submit).not.toBeDisabled();
     expect(submit).toHaveTextContent("Sign in");
