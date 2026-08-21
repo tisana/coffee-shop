@@ -176,6 +176,24 @@ async function addLatte(quantity = 1) {
       within(editor).getByRole("button", { name: "Increase quantity" }),
     );
   }
+  if (quantity > 1) {
+    const stepper = within(editor).getByLabelText("Quantity");
+    expect(
+      within(stepper).getByText(String(quantity), { selector: "strong" }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      within(stepper).getByRole("button", { name: "Decrease quantity" }),
+    );
+    expect(
+      within(stepper).getByText(String(quantity - 1), { selector: "strong" }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      within(stepper).getByRole("button", { name: "Increase quantity" }),
+    );
+    expect(
+      within(stepper).getByText(String(quantity), { selector: "strong" }),
+    ).toBeInTheDocument();
+  }
   fireEvent.click(within(editor).getByRole("radio", { name: /Oat milk/ }));
   fireEvent.change(within(editor).getByLabelText("Special instructions"), {
     target: { value: "Less foam" },
