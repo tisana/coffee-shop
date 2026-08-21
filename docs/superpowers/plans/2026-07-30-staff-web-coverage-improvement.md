@@ -349,6 +349,8 @@ git commit -m "test(staff-web): cover service request mapping"
 
 **Primary reviewer:** Fresh Terra session with `high` reasoning
 
+**Human-approved scope amendment (2026-08-21):** Task 4 remains a test-backfill against the current staff-web behavior. The login rejection requirement is a visible semantic error paragraph with restored form controls; live-region/alert announcement semantics are outside this task. Daily activity remains current-day history, so coverage targets the existing daily-order-number, status, and pickup-name filters; date selection and a historical-date API contract are outside this task.
+
 **Files:**
 
 - Create: `apps/staff-web/src/pages/LoginPage.test.tsx`
@@ -361,14 +363,14 @@ Mock only the auth service. Cover:
 
 1. Rendering `Sign in for service` and submitting valid credentials.
 2. Disabled/pending behavior and successful completion callback.
-3. Rejected login with an accessible error and restored form controls.
+3. Rejected login with a visible semantic error paragraph containing the service error and restored form controls. Do not add or require production live-region/alert semantics in this test-backfill task.
 
 - [ ] **Step 2: Test `DailyActivityPage`**
 
 Mock only the history service. Cover:
 
 1. Initial loading and populated history.
-2. Date/status filters causing the correct reload.
+2. Existing current-day filters (daily order number, status, and pickup name) causing the correct reload. Do not add or require a date control or historical-date query contract in this test-backfill task.
 3. Empty and rejected states, including recovery through a subsequent filter or retry action available in the UI.
 
 - [ ] **Step 3: Test `LoyaltyPage`**
@@ -387,6 +389,7 @@ Acceptance:
 
 - Each page reaches at least 70% lines.
 - Tests render real page children.
+- Tests match the current page and service contracts; no date selector, historical-date API behavior, or production accessibility markup is required.
 - No production file changes.
 
 - [ ] **Step 5: Commit**
