@@ -394,9 +394,17 @@ describe("BrewQueuePage", () => {
     expect(claimQueueOrder).toHaveBeenCalledTimes(1);
 
     claim.resolve(claimed);
-    await waitFor(() =>
-      expect(screen.getByText("In progress")).toBeInTheDocument(),
-    );
+    await waitFor(() => {
+      const inProgressRegion = screen.getByRole("region", {
+        name: "In progress",
+      });
+      const claimedCard = within(inProgressRegion).getByRole("article");
+
+      expect(within(claimedCard).getByText("#303")).toBeInTheDocument();
+      expect(
+        within(claimedCard).getByRole("button", { name: "Complete Latte" }),
+      ).toBeEnabled();
+    });
   });
 
   it("protects a pending beverage action from duplicate requests", async () => {
