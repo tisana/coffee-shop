@@ -100,7 +100,7 @@ describe("DailyActivityPage", () => {
     expect(getOrderHistory).toHaveBeenCalledWith({});
   });
 
-  it("reloads history with the selected date and status filters", async () => {
+  it("reloads current-day history with daily order number, status, and pickup name filters", async () => {
     render(<DailyActivityPage />);
 
     const page = screen.getByRole("region", { name: "Daily activity" });
