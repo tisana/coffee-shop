@@ -45,6 +45,19 @@ const latte: MenuItem = {
   customizationGroups: [],
 };
 
+const americano: MenuItem = {
+  id: "americano",
+  categoryId: "coffee",
+  name: "Americano",
+  description: "Espresso and hot water.",
+  imageUrl: null,
+  price: "3.75",
+  available: true,
+  active: true,
+  displayOrder: 2,
+  customizationGroups: [],
+};
+
 const retiredMocha: MenuItem = {
   id: "retired-mocha",
   categoryId: "coffee",
@@ -144,24 +157,27 @@ describe("MenuMaintenancePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("selects an item, edits it, and sends the exact update payload", async () => {
+  it("selects another item, edits it, and sends the exact update payload", async () => {
     const input = menuItemInput();
     const updatedItem: MenuItem = {
-      ...latte,
-      categoryId: input.categoryId ?? latte.categoryId,
-      name: input.name ?? latte.name,
+      ...americano,
+      categoryId: input.categoryId ?? americano.categoryId,
+      name: input.name ?? americano.name,
       description: input.description ?? null,
       imageUrl: input.imageUrl ?? null,
-      price: input.price ?? latte.price,
-      available: input.available ?? latte.available,
-      active: input.active ?? latte.active,
+      price: input.price ?? americano.price,
+      available: input.available ?? americano.available,
+      active: input.active ?? americano.active,
       customizationGroups: [],
     };
     vi.mocked(updateMenuItem).mockResolvedValue(updatedItem);
-    await renderLoadedPage();
+    await renderLoadedPage([latte, americano]);
 
-    fireEvent.click(screen.getByRole("button", { name: /Edit Latte/ }));
-    const editor = screen.getByRole("region", { name: "Latte editor" });
+    expect(
+      screen.getByRole("region", { name: "Latte editor" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Edit Americano/ }));
+    const editor = screen.getByRole("region", { name: "Americano editor" });
     fireEvent.change(within(editor).getByLabelText("Item name"), {
       target: { value: input.name },
     });
@@ -180,7 +196,7 @@ describe("MenuMaintenancePage", () => {
     );
 
     await waitFor(() => {
-      expect(updateMenuItem).toHaveBeenCalledWith("latte", input);
+      expect(updateMenuItem).toHaveBeenCalledWith("americano", input);
     });
     expect(
       await screen.findByText(
