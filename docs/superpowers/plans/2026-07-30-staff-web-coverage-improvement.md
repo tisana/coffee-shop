@@ -538,7 +538,7 @@ git commit -m "test(staff-web): cover brew queue workflow"
 
 - [ ] **Step 1: Test `MenuItemEditor`**
 
-Cover create/edit initialization, field updates, category selection, numeric parsing, validation, save payload, cancel, and pending state.
+Cover create/edit initialization, field updates, category selection, the numeric input behavior exposed by the current decimal-string contract, save payload, the existing delete-cancel flow, and pending state. Do not add production validation, numeric coercion, or a general editor-cancel API for this test-backfill task.
 
 - [ ] **Step 2: Test `CustomizationTemplateManager`**
 
@@ -552,7 +552,7 @@ Reset `localStorage` before every test.
 
 - [ ] **Step 3: Test `CustomizationGroupEditor`**
 
-Cover name/type/required fields, adding/editing/removing options, validation, emitted group shape, cancel, and disabled state.
+Cover the current public group-name, min/max, required, and active fields, adding/editing/removing options, and the emitted group shape. The current component exposes no type field, validation, cancel callback, or disabled prop; do not add production behavior solely to create those controls in this test-backfill task.
 
 - [ ] **Step 4: Verify**
 
