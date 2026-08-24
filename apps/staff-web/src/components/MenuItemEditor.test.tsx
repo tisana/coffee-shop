@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { MenuCategory, MenuItem } from "@coffee-shop/shared/domain/types";
@@ -77,6 +77,18 @@ const template: CustomizationTemplate = {
   ],
 };
 
+function getMenuItemPriceField() {
+  const itemFields = screen
+    .getByRole("region", { name: "Latte editor" })
+    .querySelector(".menu-item-fields-grid");
+
+  if (!(itemFields instanceof HTMLElement)) {
+    throw new Error("Menu item fields were not rendered.");
+  }
+
+  return within(itemFields).getByRole("textbox", { name: "Price" });
+}
+
 describe("MenuItemEditor", () => {
   it("initializes an existing item with its fields and image preview", () => {
     render(
@@ -94,7 +106,7 @@ describe("MenuItemEditor", () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Category")).toHaveValue("coffee");
     expect(screen.getByLabelText("Item name")).toHaveValue("Latte");
-    expect(screen.getAllByLabelText("Price")[0]).toHaveValue("4.50");
+    expect(getMenuItemPriceField()).toHaveValue("4.50");
     expect(screen.getByLabelText("Description")).toHaveValue(
       "Espresso and milk",
     );
@@ -125,7 +137,7 @@ describe("MenuItemEditor", () => {
     fireEvent.change(screen.getByLabelText("Item name"), {
       target: { value: "Iced latte" },
     });
-    fireEvent.change(screen.getAllByLabelText("Price")[0]!, {
+    fireEvent.change(getMenuItemPriceField(), {
       target: { value: "5.25" },
     });
     fireEvent.change(screen.getByLabelText("Description"), {
