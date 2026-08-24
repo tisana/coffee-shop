@@ -16,17 +16,12 @@ import {
 } from "../test/loyaltyTestData";
 import {
   createLoyaltyCustomer,
-  createLoyaltyReward,
   getLoyaltyEarningRule,
   getLoyaltyExpirationPolicy,
   getLoyaltyPhoneRegion,
   getLoyaltyPoints,
   getLoyaltyRewards,
-  replaceLoyaltyEarningRule,
-  replaceLoyaltyExpirationPolicy,
   searchLoyaltyCustomers,
-  updateLoyaltyCustomer,
-  updateLoyaltyReward,
 } from "../services/loyaltyApi";
 import { LoyaltyPage } from "./LoyaltyPage";
 
