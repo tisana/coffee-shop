@@ -37,7 +37,7 @@
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.1.8",
     "concurrently": "^10.0.4",
-    "eslint": "^9.0.0",
+    "eslint": "^10.9.1",
     "globals": "^15.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.8.0",
