@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 
 import { createOrderForStaff } from "../../src/domain/orderCreationService";
@@ -16,6 +16,17 @@ import { cleanupLoyaltyFixtureData, createTestMenuFixture, createTestStaff } fro
 import { currentBusinessDate } from "../../src/domain/businessDate";
 
 describe("loyalty order lifecycle", () => {
+  beforeEach(() => {
+    // Keep dated point buckets valid without freezing database/network timers.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-07-15T12:00:00.000Z"));
+    vi.stubEnv("SHOP_TIME_ZONE", "UTC");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
   afterEach(cleanupLoyaltyFixtureData);
 
   it("associates a customer at creation, earns once on completion, and reverses once on cancellation", async () => {

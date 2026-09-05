@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createLoyaltyCustomer } from "../../src/domain/loyaltyCustomerService";
 import { getLoyaltyPoints, materializeExpiredPoints, redeemPoints, returnRedeemedPoints } from "../../src/domain/loyaltyLedgerService";
@@ -7,6 +7,17 @@ import { withTransaction } from "../../src/storage/db";
 import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
 
 describe("loyalty point ledger", () => {
+  beforeEach(() => {
+    // Keep dated point buckets valid without freezing database/network timers.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-07-15T12:00:00.000Z"));
+    vi.stubEnv("SHOP_TIME_ZONE", "UTC");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
   afterEach(cleanupLoyaltyFixtureData);
 
   it("returns zero balances and readable empty history for a newly registered customer", async () => {
@@ -53,7 +64,9 @@ describe("loyalty point ledger", () => {
       await redeemPoints(tx, customer.id, null, 2, "Redeem before cutoff.");
     });
 
-    await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-10-31"));
+    vi.setSystemTime(new Date("2026-10-31T12:00:00.000Z"));
+    await expect(getLoyaltyPoints(customer.id)).resolves.toMatchObject({ summary: { available: 3, expired: 0 } });
+    vi.setSystemTime(new Date("2026-11-01T12:00:00.000Z"));
     await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-11-01"));
     await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-11-01"));
 
@@ -70,6 +83,7 @@ describe("loyalty point ledger", () => {
       return redeemPoints(tx, customer.id, null, 2, "Redeem before cutoff.");
     });
 
+    vi.setSystemTime(new Date("2026-11-01T12:00:00.000Z"));
     await withTransaction((tx) => returnRedeemedPoints(tx, customer.id, debitId, null, "Reward returned after cutoff."));
     await withTransaction((tx) => materializeExpiredPoints(tx, customer.id, "2026-11-01"));
     const points = await getLoyaltyPoints(customer.id);

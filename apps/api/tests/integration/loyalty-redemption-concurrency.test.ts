@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createLoyaltyCustomer } from "../../src/domain/loyaltyCustomerService";
 import { getLoyaltyPoints, redeemPoints } from "../../src/domain/loyaltyLedgerService";
@@ -7,6 +7,17 @@ import { loyaltyPointLedgerEntries } from "../../src/storage/schema";
 import { cleanupLoyaltyFixtureData } from "./testFixtures";
 
 describe("loyalty redemption concurrency", () => {
+  beforeEach(() => {
+    // Keep dated point buckets valid without freezing database/network timers.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-07-15T12:00:00.000Z"));
+    vi.stubEnv("SHOP_TIME_ZONE", "UTC");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
   afterEach(cleanupLoyaltyFixtureData);
 
   it("serializes simultaneous redemptions for one customer and prevents overspending", async () => {
