@@ -151,7 +151,7 @@ export default defineConfig({
 
 - [x] Seed the disposable database and verify live invalid login, login, customer enrollment and edit, and sales reports.
 - [x] Complete the live API smoke flow against a disposable PostgreSQL database. Edited a menu item, enrolled and edited a customer, configured an earning rule and reward, completed a paid order, redeemed the reward on a second order, completed it, and checked the balance, history, and reports. Also verified login and the validation error envelope.
-- [ ] Require the existing CI validation job to pass on the candidate commit. It provides PostgreSQL 17, ordinary `npm ci`, coverage, build, and Chromium tests. Its isolated runner can use the existing browser configuration.
+- [x] Verify the existing CI validation job on candidate commit `3a9eec7`. GitHub Actions run 44094315623 passed PostgreSQL migrations, `npm ci`, lint, typecheck, coverage, build, Chromium end-to-end tests, and CodeQL.
 
 **Completion evidence** — Successful ordinary install, dependency graph, typecheck, lint, coverage, build, browser tests, live smoke check, and CI results for the candidate commit.
 
@@ -161,7 +161,7 @@ The user confirmed that the project is not live in production. Deployment, relea
 
 - [x] Review the final diff and keep dependency/source changes in one revertible upgrade commit, `6840665`, based on `4c6eb154008fc5e25a864200838977f79084d50b`.
 - [x] Record the final compatibility decisions.
-- [ ] Complete PR CI verification.
+- [x] Complete PR CI verification on candidate commit `3a9eec7`.
 - [x] Stop the assessment's dev processes, remove the dedicated disposable container and temporary Playwright config. Database environment values were scoped to the relevant command processes.
 
 **PR verification** — Compatibility review and live smoke checks are complete. The PR CI checks must pass.
