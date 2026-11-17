@@ -150,7 +150,7 @@ export default defineConfig({
 ```
 
 - [x] Seed the disposable database and verify live invalid login, login, customer enrollment and edit, and sales reports.
-- [ ] Finish the live API smoke flow against a disposable database. Edit a menu item, configure an earning rule and reward, complete a paid order, redeem the reward on a second order, complete it, and inspect points/history. Database-backed automated tests covered these order and reward lifecycles.
+- [x] Complete the live API smoke flow against a disposable PostgreSQL database. Edited a menu item, enrolled and edited a customer, configured an earning rule and reward, completed a paid order, redeemed the reward on a second order, completed it, and checked the balance, history, and reports. Also verified login and the validation error envelope.
 - [ ] Require the existing CI validation job to pass on the candidate commit. It provides PostgreSQL 17, ordinary `npm ci`, coverage, build, and Chromium tests. Its isolated runner can use the existing browser configuration.
 
 **Completion evidence** — Successful ordinary install, dependency graph, typecheck, lint, coverage, build, browser tests, live smoke check, and CI results for the candidate commit.
