@@ -1,24 +1,16 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 -> 1.1.0
+Version change: 1.1.0 -> 1.2.0
 Modified principles:
-- V. Incremental, Spec-Driven Delivery -> V. Incremental, Spec-Driven Delivery
+- VII. Test-First, Risk-Based Quality: added new-code coverage and non-regression obligations
 Added sections:
-- VI. Simple, Necessary Design
-- VII. Test-First, Risk-Based Quality
+- Coverage Acceptance Gate (within Development Workflow and Quality Gates)
 Removed sections:
 - None
-Templates requiring updates:
-- .specify/templates/plan-template.md: updated
-- .specify/templates/spec-template.md: updated
-- .specify/templates/tasks-template.md: updated
-- .specify/templates/commands/*.md: not present in this repo
-- README.md: reviewed, no change required
-- apps/api/README.md: reviewed, no change required
-- apps/staff-web/README.md: reviewed, no change required
-- AGENTS.md: reviewed, no change required
-- specs/002-sales-report-dashboard/plan.md: updated
-- specs/002-sales-report-dashboard/tasks.md: updated
+Dependent guidance:
+- Templates and commands consume the constitution at runtime; no template edits made.
+- Existing runner thresholds are lower than the protected baseline in some metrics;
+  passing those thresholds alone does not demonstrate compliance with this amendment.
 Follow-up TODOs:
 - None
 -->
@@ -115,9 +107,23 @@ risk. High-risk areas include authorization, queue concurrency, order state
 transitions, business-date boundaries, purchased-detail preservation, report
 aggregation, sorting, filtering, and graph/table parity.
 
+New executable code MUST achieve at least 80% coverage for each applicable
+metric: statements, branches, functions, and lines. This project minimum applies
+to added or modified executable code in each affected workspace, including code
+added to existing files. Existing well-covered code MUST NOT mask insufficient
+coverage of new code. A metric with no measurable items is not applicable and
+MUST be reported with its zero denominator.
+
+Existing coverage MUST NOT decrease for any of these metrics in any workspace.
+The protected baseline MUST ratchet upward as accepted changes increase coverage;
+neither a repository-wide average nor a gain in another metric or workspace may
+offset a regression. Coverage percentages MUST support meaningful behavioral
+assertions and MUST NOT replace the risk-based tests required above.
+
 Rationale: test-first development keeps implementation honest, while a
 risk-based pyramid gives strong confidence without creating a slow or brittle
-suite.
+suite. A measurable new-code floor and a rising baseline prevent untested growth
+and erosion of existing protection.
 
 ## Product Scope and Constraints
 
@@ -169,6 +175,52 @@ Constitution Check, generated tasks, and implemented behavior MUST agree with
 one another. Validation evidence SHOULD include the lightest reliable command
 or manual flow that proves the changed behavior.
 
+### Coverage Acceptance Gate
+
+The initial protected baseline is the last successful full `npm test` coverage
+run verified on 2026-09-05:
+
+| Workspace | Statements | Branches | Functions | Lines |
+|-----------|-----------:|---------:|----------:|------:|
+| API (`apps/api`) | 78.76% | 69.66% | 81.47% | 80.01% |
+| Staff web (`apps/staff-web`) | 86.95% | 76.30% | 87.61% | 89.44% |
+| Shared (`packages/shared`) | 83.33% | N/A (0/0) | 50.00% | 83.33% |
+
+The shared runner displayed 100% branches for zero measurable branches; this is
+not evidence of exercised branches. Any newly introduced branches MUST meet the
+80% new-code minimum. Existing metrics below 80% retain their protected baseline;
+the 80% minimum still applies to new code independently.
+
+For every change to executable code, acceptance evidence MUST include:
+
+- A successful full workspace coverage run through `npm test` or the equivalent
+  sequential workspace coverage commands, with reports for API, staff web, and
+  shared. Failed or incomplete runs MUST NOT establish or lower a baseline.
+- Coverage of added or modified executable code relative to the target branch,
+  demonstrating at least 80% for each applicable metric in each affected
+  workspace. A whole-file or workspace total alone is insufficient evidence for
+  changed code; no executable changes means this check is not applicable.
+- A comparison of each workspace metric against the greater of the initial
+  baseline above and the latest accepted target-branch baseline. Reports MUST
+  record the compared revisions, commands, coverage scope, and covered/total
+  counts. Compare unrounded ratios when counts are available; rounding MUST NOT
+  hide a regression. Record increased baselines with the accepted change.
+
+Measurements MUST use comparable instrumentation and source inclusion rules.
+Executable source MUST NOT be excluded, tests disabled, or thresholds lowered
+to obtain a passing result. Tooling or legitimate scope changes MUST document
+their effect and provide comparable before/after evidence; they MUST NOT silently
+reset the protected baseline. Playwright journey results remain separate from
+Vitest coverage unless instrumented coverage is explicitly collected and merged
+consistently for both compared revisions.
+
+Plans, tasks, and reviews MUST include both the new-code floor and workspace
+non-regression checks. Automated acceptance gates MUST reject violations; until
+the tooling enforces both checks, reviewers MUST require explicit report-based
+evidence before accepting executable changes. Passing older configured thresholds
+alone is insufficient. Documentation-only amendments require document validation
+and do not require a fresh executable-code coverage measurement.
+
 ## Governance
 
 This constitution supersedes conflicting local practice for the Coffee Shop
@@ -187,4 +239,4 @@ governance. Last amended date MUST change whenever the constitution content
 changes. The current active feature branch and AGENTS.md guidance MUST continue
 to point contributors toward the current plan once planning artifacts exist.
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-06-29
+**Version**: 1.2.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-09-10
