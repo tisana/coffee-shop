@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, Request, Response } from "express";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 export class ApiError extends Error {
   constructor(
@@ -69,7 +69,7 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
   }
 
   if (error instanceof ZodError) {
-    sendApiError(response, badRequest("Request validation failed.", error.flatten()));
+    sendApiError(response, badRequest("Request validation failed.", z.flattenError(error)));
     return;
   }
 
