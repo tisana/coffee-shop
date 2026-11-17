@@ -157,15 +157,14 @@ export default defineConfig({
 
 ## Task 5 — Release and rollback
 
+The user confirmed that the project is not live in production. Deployment, release, and rollback tasks are skipped for this upgrade. CI validation remains required for the pull request.
+
 - [x] Review the final diff and keep dependency/source changes in one revertible upgrade commit, `6840665`, based on `4c6eb154008fc5e25a864200838977f79084d50b`.
 - [x] Record the final compatibility decisions.
-- [ ] Complete the remaining verification before release.
-- [ ] Before deployment, record the current deployment's immutable artifact identifier and confirm how to restore it in the actual deployment environment. Build the candidate from its committed lockfile.
-- [ ] Release through the project's normal approved process. Check login, customer edits, order creation, reward use, and reports immediately. Inspect validation 400s and unexpected 500s for candidate-specific failures during a representative staff workflow.
-- [ ] Roll back if ordinary staff actions regress, previously supported required data is rejected, or validation failures become unexpected 500s. Redeploy the recorded previous artifact. For source rollback, revert the upgrade commit, run `npm.cmd ci`, rebuild, and verify health plus a staff workflow. Review any conflicts before applying the revert.
+- [ ] Complete PR CI verification.
 - [x] Stop the assessment's dev processes, remove the dedicated disposable container and temporary Playwright config. Database environment values were scoped to the relevant command processes.
 
-**Release gate** — Compatibility inventory resolved, candidate checks green, recoverable previous artifact recorded, and a live smoke check completed. A database schema rollback is unnecessary for the planned dependency and validation changes.
+**PR verification** — Compatibility review and live smoke checks are complete. The PR CI checks must pass.
 
 ## References
 
