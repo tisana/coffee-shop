@@ -20,6 +20,19 @@ describe("Express app foundation", () => {
     expect(response.body).toEqual({ ok: true });
   });
 
+  it("returns the validation error envelope for invalid login fields", async () => {
+    const agent = request.agent(createApp());
+    const csrfToken = await getCsrfToken(agent);
+    const response = await agent.post("/auth/login").set("X-CSRF-Token", csrfToken).send({ username: "", password: "" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      code: "BAD_REQUEST",
+      message: "Request validation failed.",
+      details: { formErrors: [], fieldErrors: { username: [expect.any(String)], password: [expect.any(String)] } }
+    });
+  });
+
   it("returns an auth error for a protected staff session route without a cookie", async () => {
     const response = await request(createApp()).get("/staff/session");
 

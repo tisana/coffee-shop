@@ -16,9 +16,6 @@
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage"
   },
-  "dependencies": {
-    "zod": "^3.23.0"
-  },
   "devDependencies": {
     "vitest": "^4.1.8"
   }
