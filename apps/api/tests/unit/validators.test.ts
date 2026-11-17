@@ -9,6 +9,7 @@ import {
   loginRequestSchema,
   menuItemInputSchema,
   menuItemUpdateInputSchema,
+  orderIdParamsSchema,
   reportOrdersQuerySchema,
   reportSalesQuerySchema
 } from "../../src/routes/validators";
@@ -54,6 +55,33 @@ describe("route validators", () => {
       expect(createOrderRequestSchema.safeParse({ beverages: [{ menuItemId, quantity }] }).success).toBe(false);
     }
     expect(createOrderRequestSchema.safeParse({ beverages: [{ menuItemId: "invalid", quantity: 1 }] }).success).toBe(false);
+  });
+
+  it("rejects quantities beyond JavaScript's safe integer range", () => {
+    const result = createOrderRequestSchema.safeParse({
+      beverages: [{ menuItemId, quantity: "9007199254740992" }]
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects UUID-shaped identifiers with invalid variant bits", () => {
+    expect(orderIdParamsSchema.safeParse({ orderId: "11111111-1111-1111-1111-111111111111" }).success).toBe(false);
+    expect(orderIdParamsSchema.parse({ orderId: menuItemId })).toEqual({ orderId: menuItemId });
+  });
+
+  it("reports the path of an invalid nested beverage field", () => {
+    const result = createOrderRequestSchema.safeParse({
+      beverages: [{ menuItemId, quantity: 1, selectedCustomizations: [{ customizationGroupId: "invalid", customizationChoiceIds: [] }] }]
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.path)).toEqual(expect.arrayContaining([
+        ["beverages", 0, "selectedCustomizations", 0, "customizationGroupId"],
+        ["beverages", 0, "selectedCustomizations", 0, "customizationChoiceIds"]
+      ]));
+    }
   });
   it("accepts valid login and rejects empty credentials", () => {
     expect(loginRequestSchema.parse({ username: "sam", password: "secret" })).toEqual({

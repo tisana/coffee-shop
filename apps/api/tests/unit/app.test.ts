@@ -1,7 +1,10 @@
 import request from "supertest";
+import express from "express";
 import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../src/app";
+import { errorHandler } from "../../src/routes/errors";
+import { createOrderRequestSchema } from "../../src/routes/validators";
 
 describe("Express app foundation", () => {
   async function getCsrfToken(agent: ReturnType<typeof request.agent>): Promise<string> {
@@ -30,6 +33,23 @@ describe("Express app foundation", () => {
       code: "BAD_REQUEST",
       message: "Request validation failed.",
       details: { formErrors: [], fieldErrors: { username: [expect.any(String)], password: [expect.any(String)] } }
+    });
+  });
+
+  it("flattens nested beverage validation issues under the top-level field", async () => {
+    const app = express();
+    app.use(express.json());
+    app.post("/orders", (request, response) => {
+      createOrderRequestSchema.parse(request.body);
+      response.sendStatus(204);
+    });
+    app.use(errorHandler);
+
+    const response = await request(app).post("/orders").send({ beverages: [{ menuItemId: "invalid", quantity: 1 }] });
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      code: "BAD_REQUEST",
+      details: { formErrors: [], fieldErrors: { beverages: [expect.any(String)] } }
     });
   });
 
